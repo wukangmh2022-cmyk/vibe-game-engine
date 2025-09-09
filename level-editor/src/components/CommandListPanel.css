@@ -1,0 +1,724 @@
+.command-list-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+}
+
+.panel-header {
+  height: 50px; /* 减小高度 */
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px; /* 减小内边距 */
+  flex-wrap: wrap;
+  gap: 6px; /* 减小间距 */
+  position: sticky; /* 固定头部 */
+  top: 0;
+  z-index: 10;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.add-command-btn {
+  background: #28a745;
+  color: white;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.add-command-btn:hover {
+  background: #218838;
+}
+
+.command-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 8px 8px 8px; /* 上部少一些边距，避免与按钮重叠 */
+  min-height: 0;
+  height: calc(100% - 50px); /* 减去头部高度 */
+  position: relative;
+  overscroll-behavior: contain;
+}
+
+.commands-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  min-height: min-content;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.command-wrapper {
+  position: relative;
+}
+
+.command-item {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+  position: relative;
+  margin-bottom: 3px;
+}
+
+.command-item.compact {
+  padding: 4px 6px;
+  margin-bottom: 2px;
+  border-left: 3px solid #74c0fc;
+  min-height: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  transition: margin-left 0.3s;
+  background: #ffffff; /* 使用纯白色背景，去掉渐变色 */
+  border: 1px solid #e9ecef; /* 简单的边框 */
+}
+
+.command-item.branch-command::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e0e0e0;
+}
+
+.command-item.branch-command::after {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  width: 18px;
+  height: 2px;
+  background: #e0e0e0;
+}
+
+/* 响应式嵌套指令样式 - 确保子指令随父容器调整 */
+.command-list {
+  /* 确保指令列表容器能正确响应父容器大小变化 */
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.commands-grid {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.command-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.command-item {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.command-main {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.command-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+/* 确保嵌套指令能正确换行和响应 */
+.command-title {
+  width: calc(100% - 40px) !important;
+  max-width: calc(100% - 40px) !important;
+  box-sizing: border-box;
+}
+
+.command-params-preview {
+  width: calc(100% - 40px) !important;
+  max-width: calc(100% - 40px) !important;
+  box-sizing: border-box;
+}
+
+/* 响应式margin-left - 根据父容器宽度调整嵌套层级 */
+@media (max-width: 400px) {
+  .command-item {
+    margin-left: calc(var(--depth, 0) * 15px) !important;
+  }
+  
+  .command-item.branch-command::before {
+    left: calc(-1px - var(--depth, 0) * 15px) !important;
+  }
+  
+  .command-item.branch-command::after {
+    left: calc(-1px - var(--depth, 0) * 15px) !important;
+    width: calc(13px + var(--depth, 0) * 15px) !important;
+  }
+}
+
+@media (max-width: 300px) {
+  .command-item {
+    margin-left: calc(var(--depth, 0) * 10px) !important;
+  }
+  
+  .command-item.branch-command::before {
+    left: calc(-1px - var(--depth, 0) * 10px) !important;
+  }
+  
+  .command-item.branch-command::after {
+    left: calc(--1px - var(--depth, 0) * 10px) !important;
+    width: calc(8px + var(--depth, 0) * 10px) !important;
+  }
+  
+  .command-title {
+    width: calc(100% - 30px) !important;
+    max-width: calc(100% - 30px) !important;
+  }
+  
+  .command-params-preview {
+    width: calc(100% - 30px) !important;
+    max-width: calc(100% - 30px) !important;
+  }
+}
+
+/* 事件组标题样式 */
+.command-item[data-type="event_group"] {
+  background: #f5f5f5;
+  border-left: 3px solid #9c27b0;
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.command-item.event-group {
+  background: #f0f0f0;
+  border-left: 3px solid #8e44ad;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  font-weight: bold;
+  color: #6c5ce7;
+}
+
+.command-main {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-height: 28px;
+}
+
+.command-icon-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 35px;
+  flex-shrink: 0;
+}
+
+.command-icon {
+  font-size: 12px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.command-index {
+  font-size: 8px;
+  color: #666;
+  font-weight: bold;
+  background: #e9ecef;
+  padding: 1px 2px;
+  border-radius: 2px;
+  min-width: 14px;
+  text-align: center;
+}
+
+.command-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.command-title {
+  font-size: 10px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.command-params-preview {
+  font-size: 8px;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+  opacity: 0.8;
+}
+
+.command-item:hover {
+  border-color: #74c0fc;
+  box-shadow: 0 2px 4px rgba(116,192,252,0.15);
+  background: #fff;
+}
+
+.command-item.selected {
+  border-color: #74c0fc;
+  background: #e3f2fd;
+  box-shadow: 0 2px 8px rgba(116,192,252,0.25);
+}
+
+.command-item.dragging {
+  opacity: 0.5;
+  transform: rotate(2deg);
+}
+
+.command-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 4px;
+}
+
+.command-type {
+  font-weight: 600;
+  color: #495057;
+  font-size: 11px;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.command-index {
+  background: #e9ecef;
+  color: #6c757d;
+  padding: 1px 4px;
+  border-radius: 2px;
+  font-size: 9px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.command-params {
+  color: #6c757d;
+  font-size: 10px;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.command-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 1;
+}
+
+.command-item:hover .command-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  font-size: 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background: #495057;
+}
+
+.action-btn.delete {
+  background: #dc3545;
+}
+
+.action-btn.delete:hover {
+  background: #c82333;
+}
+
+.drag-handle {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  color: #adb5bd;
+  font-size: 6px;
+  cursor: grab;
+  user-select: none;
+  opacity: 0.3;
+}
+
+.command-item:hover .drag-handle {
+  opacity: 1;
+}
+
+.command-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.command-item:hover .command-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  padding: 2px 6px;
+  font-size: 10px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: #f8f9fa;
+  border-color: #007bff;
+}
+
+.action-btn.edit {
+  color: #007bff;
+}
+
+.action-btn.delete {
+  color: #dc3545;
+}
+
+.action-btn.copy {
+  color: #28a745;
+}
+
+.action-btn.paste {
+  color: #ffc107;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.empty-state p {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+}
+
+/* 响应式布局 */
+@media (max-width: 600px) {
+  .command-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1200px) {
+  .command-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* 拖拽占位符 */
+.drop-placeholder {
+  height: 2px;
+  background: #007bff;
+  margin: 4px 0;
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.drop-placeholder.active {
+  opacity: 1;
+}
+
+/* 指令选择器样式 */
+.add-command-container {
+  position: relative;
+}
+
+.command-selector {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selector-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.selector-menu {
+  position: relative;
+  background: #f8f9fa;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, sans-serif;
+  font-size: 11px;
+}
+
+.command-categories {
+  padding: 4px;
+  overflow-y: auto;
+  max-height: calc(80vh - 32px);
+  background: #f0f0f0;
+}
+
+
+/* 极度简化版本 - 配色与主体彩色风格一致 */
+.command-commands {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 4px;
+  background: #f5f5f5;
+  padding: 8px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.command-type-btn {
+  background: none;
+  border: none;
+  padding: 5px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.command-type-btn:hover {
+  background: rgba(74, 144, 226, 0.1);
+}
+
+.type-name {
+  color: #333;
+}
+
+.type-description {
+  display: none;
+}
+
+/* 添加selector-header样式 */
+.selector-header {
+  background: #c0c0c0;
+  border-bottom: 1px solid #808080;
+  padding: 6px 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+  font-size: 11px;
+  color: #000;
+}
+
+.selector-header h4 {
+  margin: 0;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.close-btn {
+  background: #c0c0c0;
+  border: 1px outset #c0c0c0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: bold;
+  color: #000;
+  font-family: 'MS Sans Serif', sans-serif;
+}
+
+.close-btn:hover {
+  background: #e0e0e0;
+  border: 1px outset #e0e0e0;
+}
+
+.close-btn:active {
+  border: 1px inset #c0c0c0;
+  background: #a0a0a0;
+}
+
+/* 内联添加按钮样式 */
+.add-button-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px 0 8px calc(40px + var(--depth, 0) * 20px);
+  box-sizing: border-box;
+}
+
+.add-button-inline {
+  background: #28a745;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+.add-button-inline:hover {
+  background: #218838;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.add-button-inline:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 4px rgba(40, 167, 69, 0.3);
+}
+
+/* 简化的头部样式 */
+.panel-header {
+  height: 40px; /* 减小高度 */
+  background: #fff;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px; /* 减小内边距 */
+  flex-wrap: wrap;
+  gap: 6px; /* 减小间距 */
+  position: sticky; /* 固定头部 */
+  top: 0;
+  z-index: 10;
+}
+
+/* 响应式嵌套指令 - 确保子指令随父容器变化 */
+.command-item {
+  transition: margin-left 0.3s ease;
+}
+
+/* 当父容器很小时，减少嵌套缩进 */
+@media (max-width: 350px) {
+  .command-item {
+    margin-left: calc(15px * var(--depth, 0)) !important;
+  }
+  
+  /* 强制所有深度的指令都响应 */
+  .command-item[style*="marginLeft"] {
+    margin-left: calc(15px * var(--depth, 0)) !important;
+  }
+}
+
+/* 强制所有指令容器响应父容器大小 */
+.command-list,
+.command-list > *,
+.commands-grid,
+.commands-grid > *,
+.command-wrapper,
+.command-wrapper > *,
+.command-item,
+.command-item > *,
+.command-main,
+.command-main > *,
+.command-content,
+.command-content > * {
+  max-width: 100% !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: break-word !important;
+}
+
+/* 特殊处理指令内容区域 */
+.command-title,
+.command-params-preview {
+  max-width: calc(100% - 40px) !important;
+  width: calc(100% - 40px) !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 350px) {
+  .command-title,
+  .command-params-preview {
+    max-width: calc(100% - 30px) !important;
+    width: calc(100% - 30px) !important;
+  }
+}

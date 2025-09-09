@@ -1,0 +1,265 @@
+import React, { useState, useEffect } from 'react';
+import { EditorState, LevelConfig, GameCommand, GameProject, CommandType } from './types';
+import { CommandListPanel } from './components/CommandListPanel';
+import { PixiCanvas } from './components/PixiCanvas';
+import { TopStatusBar } from './components/TopStatusBar';
+import './App.css';
+
+interface AppState {
+  currentProject: GameProject | null;
+  currentLevelId: string;
+  selectedCommandIndex: number;
+  isPlaying: boolean;
+}
+
+const App: React.FC = () => {
+  const [appState, setAppState] = useState<AppState>({
+    currentProject: {
+      id: 'default-game',
+      name: '默认游戏',
+      version: '1.0.0',
+      levels: [{
+        id: 'level1',
+        name: '关卡1',
+        commands: [],
+        resources: []
+      }],
+      globalVariables: {},
+      resources: []
+    },
+    currentLevelId: 'level1',
+    selectedCommandIndex: -1,
+    isPlaying: false
+  });
+
+  const currentLevel = appState.currentProject?.levels.find(l => l.id === appState.currentLevelId) || appState.currentProject?.levels[0];
+
+  const handleCommandsChange = (commands: GameCommand[]) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const updatedLevels = prev.currentProject.levels.map(level => 
+        level.id === prev.currentLevelId ? { ...level, commands } : level
+      );
+      return {
+        ...prev,
+        currentProject: {
+          ...prev.currentProject,
+          levels: updatedLevels
+        }
+      };
+    });
+  };
+
+  const handleCommandSelect = (index: number) => {
+    setAppState(prev => ({
+      ...prev,
+      selectedCommandIndex: index
+    }));
+  };
+
+  const handleLevelChange = (levelId: string) => {
+    setAppState(prev => ({
+      ...prev,
+      currentLevelId: levelId,
+      selectedCommandIndex: -1
+    }));
+  };
+
+  const handleLoadJson = (gameData: any) => {
+    if (gameData.levels && Array.isArray(gameData.levels)) {
+      // 首先构建资源映射
+      const resourceMap = new Map();
+      if (gameData.resources && Array.isArray(gameData.resources)) {
+        gameData.resources.forEach((resource: any) => {
+          resourceMap.set(resource.id, resource.url);
+        });
+      }
+
+      // 递归处理指令，包括事件和条件分支中的指令
+      const processCommand = (cmd: any, depth: number = 0, parentId?: string, groupName?: string): GameCommand => {
+        const parameters = { ...cmd.parameters };
+        let commandType = cmd.type.toLowerCase();
+        const id = cmd.id || `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+        // 处理图片资源
+        if (commandType === 'show_image' && parameters.resourceId) {
+          parameters.src = resourceMap.get(parameters.resourceId) || parameters.resourceId;
+        }
+
+        // 处理按钮转换
+        if (commandType === 'show_button') {
+          commandType = 'show_choices';
+          parameters.choices = [parameters.text];
+          parameters.title = parameters.text;
+        }
+
+        const command: GameCommand = {
+          id,
+          type: commandType as CommandType,
+          parameters,
+          enabled: cmd.enabled !== undefined ? cmd.enabled : true,
+          description: cmd.description || '',
+          parentId,
+          depth,
+          groupName,
+          children: []
+        };
+
+        // 处理if条件分支中的指令
+        if (commandType === 'if_condition') {
+          if (parameters.trueCommands) {
+            command.children = [
+              ...command.children,
+              ...parameters.trueCommands.map((c: any) => 
+                processCommand(c, depth + 1, id, '条件成立时')
+              )
+            ];
+          }
+          if (parameters.falseCommands) {
+            command.children = [
+              ...command.children,
+              ...parameters.falseCommands.map((c: any) => 
+                processCommand(c, depth + 1, id, '条件不成立时')
+              )
+            ];
+          }
+          delete parameters.trueCommands;
+          delete parameters.falseCommands;
+        }
+
+        return command;
+      };
+
+      const processEventCommands = (event: any, depth: number = 0): GameCommand[] => {
+        if (!event.commands || !Array.isArray(event.commands)) return [];
+
+        const eventGroup: GameCommand = {
+          id: event.id || `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          type: 'event_group' as any,
+          parameters: {
+            name: event.name,
+            trigger: event.triggers?.[0]?.condition?.expression || ''
+          },
+          description: `事件: ${event.name}`,
+          depth,
+          children: event.commands.map((cmd: any) => processCommand(cmd, depth + 1, event.id, event.name))
+        };
+
+        return [eventGroup];
+      };
+
+      // 处理所有指令并保持层级结构
+      const getAllCommands = (level: any): GameCommand[] => {
+        const commands: GameCommand[] = [];
+        
+        // 处理主指令列表
+        if (level.commands && Array.isArray(level.commands)) {
+          commands.push(...level.commands.map((cmd: any) => processCommand(cmd, 0)));
+        }
+        
+        // 处理事件列表
+        if (level.events && Array.isArray(level.events)) {
+          level.events.forEach((event: any) => {
+            commands.push(...processEventCommands(event));
+          });
+        }
+
+        // 展平树状结构，保持层级关系
+        const flattenedCommands: GameCommand[] = [];
+        const flatten = (cmd: GameCommand) => {
+          flattenedCommands.push(cmd);
+          if (cmd.children && cmd.children.length > 0) {
+            cmd.children.forEach(child => {
+              child.depth = (cmd.depth || 0) + 1;
+              child.parentId = cmd.id;
+              child.groupName = child.groupName || cmd.parameters?.name;
+              flatten(child);
+            });
+          }
+        };
+
+        commands.forEach(cmd => flatten(cmd));
+        return flattenedCommands;
+      };
+
+      const levels: LevelConfig[] = gameData.levels.map((level: any, index: number) => ({
+        id: level.id || `level${index + 1}`,
+        name: level.name || `关卡${index + 1}`,
+        commands: getAllCommands(level),
+        resources: level.resources || []
+      }));
+      
+      setAppState({
+        currentProject: {
+          id: gameData.gameId || 'loaded-game',
+          name: gameData.title || '加载的游戏',
+          version: '1.0.0',
+          levels,
+          globalVariables: gameData.globalVariables || {},
+          resources: gameData.resources || []
+        },
+        currentLevelId: levels[0]?.id || 'level1',
+        selectedCommandIndex: -1,
+        isPlaying: false
+      });
+    }
+  };
+
+  const handleSaveJson = () => {
+    if (!appState.currentProject) return;
+    
+    const gameData = {
+      gameId: appState.currentProject.id,
+      title: appState.currentProject.name,
+      levels: appState.currentProject.levels
+    };
+    
+    const dataStr = JSON.stringify(gameData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'game-data.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  if (!currentLevel) {
+    return <div>加载中...</div>;
+  }
+
+  return (
+    <div className="app">
+      <TopStatusBar
+        currentLevel={currentLevel}
+        levels={appState.currentProject?.levels || []}
+        onLevelChange={handleLevelChange}
+        onLoadJson={handleLoadJson}
+        onSaveJson={handleSaveJson}
+        isPlaying={appState.isPlaying}
+        onPlayToggle={(playing: boolean) => setAppState(prev => ({ ...prev, isPlaying: playing }))}
+      />
+      
+      <div className="editor-content">
+        <div className="left-panel">
+          <CommandListPanel
+            commands={currentLevel.commands}
+            selectedIndex={appState.selectedCommandIndex}
+            onCommandsChange={handleCommandsChange}
+            onCommandSelect={handleCommandSelect}
+          />
+        </div>
+        
+        <div className="right-panel">
+          <PixiCanvas
+            commands={currentLevel.commands}
+            selectedCommandIndex={appState.selectedCommandIndex}
+            isPlaying={appState.isPlaying}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;

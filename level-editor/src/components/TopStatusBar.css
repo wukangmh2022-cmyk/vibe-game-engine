@@ -1,0 +1,169 @@
+.top-status-bar {
+  height: 60px;
+  background: #2c3e50;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 2px solid #34495e;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.level-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-selector label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.level-selector select {
+  background: white;
+  color: #2c3e50;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.level-info {
+  font-size: 14px;
+  color: #bdc3c7;
+}
+
+.canvas-settings {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.canvas-settings label {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.canvas-size-inputs {
+  display: flex;
+  gap: 12px;
+}
+
+.size-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.size-input span {
+  font-size: 12px;
+  color: #bdc3c7;
+  min-width: 40px;
+}
+
+.size-input input {
+  width: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.size-input input:focus {
+  outline: none;
+  border-color: #3498db;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.size-input input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-center h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ecf0f1;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.play-button {
+  background: #27ae60;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.play-button:hover {
+  background: #2ecc71;
+  transform: translateY(-1px);
+}
+
+.play-button.playing {
+  background: #e74c3c;
+}
+
+.play-button.playing:hover {
+  background: #c0392b;
+}
+
+.load-button {
+  background: #3498db;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.load-button:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+}
+
+.save-button {
+  background: #9b59b6;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.save-button:hover {
+  background: #8e44ad;
+  transform: translateY(-1px);
+}
+
+.blueprint-button {
+  background: #16a085;
+  color: white;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.blueprint-button:hover {
+  background: #138871;
+  transform: translateY(-1px);
+}

@@ -1,0 +1,287 @@
+.improved-event-trigger-editor {
+  padding: 16px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  margin: 8px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.improved-event-trigger-editor h4 {
+  margin: 0 0 16px 0;
+  color: #495057;
+  font-size: 16px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.improved-event-trigger-editor h5 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #495057;
+  font-size: 14px;
+}
+
+.form-group select,
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.form-group select:focus,
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #74c0fc;
+  box-shadow: 0 0 0 3px rgba(116, 192, 252, 0.2);
+}
+
+.form-group textarea {
+  font-family: monospace;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.expression-hint {
+  margin-top: 6px;
+}
+
+.expression-hint p {
+  margin: 0;
+  font-size: 12px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.expression-preview {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.expression-preview h5 {
+  margin: 0 0 12px 0;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.expression-preview-content {
+  background-color: #f1f3f4;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #495057;
+  white-space: pre-wrap;
+  word-break: break-all;
+  min-height: 20px;
+}
+
+.editor-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.save-btn, .cancel-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.save-btn {
+  background: #28a745;
+  color: white;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cancel-btn:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 条件编辑器样式 */
+.conditions-editor {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.condition-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.condition-logic-select {
+  width: 80px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.condition-type-select {
+  width: 140px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.condition-editor {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.condition-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+}
+
+.condition-variable-select,
+.condition-switch-select {
+  width: 120px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.condition-operator-select {
+  width: 80px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.condition-value-input,
+.condition-switch-value-select {
+  width: 100px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.condition-value-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.condition-expression-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: monospace;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.condition-timer-input {
+  width: 120px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.remove-condition-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.remove-condition-btn:hover {
+  background: #c82333;
+}
+
+.add-condition-btn {
+  background: #17a2b8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.add-condition-btn:hover {
+  background: #138496;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .improved-event-trigger-editor {
+    padding: 12px;
+  }
+  
+  .editor-actions {
+    flex-direction: column;
+  }
+  
+  .save-btn, .cancel-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .condition-item {
+    flex-wrap: wrap;
+  }
+  
+  .condition-editor {
+    flex: 1 1 100%;
+    margin-top: 4px;
+  }
+}

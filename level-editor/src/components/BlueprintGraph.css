@@ -1,0 +1,160 @@
+.blueprint-graph-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.blueprint-graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  border-bottom: 1px solid #333;
+}
+
+.blueprint-graph-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #fff;
+}
+
+.blueprint-graph-header .close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.blueprint-graph-header .close-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.blueprint-graph-container {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: 
+    radial-gradient(circle at 20px 20px, #333 1px, transparent 1px),
+    radial-gradient(circle at 60px 60px, #333 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+  background-color: #1a1a1a;
+}
+
+.blueprint-graph-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.blueprint-graph-controls {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  border: 1px solid #333;
+}
+
+.blueprint-graph-controls span {
+  opacity: 0.8;
+}
+
+/* 节点样式增强 */
+.blueprint-graph-container rect {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  transition: filter 0.2s;
+}
+
+.blueprint-graph-container g:hover rect {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.blueprint-graph-container text {
+  user-select: none;
+  pointer-events: none;
+}
+
+.blueprint-graph-container line {
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.blueprint-graph-container g:hover ~ line {
+  opacity: 0.3;
+}
+
+.blueprint-graph-container circle {
+  transition: r 0.2s, fill 0.2s;
+}
+
+.blueprint-graph-container circle:hover {
+  r: 8;
+}
+
+/* 连接点颜色 */
+.blueprint-graph-container circle[fill="#4CAF50"] {
+  fill: #4CAF50;
+}
+
+.blueprint-graph-container circle[fill="#F44336"] {
+  fill: #F44336;
+}
+
+/* 滚动条样式 */
+.blueprint-graph-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.blueprint-graph-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.blueprint-graph-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.blueprint-graph-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .blueprint-graph-header {
+    padding: 10px 15px;
+  }
+  
+  .blueprint-graph-header h3 {
+    font-size: 16px;
+  }
+  
+  .blueprint-graph-controls {
+    font-size: 10px;
+    padding: 6px 10px;
+    gap: 10px;
+  }
+}

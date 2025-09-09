@@ -1,0 +1,26 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- 角色头部 -->
+  <circle cx="32" cy="20" r="12" fill="#ffdbac" stroke="#d4a574" stroke-width="2"/>
+  
+  <!-- 眼睛 -->
+  <circle cx="28" cy="18" r="2" fill="#333"/>
+  <circle cx="36" cy="18" r="2" fill="#333"/>
+  
+  <!-- 嘴巴 -->
+  <path d="M 28 24 Q 32 26 36 24" stroke="#333" stroke-width="1.5" fill="none"/>
+  
+  <!-- 身体 -->
+  <rect x="24" y="32" width="16" height="20" rx="8" fill="#4a90e2" stroke="#357abd" stroke-width="2"/>
+  
+  <!-- 手臂 -->
+  <circle cx="18" cy="38" r="4" fill="#ffdbac" stroke="#d4a574" stroke-width="2"/>
+  <circle cx="46" cy="38" r="4" fill="#ffdbac" stroke="#d4a574" stroke-width="2"/>
+  
+  <!-- 腿部 -->
+  <rect x="26" y="52" width="4" height="10" fill="#2c5aa0"/>
+  <rect x="34" y="52" width="4" height="10" fill="#2c5aa0"/>
+  
+  <!-- 脚 -->
+  <ellipse cx="28" cy="62" rx="3" ry="2" fill="#8b4513"/>
+  <ellipse cx="36" cy="62" rx="3" ry="2" fill="#8b4513"/>
+</svg>
