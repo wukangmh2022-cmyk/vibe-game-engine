@@ -1,0 +1,85 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <linearGradient id="caveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2F4F4F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="doorGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.3" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 洞穴背景 -->
+  <rect width="800" height="600" fill="url(#caveGradient)"/>
+  
+  <!-- 洞穴岩壁 -->
+  <path d="M0,0 Q200,50 400,100 Q600,80 800,120 L800,600 L0,600 Z" fill="#696969" opacity="0.8"/>
+  <path d="M0,100 Q150,120 300,150 Q500,140 700,180 Q750,200 800,250 L800,600 L0,600 Z" fill="#556B2F" opacity="0.6"/>
+  
+  <!-- 洞穴入口轮廓 -->
+  <ellipse cx="400" cy="350" rx="180" ry="120" fill="#1C1C1C"/>
+  <ellipse cx="400" cy="350" rx="170" ry="110" fill="#000000"/>
+  
+  <!-- 神秘之门 -->
+  <rect x="350" y="280" width="100" height="140" rx="10" ry="10" fill="#8B4513" stroke="#654321" stroke-width="3"/>
+  
+  <!-- 门上的装饰 -->
+  <rect x="360" y="290" width="80" height="120" rx="5" ry="5" fill="#A0522D"/>
+  
+  <!-- 门把手 -->
+  <circle cx="420" cy="350" r="8" fill="#FFD700" stroke="#B8860B" stroke-width="2"/>
+  
+  <!-- 锁孔 -->
+  <ellipse cx="420" cy="350" rx="3" ry="4" fill="#000000"/>
+  
+  <!-- 门上的符文 -->
+  <text x="400" y="320" text-anchor="middle" font-family="serif" font-size="16" fill="#8B0000">⚡</text>
+  <text x="380" y="340" text-anchor="middle" font-family="serif" font-size="12" fill="#8B0000">◊</text>
+  <text x="420" y="340" text-anchor="middle" font-family="serif" font-size="12" fill="#8B0000">◊</text>
+  <text x="400" y="380" text-anchor="middle" font-family="serif" font-size="16" fill="#8B0000">⚡</text>
+  
+  <!-- 魔法光芒 -->
+  <ellipse cx="400" cy="350" rx="200" ry="130" fill="url(#doorGlow)"/>
+  
+  <!-- 地面石块 -->
+  <ellipse cx="200" cy="500" rx="40" ry="20" fill="#708090"/>
+  <ellipse cx="600" cy="520" rx="35" ry="18" fill="#708090"/>
+  <ellipse cx="300" cy="480" rx="25" ry="12" fill="#708090"/>
+  <ellipse cx="500" cy="510" rx="30" ry="15" fill="#708090"/>
+  
+  <!-- 洞穴钟乳石 -->
+  <polygon points="100,0 110,80 90,80" fill="#696969"/>
+  <polygon points="250,0 265,100 235,100" fill="#696969"/>
+  <polygon points="550,0 570,90 530,90" fill="#696969"/>
+  <polygon points="700,0 720,70 680,70" fill="#696969"/>
+  
+  <!-- 神秘光点 -->
+  <circle cx="150" cy="200" r="2" fill="#00FFFF" opacity="0.8">
+    <animate attributeName="opacity" values="0.3;1;0.3" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="650" cy="180" r="2" fill="#00FFFF" opacity="0.8">
+    <animate attributeName="opacity" values="1;0.3;1" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="300" cy="150" r="1.5" fill="#00FFFF" opacity="0.8">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- 小鹿 (如果帮助了小鹿) -->
+  <g id="deer" opacity="0.7">
+    <!-- 鹿身体 -->
+    <ellipse cx="150" cy="450" rx="25" ry="15" fill="#D2691E"/>
+    <!-- 鹿头 -->
+    <ellipse cx="130" cy="440" rx="12" ry="10" fill="#D2691E"/>
+    <!-- 鹿腿 -->
+    <rect x="140" y="460" width="3" height="15" fill="#8B4513"/>
+    <rect x="150" y="460" width="3" height="15" fill="#8B4513"/>
+    <rect x="160" y="460" width="3" height="15" fill="#8B4513"/>
+    <rect x="170" y="460" width="3" height="15" fill="#8B4513"/>
+    <!-- 鹿角 -->
+    <path d="M125,435 L120,425 M125,435 L130,425 M135,435 L140,425 M135,435 L130,425" stroke="#8B4513" stroke-width="2" fill="none"/>
+    <!-- 鹿眼睛 -->
+    <circle cx="125" cy="440" r="1" fill="#000000"/>
+  </g>
+</svg>

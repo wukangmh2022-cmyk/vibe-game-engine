@@ -1,0 +1,184 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景渐变 -->
+  <defs>
+    <radialGradient id="victoryGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:0.8" />
+      <stop offset="50%" style="stop-color:#FFA500;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#FF4500;stop-opacity:0.1" />
+    </radialGradient>
+    <linearGradient id="defeatGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2F4F4F;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="starGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#FFFF00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFFF00;stop-opacity:0" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 胜利背景 -->
+  <g id="victoryBackground">
+    <rect width="800" height="600" fill="url(#victoryGlow)"/>
+    
+    <!-- 庆祝烟花 -->
+    <g id="fireworks">
+      <!-- 烟花1 -->
+      <g transform="translate(200,150)">
+        <circle r="3" fill="#FF69B4">
+          <animate attributeName="r" values="0;20;0" dur="2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="2" fill="#00FFFF">
+          <animate attributeName="r" values="0;15;0" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      
+      <!-- 烟花2 -->
+      <g transform="translate(600,120)">
+        <circle r="3" fill="#32CD32">
+          <animate attributeName="r" values="0;25;0" dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="2.5s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="2" fill="#FFD700">
+          <animate attributeName="r" values="0;18;0" dur="2.5s" begin="0.3s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="2.5s" begin="0.3s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+      
+      <!-- 烟花3 -->
+      <g transform="translate(400,100)">
+        <circle r="3" fill="#FF4500">
+          <animate attributeName="r" values="0;22;0" dur="3s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="1;0;1" dur="3s" repeatCount="indefinite"/>
+        </circle>
+      </g>
+    </g>
+    
+    <!-- 飘落的星星 -->
+    <g id="fallingStars">
+      <polygon points="100,50 105,65 120,65 108,75 113,90 100,80 87,90 92,75 80,65 95,65" fill="#FFD700">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0" dur="4s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="300,30 305,45 320,45 308,55 313,70 300,60 287,70 292,55 280,45 295,45" fill="#FFD700">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="5s" begin="1s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0" dur="5s" begin="1s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="500,20 505,35 520,35 508,45 513,60 500,50 487,60 492,45 480,35 495,35" fill="#FFD700">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="3.5s" begin="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0" dur="3.5s" begin="2s" repeatCount="indefinite"/>
+      </polygon>
+      <polygon points="700,40 705,55 720,55 708,65 713,80 700,70 687,80 692,65 680,55 695,55" fill="#FFD700">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="4.5s" begin="0.5s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0" dur="4.5s" begin="0.5s" repeatCount="indefinite"/>
+      </polygon>
+    </g>
+  </g>
+  
+  <!-- 失败背景 -->
+  <g id="defeatBackground" style="display:none">
+    <rect width="800" height="600" fill="url(#defeatGradient)"/>
+    
+    <!-- 雨滴效果 -->
+    <g id="rainDrops">
+      <line x1="100" y1="0" x2="95" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="1s" repeatCount="indefinite"/>
+      </line>
+      <line x1="200" y1="0" x2="195" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="1.2s" begin="0.2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="300" y1="0" x2="295" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="0.8s" begin="0.4s" repeatCount="indefinite"/>
+      </line>
+      <line x1="400" y1="0" x2="395" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="1.1s" begin="0.1s" repeatCount="indefinite"/>
+      </line>
+      <line x1="500" y1="0" x2="495" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="0.9s" begin="0.3s" repeatCount="indefinite"/>
+      </line>
+      <line x1="600" y1="0" x2="595" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="1.3s" begin="0.5s" repeatCount="indefinite"/>
+      </line>
+      <line x1="700" y1="0" x2="695" y2="30" stroke="#4682B4" stroke-width="2" opacity="0.6">
+        <animate attributeName="transform" values="translate(0,0);translate(0,600)" dur="1s" begin="0.6s" repeatCount="indefinite"/>
+      </line>
+    </g>
+  </g>
+  
+  <!-- 主要内容区域 -->
+  <g id="mainContent">
+    <!-- 标题背景 -->
+    <rect x="100" y="150" width="600" height="100" rx="20" fill="#000000" fill-opacity="0.7" stroke="#FFD700" stroke-width="3"/>
+    
+    <!-- 游戏结束标题 -->
+    <text x="400" y="200" text-anchor="middle" font-family="serif" font-size="48" fill="#FFD700" font-weight="bold">
+      🎮 游戏结束 🎮
+      <animate attributeName="fill" values="#FFD700;#FF4500;#FFD700" dur="2s" repeatCount="indefinite"/>
+    </text>
+    
+    <!-- 结果信息背景 -->
+    <rect x="150" y="280" width="500" height="200" rx="15" fill="#000000" fill-opacity="0.8" stroke="#C0C0C0" stroke-width="2"/>
+    
+    <!-- 分数显示 -->
+    <text x="400" y="320" text-anchor="middle" font-family="serif" font-size="24" fill="#FFFFFF" font-weight="bold">
+      最终得分
+    </text>
+    <text x="400" y="360" text-anchor="middle" font-family="serif" font-size="36" fill="#FFD700" font-weight="bold">
+      ${finalScore}
+      <animate attributeName="fill" values="#FFD700;#FFA500;#FFD700" dur="1.5s" repeatCount="indefinite"/>
+    </text>
+    
+    <!-- 统计信息 -->
+    <text x="400" y="400" text-anchor="middle" font-family="serif" font-size="18" fill="#C0C0C0">
+      关卡: ${finalLevel} | 游戏时间: ${gameTime}s
+    </text>
+    
+    <!-- 结束原因 -->
+    <text x="400" y="430" text-anchor="middle" font-family="serif" font-size="20" fill="#87CEEB">
+      ${endReason}
+    </text>
+    
+    <!-- 操作按钮区域 -->
+    <g id="actionButtons">
+      <!-- 重新开始按钮 -->
+      <rect x="200" y="500" width="150" height="50" rx="10" fill="#32CD32" stroke="#228B22" stroke-width="2" cursor="pointer">
+        <animate attributeName="fill" values="#32CD32;#90EE90;#32CD32" dur="2s" repeatCount="indefinite"/>
+      </rect>
+      <text x="275" y="530" text-anchor="middle" font-family="serif" font-size="18" fill="#FFFFFF" font-weight="bold">
+        🔄 重新开始
+      </text>
+      
+      <!-- 返回主菜单按钮 -->
+      <rect x="450" y="500" width="150" height="50" rx="10" fill="#4169E1" stroke="#191970" stroke-width="2" cursor="pointer">
+        <animate attributeName="fill" values="#4169E1;#87CEEB;#4169E1" dur="2s" repeatCount="indefinite"/>
+      </rect>
+      <text x="525" y="530" text-anchor="middle" font-family="serif" font-size="18" fill="#FFFFFF" font-weight="bold">
+        🏠 主菜单
+      </text>
+    </g>
+  </g>
+  
+  <!-- 装饰性元素 -->
+  <g id="decorativeElements">
+    <!-- 左上角装饰 -->
+    <polygon points="50,50 60,70 80,70 68,80 73,100 60,90 47,100 52,80 40,70 55,70" fill="#FFD700" opacity="0.8">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="3s" repeatCount="indefinite"/>
+    </polygon>
+    
+    <!-- 右上角装饰 -->
+    <polygon points="750,50 760,70 780,70 768,80 773,100 760,90 747,100 752,80 740,70 755,70" fill="#FFD700" opacity="0.8">
+      <animate attributeName="opacity" values="1;0.5;1" dur="3s" repeatCount="indefinite"/>
+    </polygon>
+    
+    <!-- 左下角装饰 -->
+    <circle cx="80" cy="550" r="15" fill="#FF69B4" opacity="0.6">
+      <animate attributeName="r" values="10;20;10" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    
+    <!-- 右下角装饰 -->
+    <circle cx="720" cy="550" r="15" fill="#00FFFF" opacity="0.6">
+      <animate attributeName="r" values="15;25;15" dur="4s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+</svg>

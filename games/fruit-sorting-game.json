@@ -1,0 +1,325 @@
+{
+  "id": "fruit-sorting-game",
+  "name": "水果分类游戏",
+  "description": "拖拽水果到正确的篮子中进行分类",
+  "version": "1.0.0",
+  "globalVariables": {},
+  "globalSwitches": {},
+  "audio": {
+    "globalVolume": 0.8
+  },
+  "levels": [
+    {
+      "id": "level-1",
+      "name": "基础分类",
+      "description": "将水果拖拽到对应颜色的篮子中",
+      "initialState": {
+        "score": 0,
+        "lives": 3,
+        "fruitsRemaining": 6,
+        "correctPlacements": 0
+      },
+      "commands": [
+        {
+          "id": "init-game",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "text": "欢迎来到水果分类游戏！将水果拖拽到对应颜色的篮子中。",
+            "position": { "x": 50, "y": 20 },
+            "style": {
+              "fontSize": "24px",
+              "color": "#333",
+              "fontWeight": "bold"
+            }
+          }
+        },
+        {
+          "id": "create-red-basket",
+          "type": "CREATE_DROP_ZONE",
+          "parameters": {
+            "dropZoneId": "red-basket",
+            "position": { "x": 100, "y": 400 },
+            "size": { "width": 120, "height": 120 },
+            "acceptTypes": ["red-fruit"],
+            "label": "红色篮子",
+            "style": {
+              "backgroundColor": "rgba(255, 0, 0, 0.1)",
+              "borderColor": "#ff0000",
+              "color": "#ff0000",
+              "fontWeight": "bold"
+            }
+          }
+        },
+        {
+          "id": "create-yellow-basket",
+          "type": "CREATE_DROP_ZONE",
+          "parameters": {
+            "dropZoneId": "yellow-basket",
+            "position": { "x": 300, "y": 400 },
+            "size": { "width": 120, "height": 120 },
+            "acceptTypes": ["yellow-fruit"],
+            "label": "黄色篮子",
+            "style": {
+              "backgroundColor": "rgba(255, 255, 0, 0.1)",
+              "borderColor": "#ffff00",
+              "color": "#cc9900",
+              "fontWeight": "bold"
+            }
+          }
+        },
+        {
+          "id": "create-green-basket",
+          "type": "CREATE_DROP_ZONE",
+          "parameters": {
+            "dropZoneId": "green-basket",
+            "position": { "x": 500, "y": 400 },
+            "size": { "width": 120, "height": 120 },
+            "acceptTypes": ["green-fruit"],
+            "label": "绿色篮子",
+            "style": {
+              "backgroundColor": "rgba(0, 255, 0, 0.1)",
+              "borderColor": "#00ff00",
+              "color": "#009900",
+              "fontWeight": "bold"
+            }
+          }
+        },
+        {
+          "id": "create-apple",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "apple",
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0NSIgcj0iMjUiIGZpbGw9IiNmZjAwMDAiLz4KPHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTUiIHg9IjM1IiB5PSIxNSI+CjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxNSIgZmlsbD0iIzAwODAwMCIvPgo8L3N2Zz4KPHRleHQgeD0iNDAiIHk9IjUwIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+🍎PC90ZXh0Pgo8L3N2Zz4=",
+            "position": { "x": 150, "y": 150 },
+            "size": { "width": 80, "height": 80 }
+          }
+        },
+        {
+          "id": "set-apple-draggable",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "apple",
+            "draggable": true,
+            "dragType": "red-fruit"
+          }
+        },
+        {
+          "id": "create-banana",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "banana",
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjQwIiBjeT0iNDAiIHJ4PSIzMCIgcnk9IjE1IiBmaWxsPSIjZmZmZjAwIi8+Cjx0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+🍌PC90ZXh0Pgo8L3N2Zz4=",
+            "position": { "x": 300, "y": 150 },
+            "size": { "width": 80, "height": 80 }
+          }
+        },
+        {
+          "id": "set-banana-draggable",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "banana",
+            "draggable": true,
+            "dragType": "yellow-fruit"
+          }
+        },
+        {
+          "id": "create-lime",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "lime",
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iNDAiIGN5PSI0MCIgcj0iMjUiIGZpbGw9IiMwMGZmMDAiLz4KPHN2ZyB3aWR0aD0iOCIgaGVpZ2h0PSIxMiIgeD0iMzYiIHk9IjEwIj4KPHJlY3Qgd2lkdGg9IjgiIGhlaWdodD0iMTIiIGZpbGw9IiMwMDgwMDAiLz4KPC9zdmc+Cjx0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPjAPC90ZXh0Pgo8L3N2Zz4=",
+            "position": { "x": 450, "y": 150 },
+            "size": { "width": 80, "height": 80 }
+          }
+        },
+        {
+          "id": "set-lime-draggable",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "lime",
+            "draggable": true,
+            "dragType": "green-fruit"
+          }
+        },
+        {
+          "id": "create-strawberry",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "strawberry",
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQwIDIwTDUwIDQwTDQwIDYwTDMwIDQwWiIgZmlsbD0iI2ZmMDAwMCIvPgo8c3ZnIHdpZHRoPSIyMCIgaGVpZ2h0PSIxMCIgeD0iMzAiIHk9IjE1Ij4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMDA4MDAwIi8+CjwvdGV4dD4KPHN2Zz4=",
+            "position": { "x": 200, "y": 250 },
+            "size": { "width": 80, "height": 80 }
+          }
+        },
+        {
+          "id": "set-strawberry-draggable",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "strawberry",
+            "draggable": true,
+            "dragType": "red-fruit"
+          }
+        },
+        {
+          "id": "create-lemon",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "lemon",
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjQwIiBjeT0iNDAiIHJ4PSIyMCIgcnk9IjI4IiBmaWxsPSIjZmZmZjAwIi8+Cjx0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+🍋PC90ZXh0Pgo8L3N2Zz4=",
+            "position": { "x": 350, "y": 250 },
+            "size": { "width": 80, "height": 80 }
+          }
+        },
+        {
+          "id": "set-lemon-draggable",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "lemon",
+            "draggable": true,
+            "dragType": "yellow-fruit"
+          }
+        },
+        {
+          "id": "create-kiwi",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "kiwi",
+            "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGVsbGlwc2UgY3g9IjQwIiBjeT0iNDAiIHJ4PSIyNSIgcnk9IjIwIiBmaWxsPSIjODBmZjAwIi8+Cjx0ZXh0IHg9IjQwIiB5PSI0NSIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzMzMyIgdGV4dC1hbmNob3I9Im1pZGRsZSI+🥝PC90ZXh0Pgo8L3N2Zz4=",
+            "position": { "x": 500, "y": 250 },
+            "size": { "width": 80, "height": 80 }
+          }
+        },
+        {
+          "id": "set-kiwi-draggable",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "kiwi",
+            "draggable": true,
+            "dragType": "green-fruit"
+          }
+        },
+        {
+          "id": "show-score",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "score-display",
+            "text": "得分: 0",
+            "position": { "x": 50, "y": 60 },
+            "style": {
+              "fontSize": "18px",
+              "color": "#333",
+              "fontWeight": "bold"
+            }
+          }
+        },
+        {
+          "id": "show-instructions",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "instructions",
+            "text": "拖拽水果到对应颜色的篮子中！红色水果→红色篮子，黄色水果→黄色篮子，绿色水果→绿色篮子",
+            "position": { "x": 50, "y": 100 },
+            "style": {
+              "fontSize": "16px",
+              "color": "#666",
+              "maxWidth": "600px"
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "fruit-dropped",
+          "name": "水果投放事件",
+          "triggers": [
+            {
+              "type": "custom",
+              "condition": {
+                "type": "expression",
+                "expression": "event.type === 'drop:success'"
+              }
+            }
+          ],
+          "commands": [
+            {
+              "id": "check-correct-drop",
+              "type": "IF_CONDITION",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "(event.dropZoneId === 'red-basket' && ['apple', 'strawberry'].includes(event.draggedElementId)) || (event.dropZoneId === 'yellow-basket' && ['banana', 'lemon'].includes(event.draggedElementId)) || (event.dropZoneId === 'green-basket' && ['lime', 'kiwi'].includes(event.draggedElementId))"
+                },
+                "trueCommands": [
+                  {
+                    "id": "add-score-correct",
+                    "type": "ADD_SCORE",
+                    "parameters": {
+                      "points": 10
+                    }
+                  },
+                  {
+                    "id": "hide-fruit",
+                    "type": "SET_ELEMENT_STYLE",
+                    "parameters": {
+                      "elementId": "${event.draggedElementId}",
+                      "style": {
+                        "display": "none"
+                      }
+                    }
+                  },
+                  {
+                    "id": "update-score-display",
+                    "type": "UPDATE_TEXT",
+                    "parameters": {
+                      "elementId": "score-display",
+                      "text": "得分: ${gameState.score}"
+                    }
+                  },
+                  {
+                    "id": "show-success-message",
+                    "type": "SHOW_TEXT",
+                    "parameters": {
+                      "elementId": "success-message",
+                      "text": "正确！+10分",
+                      "position": { "x": 300, "y": 350 },
+                      "style": {
+                        "fontSize": "20px",
+                        "color": "#00ff00",
+                        "fontWeight": "bold"
+                      },
+                      "duration": 2000
+                    }
+                  }
+                ],
+                "falseCommands": [
+                  {
+                    "id": "show-error-message",
+                    "type": "SHOW_TEXT",
+                    "parameters": {
+                      "elementId": "error-message",
+                      "text": "错误！请放到正确的篮子中",
+                      "position": { "x": 300, "y": 350 },
+                      "style": {
+                        "fontSize": "20px",
+                        "color": "#ff0000",
+                        "fontWeight": "bold"
+                      },
+                      "duration": 2000
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [],
+  "audio": {
+    "globalVolume": 0.8,
+    "soundVolume": 1.0,
+    "musicVolume": 0.6,
+    "muted": false
+  }
+}
