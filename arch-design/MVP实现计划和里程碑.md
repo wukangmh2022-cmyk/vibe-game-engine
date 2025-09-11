@@ -79,7 +79,7 @@
 
 2. **基础指令实现** (4天)
    - 状态控制指令（set_variable, set_switch）
-   - 流程控制指令（wait, jump_to, call_event）
+   - 流程控制指令（wait, jump_to, emit_signal）
    - 条件分支指令（if_condition, loop）
    - 游戏逻辑指令（check_answer, add_score）
 

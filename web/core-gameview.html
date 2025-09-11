@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Core GameView (Pixi)</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #1e1e1e; color: #e5e5e5; font-family: -apple-system, system-ui, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif; }
+    #app { position: relative; width: 800px; height: 600px; margin: 16px auto; border: 1px solid #333; background: #000; }
+    #overlay { position: absolute; inset: 0; pointer-events: auto; }
+    .text { position: absolute; white-space: pre-wrap; pointer-events: none; }
+    .choices { position: absolute; left: 100px; top: 270px; display: flex; flex-direction: column; gap: 8px; pointer-events: auto; }
+    .choice-btn { padding: 8px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 6px; cursor: pointer; text-align: left; }
+    .title { left: 50px; top: 20px; font-size: 28px; font-weight: 700; color: #e5e5e5; text-shadow: 2px 2px 4px rgba(0,0,0,.5); }
+    .story { left: 50px; top: 80px; font-size: 18px; color: #ddd; max-width: 600px; line-height: 1.6; }
+    .stats { left: 50px; top: 140px; font-size: 14px; color: #27ae60; font-weight: 700; }
+  </style>
+  <!-- PixiJS via CDN (for local file open, you may need internet) -->
+  <script src="https://unpkg.com/pixi.js@7/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="overlay"></div>
+  </div>
+  <script src="./core-gameview.js"></script>
+</body>
+</html>

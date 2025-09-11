@@ -9,7 +9,11 @@ export class ShowChoicesHandler extends BaseCommandHandler {
   readonly type = CommandType.SHOW_CHOICES;
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
-      const { choices, title, timeout } = command.parameters;
+      const { title: rawTitle, timeout, elementId } = command.parameters;
+      // 兼容V2：options 字段与 text 作为标题
+      // 选项可来自 parameters.choices / parameters.options / 顶层 options（V2）
+      let choices = command.parameters.choices || command.parameters.options || (command as any).options;
+      const title = rawTitle || command.parameters.text;
 
       // 验证必需参数
       if (!choices || !Array.isArray(choices) || choices.length === 0) {
@@ -34,7 +38,7 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       if (title) {
         console.log(`Title: ${title}`);
       }
-      choices.forEach((choice, index) => {
+      choices.forEach((choice: any, index: number) => {
         console.log(`${index + 1}. ${choice.text}`);
         if (choice.description) {
           console.log(`   ${choice.description}`);
@@ -42,9 +46,37 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       });
       console.log('===============\n');
 
-      // 触发选择显示事件
+      // 监听一次选择事件并执行被选项的子指令（先挂监听，再发展示事件，避免竞态）
+      const onSelect = async (payload: any) => {
+        if (!payload || (payload.commandId && payload.commandId !== command.id) || (payload.elementId && payload.elementId !== elementId)) {
+          return; // 非本次选择
+        }
+        const optId = payload.optionId ?? payload.id;
+        let selected: any = null;
+        if (optId != null) {
+          selected = choices.find((c: any) => c.id === optId);
+        } else if (typeof payload.index === 'number') {
+          selected = choices[payload.index];
+        }
+        if (!selected) {
+          context.logger?.warn('choice_selected payload did not match an option', payload);
+          return;
+        }
+        const child = Array.isArray(selected.commands) ? selected.commands : [];
+        if (child.length > 0) {
+          const exec = (context as any).executor;
+          await exec.executeCommands(child);
+        }
+        // 通知 UI 该选择组件生命周期结束，应该被移除
+        context.eventManager?.emit('choices_dismissed', { commandId: command.id, elementId, selected: selected.id || selected.text });
+      };
+      // 默认单次选择即结束生命周期
+      context.eventManager?.once('choice_selected', onSelect);
+
+      // 触发选择显示事件（供上层渲染）
       context.eventManager?.emit('choices_displayed', {
         commandId: command.id,
+        elementId,
         title: title || 'Please choose:',
         choices,
         timeout
@@ -54,7 +86,8 @@ export class ShowChoicesHandler extends BaseCommandHandler {
         message: `Displayed ${choices.length} choices`,
         choiceCount: choices.length,
         title: title || 'Please choose:',
-        choices
+        choices,
+        elementId
       });
     } catch (error) {
       context.logger?.error('Error in ShowChoicesHandler', error);

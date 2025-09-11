@@ -1,0 +1,11 @@
+{
+  "id": "anim-fade-in",
+  "formatVersion": "1.0",
+  "category": "entry",
+  "relative": false,
+  "timeline": [
+    { "time": 0,   "props": { "alpha": 0 } },
+    { "time": 600, "ease": "easeOutQuad", "props": { "alpha": 1 } }
+  ]
+}
+

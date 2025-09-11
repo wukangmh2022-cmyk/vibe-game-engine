@@ -9,7 +9,7 @@ export class SetVariableHandler extends BaseCommandHandler {
   readonly type = CommandType.SET_VARIABLE;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
-    const { key, name, expression = false } = command.parameters;
+    const { key, name, expression = false, op } = command.parameters;
     let { value } = command.parameters;
     const variableKey = key || name;
     
@@ -24,7 +24,33 @@ export class SetVariableHandler extends BaseCommandHandler {
         return this.createErrorResult('State manager not available');
       }
 
-      // 如果启用了表达式解析，则解析表达式
+      // 新：支持 op + 数值 的简化模式（不再需要表达式）
+      // op: 'set'|'add'|'sub'|'mul'|'div'，value: number
+      if (op) {
+        let next: any;
+        if (op === 'set') {
+          // 直接按原值设置，支持 boolean/number/string
+          next = value;
+        } else {
+          const current = Number(stateManager.getVariable(variableKey) ?? 0);
+          const num = typeof value === 'number' ? value : Number(value);
+          if (Number.isNaN(current) || Number.isNaN(num)) {
+            return this.createErrorResult('Numeric operation requires numeric values');
+          }
+          switch (op) {
+            case 'add': next = current + num; break;
+            case 'sub': next = current - num; break;
+            case 'mul': next = current * num; break;
+            case 'div': next = num === 0 ? current : current / num; break;
+            default: return this.createErrorResult(`Unknown op: ${op}`);
+          }
+        }
+        stateManager.setVariable(variableKey, next);
+        context.logger.debug(`Variable ${variableKey} op=${op} set to ${next}`);
+        return this.createSuccessResult({ key: variableKey, value: next, op });
+      }
+
+      // 兼容：保留表达式模式（旧数据）
       if (expression && typeof value === 'string') {
         const parser = new ExpressionParser(stateManager);
         value = parser.parse(value);

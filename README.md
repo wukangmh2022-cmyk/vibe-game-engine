@@ -101,7 +101,7 @@ runtime.start();
 支持多种指令类型：
 
 - **状态控制**: `set_variable`, `set_switch`
-- **流程控制**: `wait`, `jump_to`, `call_event`
+- **流程控制**: `wait`, `jump_to`, `emit_signal`
 - **条件分支**: `if_condition`, `loop`
 - **显示控制**: `show_image`, `show_text`
 - **音频控制**: `play_sound`, `play_music`

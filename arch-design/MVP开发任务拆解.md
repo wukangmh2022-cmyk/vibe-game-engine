@@ -78,7 +78,7 @@
 - **任务**: 实现MVP必需的基础指令类型
 - **指令类型**:
   - 状态控制: set_variable, set_switch
-  - 流程控制: wait, jump_to, call_event
+  - 流程控制: wait, jump_to, emit_signal
   - 条件分支: if_condition, loop
   - 游戏逻辑: check_answer, add_score, next_level
 - **测试**: 各指令类型功能测试

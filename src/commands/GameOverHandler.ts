@@ -122,7 +122,8 @@ export class GameOverHandler extends BaseCommandHandler {
    * 验证游戏结束指令
    */
   validate(command: GameCommand): ValidationResult {
-    if (command.type !== CommandType.GAME_OVER) {
+    const incoming = String((command as any).type || '').toLowerCase();
+    if (incoming !== String(CommandType.GAME_OVER)) {
       return { 
         valid: false, 
         errors: [{ field: 'type', message: 'Invalid command type for GAME_OVER handler', code: 'INVALID_TYPE' }] 

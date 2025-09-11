@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "build:web": "tsc -p tsconfig.browser.json && node scripts/postbuild-web.js",
     "build:watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",

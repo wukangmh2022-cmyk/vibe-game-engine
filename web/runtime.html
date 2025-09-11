@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Runtime (Pixi + CommandExecutor)</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #1e1e1e; color: #e5e5e5; font-family: -apple-system, system-ui, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif; }
+    #app { position: relative; width: 800px; height: 600px; margin: 16px auto; border: 1px solid #333; background: #000; }
+    #overlay { position: absolute; inset: 0; pointer-events: none; }
+    .choices { position: absolute; left: 100px; top: 270px; display: flex; flex-direction: column; gap: 8px; }
+    .choice-btn { padding: 8px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 6px; cursor: pointer; text-align: left; }
+  </style>
+  <script src="https://unpkg.com/pixi.js@7/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="overlay"></div>
+  </div>
+  <script type="module" src="./dist/browser/main.js"></script>
+</body>
+  </html>

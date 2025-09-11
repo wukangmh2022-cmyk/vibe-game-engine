@@ -4,7 +4,9 @@ import { SetSwitchHandler } from './SetSwitchHandler';
 import { WaitHandler } from './WaitHandler';
 import { ShowImageHandler } from './ShowImageHandler';
 import { ShowTextHandler } from './ShowTextHandler';
+import { UpdateTextHandler } from './UpdateTextHandler';
 import { ShowChoicesHandler } from './ShowChoicesHandler';
+import { ShowButtonHandler } from './ShowButtonHandler';
 import { PlaySoundHandler } from './PlaySoundHandler';
 import { AddScoreHandler } from './AddScoreHandler';
 import { NextLevelHandler } from './NextLevelHandler';
@@ -13,7 +15,7 @@ import { JumpToHandler } from './JumpToHandler';
 import { LoopHandler } from './LoopHandler';
 import { BreakHandler } from './BreakHandler';
 import { ContinueHandler } from './ContinueHandler';
-import { CallEventHandler } from './CallEventHandler';
+import { EmitSignalHandler } from './EmitSignalHandler';
 import { ReturnHandler } from './ReturnHandler';
 import { SetPositionHandler } from '../handlers/SetPositionHandler';
 import { GetPositionHandler } from '../handlers/GetPositionHandler';
@@ -24,6 +26,7 @@ import { BgmStopHandler } from './audio/BgmStopHandler';
 import { SePlayHandler } from './audio/SePlayHandler';
 import { SetVolumeHandler } from './audio/SetVolumeHandler';
 import { GameOverHandler } from './GameOverHandler';
+import { SetElementStyleHandler } from './SetElementStyleHandler';
 
 /**
  * 创建默认的指令处理器集合
@@ -35,7 +38,10 @@ export function createDefaultHandlers(): ICommandHandler[] {
     new WaitHandler(),
     new ShowImageHandler(),
     new ShowTextHandler(),
+    new UpdateTextHandler(),
+    new ShowButtonHandler(),
     new ShowChoicesHandler(),
+    new SetElementStyleHandler(),
     new PlaySoundHandler(),
     new AddScoreHandler(),
     new NextLevelHandler(),
@@ -44,7 +50,7 @@ export function createDefaultHandlers(): ICommandHandler[] {
     new LoopHandler(),
     new BreakHandler(),
     new ContinueHandler(),
-    new CallEventHandler(),
+    new EmitSignalHandler(),
     new ReturnHandler(),
     new SetPositionHandler(null as any),
     new GetPositionHandler(null as any),
@@ -78,7 +84,10 @@ export function createRenderHandlers(): ICommandHandler[] {
   return [
     new ShowImageHandler(),
     new ShowTextHandler(),
-    new ShowChoicesHandler()
+    new UpdateTextHandler(),
+    new ShowButtonHandler(),
+    new ShowChoicesHandler(),
+    new SetElementStyleHandler()
   ];
 }
 
@@ -107,8 +116,8 @@ export function createFlowControlHandlers(): ICommandHandler[] {
     new LoopHandler(),
     new BreakHandler(),
     new ContinueHandler(),
-    new CallEventHandler(),
-    new ReturnHandler()
+    new EmitSignalHandler(),
+    new ReturnHandler(),
   ];
 }
 

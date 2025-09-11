@@ -88,11 +88,13 @@ export class IfConditionHandler extends BaseCommandHandler {
   }
 
   private evaluateExpression(expression: string, context: CommandContext): boolean {
-    // 简单的表达式求值实现
-    // 实际项目中可能需要更安全和完整的表达式解析器
+    // 尝试注入事件作用域，支持在表达式中使用 event.*
     try {
-      // 这里只是一个示例，实际使用时需要更安全的实现
-      return Boolean(eval(expression));
+      const eventVar = (context as any).event || (context as any).lastEvent || (globalThis as any).event;
+      // 将表达式中的 event 替换为 eventVar 变量
+      // 注意：eval 仍不安全，这里仅为兼容数据；后续可替换为安全解析器
+      // eslint-disable-next-line no-eval
+      return Boolean(eval(expression.replace(/\bevent\b/g, 'eventVar')));
     } catch {
       return false;
     }

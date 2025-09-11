@@ -75,6 +75,45 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     ]
   },
   {
+    type: CommandType.FLIP_CARD,
+    name: '翻牌（水平翻转）',
+    description: '将指定元素做水平翻转并在中点切换图片（卡牌正反面）',
+    category: CommandCategory.ANIMATION,
+    icon: '🃏',
+    color: '#795548',
+    parameters: [
+      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '要翻转的元素ID' },
+      { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: true, description: '翻转后显示的背面图片' },
+      { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: '可选：明确正面图片（默认取当前）' },
+      { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600, description: '总时长，默认600ms' },
+      { name: 'easing', label: '缓动', type: 'text', required: false, defaultValue: 'easeInOutQuad', description: '缓动函数' },
+      { name: 'showBack', label: '翻到背面', type: 'boolean', required: false, defaultValue: true, description: '是否翻到背面（否则翻回正面）' }
+    ]
+  },
+  {
+    type: CommandType.SHOW_MEDIA,
+    name: '显示媒体',
+    description: '显示视频等媒体（无动画）',
+    category: CommandCategory.DISPLAY,
+    icon: '🎬',
+    color: '#9C27B0',
+    parameters: [
+      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '元素ID' },
+      { name: 'mediaType', label: '媒体类型', type: 'select', required: true, defaultValue: 'video', options: [
+        { value: 'video', label: '视频' }
+      ], description: '媒体类型' },
+      { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '媒体资源ID' },
+      { name: 'position.x', label: 'X坐标', type: 'number', required: false, defaultValue: 0, description: 'X 坐标' },
+      { name: 'position.y', label: 'Y坐标', type: 'number', required: false, defaultValue: 0, description: 'Y 坐标' },
+      { name: 'size.width', label: '宽度', type: 'number', required: false, description: '宽度' },
+      { name: 'size.height', label: '高度', type: 'number', required: false, description: '高度' },
+      { name: 'autoplay', label: '自动播放', type: 'boolean', required: false, defaultValue: true, description: '是否自动播放' },
+      { name: 'loop', label: '循环', type: 'boolean', required: false, defaultValue: false, description: '是否循环' },
+      { name: 'muted', label: '静音', type: 'boolean', required: false, defaultValue: false, description: '是否静音' },
+      { name: 'controls', label: '显示控件', type: 'boolean', required: false, defaultValue: true, description: '是否显示控件（预留）' }
+    ]
+  },
+  {
     type: CommandType.SHOW_TEXT,
     name: '显示文本',
     description: '在画布上显示文本',
@@ -483,26 +522,26 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     ]
   },
   {
-    type: CommandType.CALL_EVENT,
-    name: '调用事件',
-    description: '调用指定的事件',
+    type: CommandType.EMIT_SIGNAL,
+    name: '发送信号',
+    description: '向事件系统发送一个信号，可附带数据',
     category: CommandCategory.FLOW_CONTROL,
     icon: '📡',
     color: '#9C27B0',
     parameters: [
       {
-        name: 'eventId',
-        label: '事件ID',
+        name: 'signal',
+        label: '信号名称',
         type: 'text',
         required: true,
-        description: '要调用的事件ID'
+        description: '要发送的信号名称'
       },
       {
-        name: 'parameters',
-        label: '传递参数',
+        name: 'data',
+        label: '数据载荷',
         type: 'textarea',
         required: false,
-        description: '传递给事件的参数(JSON格式)'
+        description: '随信号发送的数据(JSON格式)'
       }
     ]
   },

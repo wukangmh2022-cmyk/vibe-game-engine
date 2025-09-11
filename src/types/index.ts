@@ -18,7 +18,7 @@ export enum CommandType {
   // 流程控制
   WAIT = 'wait',
   JUMP_TO = 'jump_to',
-  CALL_EVENT = 'call_event',
+  EMIT_SIGNAL = 'emit_signal',
   
   // 条件分支
   IF_CONDITION = 'if_condition',
@@ -30,13 +30,18 @@ export enum CommandType {
   // 显示控制
   SHOW_IMAGE = 'show_image',
   SHOW_TEXT = 'show_text',
+  UPDATE_TEXT = 'update_text',
+  SHOW_BUTTON = 'show_button',
+  SET_ELEMENT_STYLE = 'set_element_style',
   HIDE_ELEMENT = 'hide_element',
+  SHOW_MEDIA = 'show_media',
   
   // 移动动画
   MOVE_TO = 'move_to',
   SCALE_TO = 'scale_to',
   ROTATE_TO = 'rotate_to',
-  
+  FLIP_CARD = 'flip_card',
+
   // 音频控制
   PLAY_SOUND = 'play_sound',
   PLAY_MUSIC = 'play_music',
@@ -67,7 +72,8 @@ export enum CommandType {
   // 元素交互
   SET_DRAGGABLE = 'set_draggable',
   SET_CLICKABLE = 'set_clickable',
-  
+  SET_SELECTED = 'set_selected',
+
   // 拖拽控制
   DRAG_START = 'drag_start',
   DRAG_END = 'drag_end',
@@ -78,6 +84,9 @@ export enum CommandType {
   SET_POSITION = 'set_position',
   GET_POSITION = 'get_position',
   CHECK_IN_AREA = 'check_in_area',
+  ANIMATE_IN = 'animate_in',
+  ANIMATE_LOOP = 'animate_loop',
+  STOP_ANIMATION = 'stop_animation',
   SET_SIZE = 'set_size',
   SET_ROTATION = 'set_rotation',
   
