@@ -13,10 +13,12 @@ export class ShowImageHandler extends BaseCommandHandler {
     let src: string | undefined = params.src;
     const pos = params.position || {};
     const size = params.size || {};
-    const x = params.x ?? pos.x ?? 0;
-    const y = params.y ?? pos.y ?? 0;
+    let x = params.x ?? pos.x ?? 0;
+    let y = params.y ?? pos.y ?? 0;
     const width = params.width ?? size.width;
     const height = params.height ?? size.height;
+    const parentId: string | undefined = params.parentId || params.parentElementId;
+    const align: string | undefined = params.align || params.alignment;
 
     // 若提供了 resourceId 尝试从资源管理器解析 url/src
     if (!src && resourceId && (context as any).resourceManager?.getResource) {
@@ -33,12 +35,31 @@ export class ShowImageHandler extends BaseCommandHandler {
     }
 
     try {
+      // If align center with parent specified and element size known, compute centered offset
+      if (parentId && align === 'center' && width && height) {
+        try {
+          const parentNode: any = (context.renderManager as any)?.getNode?.(parentId);
+          if (parentNode) {
+            const pw = parentNode.width || 0; const ph = parentNode.height || 0;
+            x = (pw - width) / 2; y = (ph - height) / 2;
+          }
+        } catch {}
+      }
+
+      // Merge style and support top-level zIndex for compatibility
+      const mergedStyle: any = params.style ? { ...params.style } : {};
+      if (params.zIndex != null) {
+        mergedStyle.zIndex = params.zIndex;
+      }
+
       const elementConfig: ElementConfig = {
         id: elementId,
         type: 'image',
         position: { x, y },
         src,
-        visible: true
+        visible: true,
+        parentId,
+        style: Object.keys(mergedStyle).length ? mergedStyle : undefined
       };
 
       if (width && height) {

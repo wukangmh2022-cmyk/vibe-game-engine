@@ -12,11 +12,50 @@
     .choice-btn { padding: 8px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 6px; cursor: pointer; text-align: left; }
   </style>
   <script src="https://unpkg.com/pixi.js@7/dist/pixi.min.js"></script>
+  <style>
+    .topbar { width: 800px; margin: 8px auto 0; display: flex; align-items: center; gap: 8px; }
+    .topbar label { font-size: 14px; color: #bbb; }
+    .topbar select { background: #2c3e50; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 4px 8px; }
+  </style>
 </head>
 <body>
+  <div class="topbar">
+    <label for="gamePicker">选择关卡/游戏:</label>
+    <select id="gamePicker">
+      <option value="adventure">冒险选择游戏</option>
+      <option value="memory">翻牌记忆配对</option>
+      <option value="select">多选卡片 2×2</option>
+    </select>
+  </div>
   <div id="app">
     <div id="overlay"></div>
   </div>
-  <script type="module" src="./dist/browser/main.js"></script>
+  <script>
+    (function() {
+      const games = {
+        adventure: '/adventure-choice-game-v2.json',
+        memory: '/flip-memory-game-v1.json',
+        select: '/select-cards-2x2.json'
+      };
+      const storageKey = 'runtime:selectedGame';
+      const saved = localStorage.getItem(storageKey) || 'adventure';
+      // Expose for main.js before it loads
+      window.__GAME_JSON_URL = games[saved] || games.adventure;
+      // After DOM is ready, sync selector and bind change
+      document.addEventListener('DOMContentLoaded', () => {
+        const sel = document.getElementById('gamePicker');
+        if (sel) {
+          sel.value = games[saved] ? saved : 'adventure';
+          sel.addEventListener('change', (e) => {
+            const v = e.target.value;
+            localStorage.setItem(storageKey, v);
+            // Simple reload (no query参数), main.js 会按 localStorage 中的选择加载对应 JSON
+            location.reload();
+          });
+        }
+      });
+    })();
+  </script>
+  <script type="module" src="./dist/browser/main.js?v=4"></script>
 </body>
   </html>

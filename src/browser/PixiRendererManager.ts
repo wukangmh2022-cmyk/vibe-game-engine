@@ -22,7 +22,7 @@ export class PixiRendererManager implements IRendererManager {
     } else if (config.type === 'text') {
       const rawStyle: any = config.style || {};
       // Map style fields
-      const fill = rawStyle.color || '#ffffff';
+      const fill = (rawStyle.fill || rawStyle.color) || '#ffffff';
       const fontSize = rawStyle.fontSize ? parseInt(String(rawStyle.fontSize)) : 16;
       // compute wrap width: prefer explicit maxWidth, else canvas width minus padding
       const rendererWidth = this.app?.renderer?.width || 800;
@@ -34,14 +34,32 @@ export class PixiRendererManager implements IRendererManager {
         const pad = rawStyle.padding ? parseInt(String(rawStyle.padding)) : 40;
         wrapWidth = Math.max(100, rendererWidth - pad * 2);
       }
+      const safeColor = (v: any, fallback: any) => (typeof v === 'string' || typeof v === 'number') ? v : fallback;
       const textStyle: any = {
-        fill,
+        fill: safeColor(fill, '#ffffff'),
         fontSize,
         wordWrap: true,
         wordWrapWidth: wrapWidth,
         align: rawStyle.textAlign || rawStyle.align || 'left',
         lineHeight: rawStyle.lineHeight ? parseInt(String(rawStyle.lineHeight)) : undefined,
+        fontFamily: rawStyle.fontFamily || rawStyle.font || 'Arial, Helvetica, sans-serif',
+        dropShadow: rawStyle.dropShadow === true,
       };
+      // only include stroke when provided
+      const strokeVal = rawStyle.stroke || rawStyle.strokeColor;
+      if (strokeVal != null && strokeVal !== 'none') {
+        textStyle.stroke = safeColor(strokeVal, '#000000');
+        textStyle.strokeThickness = rawStyle.strokeThickness != null ? parseInt(String(rawStyle.strokeThickness)) : 2;
+      } else {
+        textStyle.strokeThickness = 0;
+      }
+      // only include shadow color when enabled
+      if (textStyle.dropShadow) {
+        textStyle.dropShadowColor = safeColor(rawStyle.dropShadowColor, 0x000000);
+        if (rawStyle.dropShadowBlur != null) textStyle.dropShadowBlur = parseInt(String(rawStyle.dropShadowBlur));
+        if (rawStyle.dropShadowAngle != null) textStyle.dropShadowAngle = Number(rawStyle.dropShadowAngle);
+        if (rawStyle.dropShadowDistance != null) textStyle.dropShadowDistance = Number(rawStyle.dropShadowDistance);
+      }
       const text = new PIXI.Text(config.content || '', textStyle);
       node = text;
     } else {
@@ -57,7 +75,19 @@ export class PixiRendererManager implements IRendererManager {
     }
     node.visible = config.visible !== false;
     if (config.style?.zIndex != null) node.zIndex = config.style.zIndex;
-    this.app.stage.addChild(node);
+    // optional anchor centering for sprites
+    try {
+      if ((node as any).anchor && config.style && (config.style as any).anchorCenter) {
+        (node as any).anchor.set(0.5);
+      }
+    } catch {}
+    // Parent support: add to parent if provided
+    const parentNode = config.parentId ? this.elements.get(config.parentId) : null;
+    if (parentNode && parentNode.addChild) {
+      parentNode.addChild(node);
+    } else {
+      this.app.stage.addChild(node);
+    }
     this.elements.set(config.id, node);
 
     const self = this;
@@ -90,7 +120,7 @@ export class PixiRendererManager implements IRendererManager {
     if (updates.type === 'text' && (updates as any).content !== undefined) { node.text = (updates as any).content; }
     if (updates.style && node.style) {
       const st: any = updates.style;
-      if (st.color) node.style.fill = st.color;
+      if (st.fill || st.color) node.style.fill = (st.fill || st.color);
       if (st.fontSize) node.style.fontSize = parseInt(String(st.fontSize));
       if (st.maxWidth || st.padding) {
         const rendererWidth = this.app?.renderer?.width || 800;
@@ -101,6 +131,16 @@ export class PixiRendererManager implements IRendererManager {
       }
       if (st.textAlign || st.align) node.style.align = st.textAlign || st.align;
       if (st.lineHeight) node.style.lineHeight = parseInt(String(st.lineHeight));
+      if (st.fontFamily || st.font) node.style.fontFamily = st.fontFamily || st.font;
+      if (st.stroke || st.strokeColor || st.strokeThickness != null) {
+        if (st.stroke || st.strokeColor) node.style.stroke = st.stroke || st.strokeColor;
+        if (st.strokeThickness != null) node.style.strokeThickness = parseInt(String(st.strokeThickness));
+      }
+      if (st.dropShadow != null) node.style.dropShadow = !!st.dropShadow;
+      if (st.dropShadowColor) node.style.dropShadowColor = st.dropShadowColor;
+      if (st.dropShadowBlur != null) node.style.dropShadowBlur = parseInt(String(st.dropShadowBlur));
+      if (st.dropShadowAngle != null) node.style.dropShadowAngle = Number(st.dropShadowAngle);
+      if (st.dropShadowDistance != null) node.style.dropShadowDistance = Number(st.dropShadowDistance);
     }
   }
 
@@ -119,6 +159,10 @@ export class PixiRendererManager implements IRendererManager {
   getNode(id: string): any | undefined {
     return this.elements.get(id);
   }
+
+  // Expose Pixi app/stage for custom effects
+  getApp(): any { return this.app; }
+  getStage(): any { return this.app?.stage; }
 
   addDropZone(id: string, rect: { x: number; y: number; w: number; h: number; accept?: string[] }) {
     this.dropZones.set(id, rect);

@@ -56,13 +56,21 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
   const headerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const isResizing = useRef(false);
-  const dragStartPos = useRef({ x: 0, y: 0 });
+  const dragStartPos = useRef({ x: 0, y: 0, startX: 0, startY: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
 
-  // 通知父组件状态变化
+  // 通知父组件状态变化 - 只在特定状态变化时通知
   useEffect(() => {
-    onStateChange?.(state);
-  }, [state, onStateChange]);
+    // 只有在用户交互导致的状态变化时才通知父组件
+    // 避免因props更新导致的循环调用
+    if (onStateChange) {
+      // 使用requestAnimationFrame确保状态更新完成后再通知
+      const timeoutId = setTimeout(() => {
+        onStateChange(state);
+      }, 0);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [state.x, state.y, state.width, state.height, state.isMinimized, state.isMaximized]);
 
   // 鼠标移动事件处理
   useEffect(() => {
@@ -86,16 +94,11 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
         const deltaX = e.clientX - resizeStartPos.current.x;
         const deltaY = e.clientY - resizeStartPos.current.y;
         
-        setState(prev => {
-          const newWidth = Math.max(minWidth, resizeStartPos.current.width + deltaX);
-          const newHeight = Math.max(minHeight, resizeStartPos.current.height + deltaY);
-          
-          return {
-            ...prev,
-            width: newWidth,
-            height: newHeight
-          };
-        });
+        setState(prev => ({
+          ...prev,
+          width: Math.max(minWidth, resizeStartPos.current.width + deltaX),
+          height: Math.max(minHeight, resizeStartPos.current.height + deltaY)
+        }));
       }
     };
 

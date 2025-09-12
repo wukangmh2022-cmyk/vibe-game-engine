@@ -6,7 +6,10 @@ export class SetClickableHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const id: string = p.elementId;
+    let id: string | undefined = p.elementId;
+    if (!id && p.elementIdVar && (context as any).stateManager?.getVariable) {
+      try { id = (context as any).stateManager.getVariable(p.elementIdVar); } catch {}
+    }
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
 
     const rm: any = context.renderManager as any;
@@ -29,13 +32,16 @@ export class SetClickableHandler extends BaseCommandHandler {
     node.cursor = 'pointer';
     const action: 'flip'|'toggle_selected'|'commands' = p.onClick || 'commands';
     const backResourceId: string | undefined = p.backResourceId;
+    const frontResourceId: string | undefined = p.frontResourceId;
     const showBackParam: boolean | undefined = p.showBack;
     const commands: GameCommand[] = Array.isArray(p.commands) ? p.commands : [];
 
     const handler = () => {
       if (action === 'flip') {
-        const showBack: boolean = (typeof showBackParam === 'boolean') ? showBackParam : !(node.__isBack === true);
-        context.executor.executeCommand({ id: `flip_${id}_${Date.now()}` as any, type: 'flip_card' as any, parameters: { elementId: id, backResourceId, showBack } } as any);
+        // 未明确指定时，基于当前面进行切换；首次默认视为背面在显示
+        const isBackNow = (typeof (node as any).__isBack === 'boolean') ? (node as any).__isBack : true;
+        const showBack: boolean = (typeof showBackParam === 'boolean') ? showBackParam : !isBackNow;
+        context.executor.executeCommand({ id: `flip_${id}_${Date.now()}` as any, type: 'flip_card' as any, parameters: { elementId: id, backResourceId, frontResourceId, showBack } } as any);
       } else if (action === 'toggle_selected') {
         const next = !(node.__selected === true);
         node.__selected = next;

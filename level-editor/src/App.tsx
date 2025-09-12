@@ -380,12 +380,47 @@ const App: React.FC = () => {
 
   const handleLoadJson = (gameData: any) => {
     if (gameData.levels && Array.isArray(gameData.levels)) {
-      // 首先构建资源映射
-      const resourceMap = new Map();
-      if (gameData.resources && Array.isArray(gameData.resources)) {
-        gameData.resources.forEach((resource: any) => {
-          resourceMap.set(resource.id, resource.url);
+      // 资源映射（兼容对象/数组两种结构）
+      const imageMap = new Map<string, string>();
+      const audioMap = new Map<string, string>();
+      const videoMap = new Map<string, string>();
+      const animationMap = new Map<string, string>();
+      
+      const normalizeUrl = (src: string) => src; // 可根据需要转换为绝对路径
+      
+      const resources = gameData.resources;
+      if (Array.isArray(resources)) {
+        // 旧格式：数组 [{id,type,url}]
+        resources.forEach((res: any) => {
+          const url = res.url || res.src;
+          if (!url) return;
+          if (res.type === 'image') imageMap.set(res.id, normalizeUrl(url));
+          if (res.type === 'audio') audioMap.set(res.id, normalizeUrl(url));
+          if (res.type === 'video') videoMap.set(res.id, normalizeUrl(url));
+          if (res.type === 'animation') animationMap.set(res.id, normalizeUrl(url));
         });
+      } else if (resources && typeof resources === 'object') {
+        // 新格式：对象 { images: [], audios: [], videos: [], animations: [] }
+        if (Array.isArray(resources.images)) {
+          resources.images.forEach((img: any) => {
+            if (img?.id && img?.src) imageMap.set(img.id, normalizeUrl(img.src));
+          });
+        }
+        if (Array.isArray(resources.audios)) {
+          resources.audios.forEach((au: any) => {
+            if (au?.id && au?.src) audioMap.set(au.id, normalizeUrl(au.src));
+          });
+        }
+        if (Array.isArray(resources.videos)) {
+          resources.videos.forEach((v: any) => {
+            if (v?.id && v?.src) videoMap.set(v.id, normalizeUrl(v.src));
+          });
+        }
+        if (Array.isArray(resources.animations)) {
+          resources.animations.forEach((an: any) => {
+            if (an?.id && an?.src) animationMap.set(an.id, normalizeUrl(an.src));
+          });
+        }
       }
 
       // 递归处理指令，包括事件和条件分支中的指令
@@ -417,9 +452,44 @@ const App: React.FC = () => {
         }
         const id = cmd.id || `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+        // 通用：兼容 position/size 展平
+        if (parameters.position) {
+          if (parameters.position.x !== undefined) parameters.x = parameters.position.x;
+          if (parameters.position.y !== undefined) parameters.y = parameters.position.y;
+        }
+        if (parameters.size) {
+          if (parameters.size.width !== undefined) parameters.width = parameters.size.width;
+          if (parameters.size.height !== undefined) parameters.height = parameters.size.height;
+        }
+
         // 处理图片资源
         if (commandType === 'SHOW_IMAGE' && parameters.resourceId) {
-          parameters.src = resourceMap.get(parameters.resourceId) || parameters.resourceId;
+          parameters.src = imageMap.get(parameters.resourceId) || parameters.resourceId;
+        }
+
+        // 处理文本样式
+        if (commandType === 'SHOW_TEXT' && parameters.style) {
+          if (parameters.style.fontSize !== undefined) parameters.fontSize = parameters.style.fontSize;
+          if (parameters.style.color !== undefined) parameters.color = parameters.style.color;
+        }
+
+        // 处理动画资源为可访问的 src
+        if (commandType === 'SHOW_IMAGE' && parameters.animation) {
+          if (parameters.animation.entry && parameters.animation.entry.animId) {
+            const aId = parameters.animation.entry.animId;
+            const aSrc = animationMap.get(aId);
+            if (aSrc) parameters.animation.entry.src = aSrc;
+          }
+          if (parameters.animation.loop && parameters.animation.loop.animId) {
+            const aId = parameters.animation.loop.animId;
+            const aSrc = animationMap.get(aId);
+            if (aSrc) parameters.animation.loop.src = aSrc;
+          }
+        }
+
+        // 处理媒体资源
+        if (commandType === 'SHOW_MEDIA' && parameters.resourceId) {
+          parameters.src = videoMap.get(parameters.resourceId) || parameters.resourceId;
         }
 
         // 处理按钮转换为选项
@@ -573,7 +643,20 @@ const App: React.FC = () => {
         { id: 'game-over-screen', type: 'image', src: '/images/game-over.svg', name: '游戏结束画面' }
       ];
       
-      const loadedResources = gameData.resources || [];
+      // 将新旧资源结构统一成编辑器可展示的数组
+      const loadedResources = (() => {
+        if (Array.isArray(gameData.resources)) return gameData.resources;
+        const arr: any[] = [];
+        const res = gameData.resources || {};
+        const pushAll = (list: any[], type: string) => {
+          list.forEach((r: any) => arr.push({ id: r.id, type, src: r.src, name: r.id }));
+        };
+        if (Array.isArray(res.images)) pushAll(res.images, 'image');
+        if (Array.isArray(res.audios)) pushAll(res.audios, 'audio');
+        if (Array.isArray(res.videos)) pushAll(res.videos, 'video');
+        if (Array.isArray(res.animations)) pushAll(res.animations, 'animation');
+        return arr;
+      })();
       const allResources = [...defaultResources, ...loadedResources];
       
       setAppState({
@@ -728,7 +811,7 @@ const App: React.FC = () => {
   // 新增：加载测试数据
   const handleLoadTestData = async () => {
     try {
-      const response = await fetch('/adventure-choice-game.json');
+      const response = await fetch('/adventure-choice-game-v2.json');
       if (response.ok) {
         const gameData = await response.json();
         handleLoadJson(gameData);

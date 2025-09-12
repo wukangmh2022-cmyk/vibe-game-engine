@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 128">
+  <defs>
+    <!-- 剑刃渐变（银白色金属质感） -->
+    <linearGradient id="blade" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fcff"/>
+      <stop offset="1" stop-color="#c0d0e0"/>
+    </linearGradient>
+    <!-- 护手渐变（金色） -->
+    <linearGradient id="guard" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#e8b040"/>
+      <stop offset="1" stop-color="#d09030"/>
+    </linearGradient>
+    <!-- 剑柄渐变（深色皮革/木质） -->
+    <linearGradient id="handle" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#504030"/>
+      <stop offset="1" stop-color="#302010"/>
+    </linearGradient>
+    <!-- 剑刃发光效果 -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <!-- 剑身（垂直方向，尖朝上） -->
+  <path d="M32 10 L40 30 L32 90 L24 30 Z" 
+        fill="url(#blade)" 
+        stroke="#a0b0c0" 
+        stroke-width="1"
+        filter="url(#glow)"/>
+  <!-- 剑刃高光（增强锋利感） -->
+  <path d="M32 10 L40 30 L32 90 L24 30 Z" 
+        fill="none" 
+        stroke="#ffffff" 
+        stroke-width="1.2"
+        stroke-linejoin="round"
+        opacity="0.8"/>
+  <!-- 剑脊凹槽 -->
+  <path d="M32 20 L36 35 L32 80 L28 35 Z" 
+        fill="none" 
+        stroke="#e0f0ff" 
+        stroke-width="0.8"
+        opacity="0.7"/>
+  <!-- 护手（十字形） -->
+  <rect x="22" y="90" width="20" height="4" rx="1" ry="1" fill="url(#guard)" stroke="#a07020" stroke-width="1"/>
+  <rect x="30" y="86" width="4" height="8" rx="1" ry="1" fill="url(#guard)" stroke="#a07020" stroke-width="1"/>
+  <!-- 剑柄（垂直向下） -->
+  <rect x="29" y="94" width="6" height="24" rx="2" ry="2" fill="url(#handle)" stroke="#201810" stroke-width="1"/>
+  <!-- 剑首（配重球） -->
+  <circle cx="32" cy="120" r="4" fill="#d0c0a0" stroke="#907050" stroke-width="1"/>
+  <!-- 剑尖光芒 -->
+  <path d="M32 10 L35 7 L32 4 L29 7 Z" 
+        fill="#ffffff" 
+        opacity="0.9"
+        filter="url(#glow)"/>
+</svg>

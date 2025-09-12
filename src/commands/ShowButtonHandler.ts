@@ -25,6 +25,18 @@ export class ShowButtonHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const { elementId, text } = command.parameters || {};
+    const ui = {
+      theme: (command.parameters || {}).theme,
+      buttonResourceId: (command.parameters || {}).buttonResourceId,
+      yesResourceId: (command.parameters || {}).yesResourceId,
+      noResourceId: (command.parameters || {}).noResourceId,
+      autosize: (command.parameters || {}).autosize !== false,
+      minWidth: (command.parameters || {}).minWidth ?? 160,
+      height: (command.parameters || {}).height ?? 48,
+      paddingX: (command.parameters || {}).paddingX ?? 24,
+      fontSize: (command.parameters || {}).fontSize ?? 16,
+      color: (command.parameters || {}).color || '#fff'
+    };
     const branches = (command as any).branches || {};
 
     // 基础校验
@@ -60,9 +72,9 @@ export class ShowButtonHandler extends BaseCommandHandler {
     // 打印/记录（实际渲染由上层适配器完成，这里只负责行为与事件契约）
     context.logger?.info('Displaying yes/no button', { elementId, text, branches });
     // 发射一个展示事件，供上层渲染 UI
-    context.eventManager.emit('button_displayed', { commandId: command.id, elementId, text, branches });
+    context.eventManager.emit('button_displayed', { commandId: command.id, elementId, text, branches, ui });
 
-    return this.createSuccessResult({ elementId, text });
+    return this.createSuccessResult({ elementId, text, ui });
   }
 
   validate(command: GameCommand) {

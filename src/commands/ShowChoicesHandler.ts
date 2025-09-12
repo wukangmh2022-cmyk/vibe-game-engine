@@ -74,12 +74,24 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       context.eventManager?.once('choice_selected', onSelect);
 
       // 触发选择显示事件（供上层渲染）
+      const ui = {
+        rowMax: (command.parameters?.rowMax ?? command.parameters?.ui?.rowMax) || 1,
+        theme: command.parameters?.theme || command.parameters?.ui?.theme || 'orange',
+        buttonResourceId: command.parameters?.buttonResourceId || command.parameters?.ui?.buttonResourceId,
+        fontSize: command.parameters?.fontSize || command.parameters?.ui?.fontSize || 16,
+        minWidth: command.parameters?.minWidth || command.parameters?.ui?.minWidth || 140,
+        height: command.parameters?.height || command.parameters?.ui?.height || 44,
+        paddingX: command.parameters?.paddingX || command.parameters?.ui?.paddingX || 18,
+        color: command.parameters?.color || command.parameters?.ui?.color || '#fff'
+      };
+
       context.eventManager?.emit('choices_displayed', {
         commandId: command.id,
         elementId,
         title: title || 'Please choose:',
         choices,
-        timeout
+        timeout,
+        ui
       });
 
       return this.createSuccessResult({

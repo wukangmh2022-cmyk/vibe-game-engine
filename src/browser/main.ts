@@ -15,6 +15,7 @@ import { FlipCardHandler } from '../commands/FlipCardHandler';
 import { SetClickableHandler } from '../commands/SetClickableHandler';
 import { SetSelectedHandler } from '../commands/SetSelectedHandler';
 import { GameCommand } from '../types';
+import { FireworkBurstHandler } from './FireworkBurstHandler';
 
 declare const PIXI: any;
 
@@ -53,6 +54,8 @@ async function bootstrap() {
   executor.registerHandler(new FlipCardHandler());
   executor.registerHandler(new SetClickableHandler());
   executor.registerHandler(new SetSelectedHandler());
+  // Effects
+  executor.registerHandler(new FireworkBurstHandler());
 
   // Gate CHOICES until user confirms YES; also pause while blocking texts are present
   let canShowChoices = false;
@@ -80,6 +83,40 @@ async function bootstrap() {
     no.textContent = payload?.branches?.no?.label || '否';
     row.appendChild(yes); row.appendChild(no);
     overlay.appendChild(row);
+    // Apply themed SVG backgrounds with auto sizing
+    try {
+      const ui: any = payload?.ui || {};
+      const getUrl = (id: string) => (resourceManager as any).getResource?.(id)?.url;
+      const assignStyle = (el: HTMLButtonElement, label: string, resId?: string) => {
+        const height = Number(ui.height ?? 48);
+        const minW = Number(ui.minWidth ?? 160);
+        const padX = Number(ui.paddingX ?? 24);
+        const fontSize = Number(ui.fontSize ?? 16);
+        const approx = Math.ceil(((label || '').length) * (fontSize * 0.56)) + padX * 2;
+        const w = Math.max(minW, approx);
+        el.style.width = `${w}px`;
+        el.style.height = `${height}px`;
+        const url = resId ? getUrl(resId) : undefined;
+        if (url) el.style.background = `url(${url}) no-repeat center / auto 100%`;
+        el.style.border = 'none';
+        el.style.outline = 'none';
+        el.style.color = ui.color || '#fff';
+        el.style.fontSize = `${fontSize}px`;
+        el.style.fontWeight = '600';
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.cursor = 'pointer';
+        (el.style as any).pointerEvents = 'auto';
+        el.style.backgroundColor = url ? 'transparent' : el.style.backgroundColor;
+        el.style.borderRadius = '10px';
+        el.style.padding = '0';
+      };
+      const themeDefault = (ui.theme === 'blue' ? 'btn-blue' : ui.theme === 'orange' ? 'btn-orange' : undefined);
+      assignStyle(yes, yes.textContent || '是', ui.yesResourceId || ui.buttonResourceId || themeDefault);
+      assignStyle(no, no.textContent || '否', ui.noResourceId || ui.buttonResourceId || themeDefault);
+    } catch {}
+
     yes.onclick = () => {
       eventManager.emit('button_clicked', { commandId: payload.commandId, elementId: payload.elementId, branch: 'yes' });
       canShowChoices = true;
@@ -97,12 +134,40 @@ async function bootstrap() {
     (box.style as any).pointerEvents = 'auto';
     const title = document.createElement('div');
     title.textContent = payload.title || '请选择';
-    title.style.marginBottom = '6px';
+    title.style.marginBottom = '8px';
+    title.style.color = '#fff';
     box.appendChild(title);
+    const ui: any = payload.ui || {};
+    const rowMax = Number(ui.rowMax || 3);
+    box.style.display = 'grid';
+    ;(box.style as any).gridTemplateColumns = `repeat(${rowMax}, minmax(0, 1fr))`;
+    const gapX = ui.gapX != null ? Number(ui.gapX) : (ui.gap != null ? Number(ui.gap) : 10);
+    const gapY = ui.gapY != null ? Number(ui.gapY) : (ui.gap != null ? Number(ui.gap) : 8);
+    box.style.gap = `${gapY}px ${gapX}px`;
+    const themeDefault = (ui.theme === 'blue' ? 'btn-blue' : 'btn-orange');
+    const getUrl = (id: string) => (resourceManager as any).getResource?.(id)?.url;
+    const assignStyle = (el: HTMLButtonElement, label: string, resId?: string) => {
+      const height = Number(ui.height ?? 44);
+      const minW = Number(ui.minWidth ?? 140);
+      const padX = Number(ui.paddingX ?? 18);
+      const fontSize = Number(ui.fontSize ?? 16);
+      const approx = Math.ceil(((label || '').length) * (fontSize * 0.56)) + padX * 2;
+      const w = Math.max(minW, approx);
+      el.style.width = `${w}px`;
+      el.style.height = `${height}px`;
+      const url = resId ? getUrl(resId) : undefined;
+      if (url) el.style.background = `url(${url}) no-repeat center / auto 100%`;
+      el.style.border = 'none'; el.style.outline = 'none'; el.style.color = ui.color || '#fff';
+      el.style.fontSize = `${fontSize}px`; el.style.fontWeight = '600';
+      el.style.display = 'flex'; el.style.alignItems = 'center'; el.style.justifyContent = 'center';
+      el.style.cursor = 'pointer'; (el.style as any).pointerEvents = 'auto'; el.style.backgroundColor = url ? 'transparent' : el.style.backgroundColor; el.style.borderRadius = '10px'; el.style.padding = '0';
+    };
     (payload.choices || []).forEach((opt: any, idx: number) => {
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
-      btn.textContent = opt.text || opt.id || String(idx + 1);
+      const label = opt.text || opt.id || String(idx + 1);
+      btn.textContent = label;
+      try { assignStyle(btn, label, ui.buttonResourceId || themeDefault); } catch {}
       btn.onclick = () => {
         // 立即隐藏本次选项容器，避免与子命令的阻塞文本重叠
         (box.style as any).visibility = 'hidden';
@@ -119,9 +184,24 @@ async function bootstrap() {
     if (canShowChoices && blockingCount === 0) renderChoices(payload); else delayedChoices.push(payload);
   });
 
-  // Load game config
-  const res = await fetch('../adventure-choice-game-v2.json');
-  const game = await res.json();
+  // Load game config (support external override)
+  const url = (window as any).__GAME_JSON_URL || '../adventure-choice-game-v2.json';
+  console.info('[Runtime] Loading JSON:', url);
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch JSON: ' + url);
+  let game: any;
+  try {
+    game = await res.json();
+    console.info('[Runtime] JSON loaded OK:', game?.id || 'unknown', (game?.levels?.length || 0), 'levels');
+  } catch (e) {
+    console.error('[Runtime] JSON parse error for', url, e);
+    const box = document.createElement('div');
+    (box.style as any).position = 'absolute'; (box.style as any).left = '12px'; (box.style as any).top = '12px';
+    (box.style as any).padding = '10px 12px'; (box.style as any).background = 'rgba(0,0,0,0.7)'; (box.style as any).color = '#f88'; (box.style as any).borderRadius = '6px'; (box.style as any).zIndex = '9999';
+    box.textContent = 'JSON 解析失败: ' + url;
+    document.body.appendChild(box);
+    throw e;
+  }
   const level = game.levels[0];
   // Build id -> command index for jump targets (top-level + events)
   const topIndex = new Map<string, any>();
@@ -197,22 +277,30 @@ async function bootstrap() {
     }, 0);
   });
 
+  // 配对检测改为 JSON 逻辑；此处不做运行时配对
+
   // Blocking text: add a clickable backdrop and click text itself to continue
   eventManager.on('text_displayed', (payload: any) => {
     if (!payload?.blocking) return;
     blockingCount++;
     const node = (renderManager as any)?.getNode?.(payload.elementId);
     if (node) {
-      const padX = 14, padY = 10, radius = 8;
-      const b = node.getBounds();
-      const g = new PIXI.Graphics();
-      g.beginFill(0x000000, 0.55).drawRoundedRect(b.x - padX, b.y - padY, b.width + padX * 2, b.height + padY * 2, radius).endFill();
-      g.zIndex = (node.zIndex || 0) - 1;
-      const onContinue = () => { eventManager.emit('text_continue', { elementId: payload.elementId }); };
-      g.eventMode = 'static'; g.cursor = 'pointer'; g.on('pointerdown', onContinue);
-      node.eventMode = 'static'; node.cursor = 'pointer'; node.on && node.on('pointerdown', onContinue);
-      app.stage.addChild(g);
-      textBackdrops.set(payload.elementId, g);
+      // If ShowText has its own panel image, skip drawing Pixi Graphics backdrop
+      if (!payload.panelResourceId) {
+        const padX = 14, padY = 10, radius = 8;
+        const b = node.getBounds();
+        const g = new PIXI.Graphics();
+        g.beginFill(0x000000, 0.55).drawRoundedRect(b.x - padX, b.y - padY, b.width + padX * 2, b.height + padY * 2, radius).endFill();
+        g.zIndex = (node.zIndex || 0) - 1;
+        const onContinue = () => { eventManager.emit('text_continue', { elementId: payload.elementId }); };
+        g.eventMode = 'static'; g.cursor = 'pointer'; g.on('pointerdown', onContinue);
+        node.eventMode = 'static'; node.cursor = 'pointer'; node.on && node.on('pointerdown', onContinue);
+        app.stage.addChild(g);
+        textBackdrops.set(payload.elementId, g);
+      } else {
+        const onContinue = () => { eventManager.emit('text_continue', { elementId: payload.elementId }); };
+        node.eventMode = 'static'; node.cursor = 'pointer'; node.on && node.on('pointerdown', onContinue);
+      }
     }
   });
   eventManager.on('text_continue', (payload: any) => {

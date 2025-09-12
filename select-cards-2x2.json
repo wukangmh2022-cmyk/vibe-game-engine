@@ -1,0 +1,67 @@
+{
+  "id": "select-cards-2x2",
+  "name": "多选卡片 2×2 (无翻牌)",
+  "version": "1.0.0",
+  "schema": "v2",
+  "resources": {
+    "images": [
+      { "id": "card-a", "src": "images/card-a.svg" },
+      { "id": "card-b", "src": "images/card-b.svg" },
+      { "id": "check", "src": "images/check-circle.svg" }
+    ],
+    "audios": []
+  },
+  "levels": [
+    {
+      "id": "select-2x2",
+      "name": "多选 2×2",
+      "canvasWidth": 800,
+      "canvasHeight": 600,
+      "initialState": {
+        "card1_selected": false,
+        "card2_selected": false,
+        "card3_selected": false,
+        "card4_selected": false
+      },
+      "commands": [
+        { "id": "title", "type": "SHOW_TEXT", "parameters": { "elementId": "title", "text": "✅ 点选卡片可多选 (0-4)", "position": { "x": 20, "y": 20 }, "style": { "fontSize": "24px", "color": "#ffffff" } } },
+
+        { "id": "show-c1", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-1", "resourceId": "card-a", "position": { "x": 300, "y": 160 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
+        { "id": "sel-c1", "type": "SHOW_IMAGE", "parameters": { "elementId": "sel-1", "resourceId": "check", "parentId": "card-1", "position": { "x": 0, "y": 0 }, "size": { "width": 48, "height": 48 }, "align": "center", "zIndex": 2 } },
+        { "id": "hide-sel-c1", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-1", "style": { "display": "none" } } },
+        { "id": "click-c1", "type": "set_clickable", "parameters": { "elementId": "card-1", "onClick": "commands", "commands": [
+          { "id": "toggle-c1", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('card1_selected') === true" },
+            "trueCommands": [ { "id": "c1-off", "type": "set_variable", "parameters": { "key": "card1_selected", "op": "set", "value": false } }, { "id": "hide-c1", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-1", "style": { "display": "none" } } } ],
+            "falseCommands": [ { "id": "c1-on", "type": "set_variable", "parameters": { "key": "card1_selected", "op": "set", "value": true } }, { "id": "show-c1", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-1", "style": { "display": "block" } } }, { "id": "anim-in-c1", "type": "ANIMATE_IN", "parameters": { "elementId": "sel-1", "preset": "scaleIn", "duration": 220 } } ] } }
+        ] } },
+
+        { "id": "show-c2", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-2", "resourceId": "card-a", "position": { "x": 460, "y": 160 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
+        { "id": "sel-c2", "type": "SHOW_IMAGE", "parameters": { "elementId": "sel-2", "resourceId": "check", "parentId": "card-2", "position": { "x": 0, "y": 0 }, "size": { "width": 48, "height": 48 }, "align": "center", "zIndex": 2 } },
+        { "id": "hide-sel-c2", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-2", "style": { "display": "none" } } },
+        { "id": "click-c2", "type": "set_clickable", "parameters": { "elementId": "card-2", "onClick": "commands", "commands": [
+          { "id": "toggle-c2", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('card2_selected') === true" },
+            "trueCommands": [ { "id": "c2-off", "type": "set_variable", "parameters": { "key": "card2_selected", "op": "set", "value": false } }, { "id": "hide-c2", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-2", "style": { "display": "none" } } } ],
+            "falseCommands": [ { "id": "c2-on", "type": "set_variable", "parameters": { "key": "card2_selected", "op": "set", "value": true } }, { "id": "show-c2", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-2", "style": { "display": "block" } } }, { "id": "anim-in-c2", "type": "ANIMATE_IN", "parameters": { "elementId": "sel-2", "preset": "scaleIn", "duration": 220 } } ] } }
+        ] } },
+
+        { "id": "show-c3", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-3", "resourceId": "card-b", "position": { "x": 300, "y": 340 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
+        { "id": "sel-c3", "type": "SHOW_IMAGE", "parameters": { "elementId": "sel-3", "resourceId": "check", "parentId": "card-3", "position": { "x": 0, "y": 0 }, "size": { "width": 48, "height": 48 }, "align": "center", "zIndex": 2 } },
+        { "id": "hide-sel-c3", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-3", "style": { "display": "none" } } },
+        { "id": "click-c3", "type": "set_clickable", "parameters": { "elementId": "card-3", "onClick": "commands", "commands": [
+          { "id": "toggle-c3", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('card3_selected') === true" },
+            "trueCommands": [ { "id": "c3-off", "type": "set_variable", "parameters": { "key": "card3_selected", "op": "set", "value": false } }, { "id": "hide-c3", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-3", "style": { "display": "none" } } } ],
+            "falseCommands": [ { "id": "c3-on", "type": "set_variable", "parameters": { "key": "card3_selected", "op": "set", "value": true } }, { "id": "show-c3", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-3", "style": { "display": "block" } } }, { "id": "anim-in-c3", "type": "ANIMATE_IN", "parameters": { "elementId": "sel-3", "preset": "scaleIn", "duration": 220 } } ] } }
+        ] } },
+
+        { "id": "show-c4", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-4", "resourceId": "card-b", "position": { "x": 460, "y": 340 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
+        { "id": "sel-c4", "type": "SHOW_IMAGE", "parameters": { "elementId": "sel-4", "resourceId": "check", "parentId": "card-4", "position": { "x": 0, "y": 0 }, "size": { "width": 48, "height": 48 }, "align": "center", "zIndex": 2 } },
+        { "id": "hide-sel-c4", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-4", "style": { "display": "none" } } },
+        { "id": "click-c4", "type": "set_clickable", "parameters": { "elementId": "card-4", "onClick": "commands", "commands": [
+          { "id": "toggle-c4", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('card4_selected') === true" },
+            "trueCommands": [ { "id": "c4-off", "type": "set_variable", "parameters": { "key": "card4_selected", "op": "set", "value": false } }, { "id": "hide-c4", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-4", "style": { "display": "none" } } } ],
+            "falseCommands": [ { "id": "c4-on", "type": "set_variable", "parameters": { "key": "card4_selected", "op": "set", "value": true } }, { "id": "show-c4", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "sel-4", "style": { "display": "block" } } }, { "id": "anim-in-c4", "type": "ANIMATE_IN", "parameters": { "elementId": "sel-4", "preset": "scaleIn", "duration": 220 } } ] } }
+        ] } }
+      ]
+    }
+  ]
+}

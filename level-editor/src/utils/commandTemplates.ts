@@ -51,6 +51,24 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         description: 'Y坐标位置'
       },
       {
+        name: 'parentId',
+        label: '父元素ID',
+        type: 'text',
+        required: false,
+        description: '可选：挂载到已有元素下（相对其坐标）'
+      },
+      {
+        name: 'align',
+        label: '对齐',
+        type: 'select',
+        required: false,
+        options: [
+          { value: '', label: '无' },
+          { value: 'center', label: '居中' }
+        ],
+        description: '与父元素的对齐方式（需设置父元素）'
+      },
+      {
         name: 'size.width',
         label: '宽度',
         type: 'number',

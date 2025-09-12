@@ -99,6 +99,12 @@ export class CommandExecutor {
         update_text: ['update_text', 'UPDATE_TEXT'],
         // 历史名称兼容
         call_event: ['emit_signal', 'EMIT_SIGNAL'],
+        // 粒子/烟花 特效别名
+        'fireworks': ['firework_burst'],
+        'firework': ['firework_burst'],
+        'particle_effect': ['firework_burst'],
+        '粒子特效': ['firework_burst'],
+        '烟花': ['firework_burst'],
       };
       if (aliasMap[normalized]) {
         candidates.push(...aliasMap[normalized]);
@@ -337,6 +343,7 @@ export abstract class BaseCommandHandler implements ICommandHandler {
       show_text: ['text', 'update_text'],
       show_choices: ['choices'],
       show_button: ['button'],
+      firework_burst: ['particle_effect', '粒子特效', 'firework', 'fireworks', '烟花'],
     };
     if (aliasByExpected[expectedType]) {
       for (const a of aliasByExpected[expectedType]) allowed.add(a);

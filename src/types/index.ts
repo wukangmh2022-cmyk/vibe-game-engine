@@ -94,6 +94,7 @@ export enum CommandType {
   FADE_IN = 'fade_in',
   FADE_OUT = 'fade_out',
   SHAKE = 'shake',
+  FIREWORK_BURST = 'firework_burst',
   
   // 游戏逻辑
   CHECK_ANSWER = 'check_answer',
@@ -327,6 +328,7 @@ export interface ElementConfig {
   style?: Record<string, any>;
   content?: string;
   src?: string;
+  parentId?: string;
 }
 
 // 渲染元素接口

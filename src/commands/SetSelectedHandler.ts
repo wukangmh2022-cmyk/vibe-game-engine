@@ -8,7 +8,10 @@ export class SetSelectedHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const id: string = p.elementId;
+    let id: string | undefined = p.elementId;
+    if (!id && p.elementIdVar && (context as any).stateManager?.getVariable) {
+      try { id = (context as any).stateManager.getVariable(p.elementIdVar); } catch {}
+    }
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
 
     const rm: any = context.renderManager as any;
@@ -30,4 +33,3 @@ export class SetSelectedHandler extends BaseCommandHandler {
     return this.createSuccessResult({ elementId: id, selected });
   }
 }
-

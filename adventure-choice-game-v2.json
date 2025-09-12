@@ -20,13 +20,15 @@
         "images": [
             {
                 "id": "forest-bg",
-                "src": "images/forest-background.svg"
+                "src": "images/forest.png"
             },
-            { "id": "card-front", "src": "images/card-front.svg" },
-            { "id": "card-back", "src": "images/card-back.svg" },
+            {
+                "id": "road",
+                "src": "images/road.jpg"
+            },
             {
                 "id": "treasure-room",
-                "src": "images/treasure-room.svg"
+                "src": "images/cave.png"
             },
             {
                 "id": "game-over-screen",
@@ -38,8 +40,12 @@
             },
             {
                 "id": "legendary-sword",
-                "src": "images/sword.svg"
-            }
+                "src": "images/sword2.svg"
+            },
+            { "id": "btn-orange", "src": "images/btn-orange.svg" },
+            { "id": "btn-blue", "src": "images/btn-blue.svg" },
+            { "id": "panel-blue-1", "src": "images/panel-blue-1.svg" },
+            { "id": "panel-blue-2", "src": "images/panel-blue-2.svg" }
         ],
         "audios": [
             { "id": "bgm-main", "src": "audio/bgm/063-Slow06.mp3" },
@@ -193,40 +199,25 @@
                         "elementId": "game-title",
                         "text": "🗡️ 冒险选择游戏 V2 🗡️",
                         "position": {
-                            "x": 50,
+                            "x": 20,
                             "y": 20
                         },
                         "style": {
-                            "fontSize": "32px",
-                            "color": "#2c3e50",
-                            "fontWeight": "bold",
-                            "textAlign": "center",
-                            "textShadow": "2px 2px 4px rgba(0,0,0,0.5)",
-                            "zIndex": 10
+                            "fontSize": "30px",
+                            "color": "#ffffff",
+                            "fontFamily": "Arial, Helvetica, sans-serif",
+                            "stroke": "#000000",
+                            "strokeThickness": 3,
+                            "dropShadow": true,
+                            "dropShadowColor": "#000000",
+                            "dropShadowBlur": 2,
+                            "dropShadowAngle": 1.2,
+                            "dropShadowDistance": 2,
+                            "maxWidth": "600px",
+                            "lineHeight": "1.6",
+                            "zIndex": 12
                         },
                         "animation": { "entry": { "animId": "anim-fade-in" } }
-                    }
-                },
-                {
-                    "id": "show-demo-card",
-                    "type": "SHOW_IMAGE",
-                    "parameters": {
-                        "elementId": "demo-card",
-                        "resourceId": "card-front",
-                        "position": { "x": 520, "y": 180 },
-                        "size": { "width": 120, "height": 160 },
-                        "zIndex": 5,
-                        "animation": { "entry": { "animId": "anim-scale-pop-in" } }
-                    }
-                },
-                {
-                    "id": "clickable-demo-card",
-                    "type": "set_clickable",
-                    "parameters": {
-                        "elementId": "demo-card",
-                        "clickable": true,
-                        "onClick": "flip",
-                        "backResourceId": "card-back"
                     }
                 },
                 {
@@ -234,17 +225,29 @@
                     "type": "SHOW_TEXT",
                     "parameters": {
                         "elementId": "story-text",
-                        "text": "你站在一片神秘的森林前。传说这里隐藏着古老的宝藏，但也充满了危险。是否立刻进入森林？",
+                        "text": "你站在一片神秘的森林前。传说这里隐藏着古老的宝藏，\n但也充满了危险。是否立刻进入森林？",
                         "position": {
                             "x": 50,
                             "y": 80
                         },
                         "style": {
-                            "fontSize": "18px",
-                            "color": "#34495e",
+                            "fontSize": "20px",
+                            "color": "#ffffff",
+                            "fontFamily": "Arial, Helvetica, sans-serif",
+                            "stroke": "#1e3a8a",
+                            "strokeThickness": 3,
+                            "dropShadow": true,
+                            "dropShadowColor": "#000000",
+                            "dropShadowBlur": 2,
+                            "dropShadowAngle": 1.2,
+                            "dropShadowDistance": 2,
                             "maxWidth": "600px",
-                            "lineHeight": "1.6"
-                        }
+                            "lineHeight": "1.6",
+                            "zIndex": 12
+                        },
+                        "backgroundResourceId": "panel-blue-1",
+                        "backgroundPadding": 14,
+                        "blocking": false
                     }
                 },
                 {
@@ -254,13 +257,23 @@
                         "elementId": "stats-display",
                         "text": "💰 金币: 50 | ❤️ 生命: 100 | ⭐ 得分: 0",
                         "position": {
-                            "x": 50,
-                            "y": 140
+                            "x": 345,
+                            "y": 25
                         },
                         "style": {
                             "fontSize": "16px",
-                            "color": "#27ae60",
-                            "fontWeight": "bold"
+                            "color": "#ffffff",
+                            "fontFamily": "Arial, Helvetica, sans-serif",
+                            "stroke": "#000000",
+                            "strokeThickness": 3,
+                            "dropShadow": true,
+                            "dropShadowColor": "#000000",
+                            "dropShadowBlur": 2,
+                            "dropShadowAngle": 1.2,
+                            "dropShadowDistance": 2,
+                            "maxWidth": "600px",
+                            "lineHeight": "1.6",
+                            "zIndex": 12
                         }
                     }
                 },
@@ -274,18 +287,7 @@
                             "x": 100,
                             "y": 200
                         },
-                        "size": {
-                            "width": 260,
-                            "height": 50
-                        },
-                        "style": {
-                            "backgroundColor": "#27ae60",
-                            "color": "white",
-                            "fontSize": "16px",
-                            "border": "none",
-                            "borderRadius": "8px",
-                            "cursor": "pointer"
-                        }
+                        "ui": { "theme": "orange", "minWidth": 200, "height": 52, "fontSize": 18 }
                     },
                     "branches": {
                         "yes": {
@@ -296,7 +298,25 @@
                                     "type": "UPDATE_TEXT",
                                     "parameters": {
                                         "elementId": "story-text",
-                                        "text": "你勇敢地走进了森林。不久，你遇到了一只受伤的小鹿，并看到前方有两条路。"
+                                        "text": "你勇敢地走进了森林。不久，\n你遇到了一只受伤的小鹿，并看到前方有两条路。"
+                                    }
+                                },
+                                {
+                                    "id": "show-forest-background",
+                                    "type": "SHOW_IMAGE",
+                                    "parameters": {
+                                        "elementId": "background",
+                                        "resourceId": "road",
+                                        "position": {
+                                            "x": 0,
+                                            "y": 0
+                                        },
+                                        "size": {
+                                            "width": 800,
+                                            "height": 600
+                                        },
+                                        "zIndex": 0,
+                                        "animation": { "entry": { "animId": "anim-fade-in" } }
                                     }
                                 },
                                 {
@@ -347,10 +367,8 @@
                             "x": 100,
                             "y": 270
                         },
-                        "style": {
-                            "fontSize": "16px",
-                            "color": "#2c3e50"
-                        }
+                        "style": { "fontSize": "18px", "color": "#ffffff" },
+                        "ui": { "rowMax": 3, "theme": "orange", "fontSize": 16, "minWidth": 160, "height": 48 }
                     },
                     "options": [
                         {
@@ -371,7 +389,7 @@
                                                 "type": "UPDATE_TEXT",
                                                 "parameters": {
                                                     "elementId": "story-text",
-                                                    "text": "你用钥匙打开了洞穴门，发现一个装满金币的宝箱！"
+                                                    "text": "你用钥匙打开了洞穴门，发现了一把传说之剑。\n请将它拖拽到右下角的背包图标中以收集！"
                                                 }
                                             },
                                             {
@@ -411,16 +429,6 @@
                                                 "parameters": {
                                                     "elementId": "stats-display",
                                                     "text": "💰 金币: ${gameState.gold} | ❤️ 生命: ${gameState.health} | ⭐ 得分: ${gameState.score} | ⚔️ 传说之剑: ✅"
-                                                }
-                                            },
-                                            {
-                                                "id": "show-cave-tip",
-                                                "type": "SHOW_TEXT",
-                                                "parameters": {
-                                                    "elementId": "cave-tip",
-                                                    "text": "你在洞穴中发现了一把传说之剑。请将它拖拽到右下角的背包图标中以收集！",
-                                                    "position": { "x": 100, "y": 330 },
-                                                    "style": { "fontSize": "16px", "color": "#2c3e50" }
                                                 }
                                             },
                                             {
@@ -488,7 +496,9 @@
                                                     },
                                                     "style": {
                                                         "fontSize": "16px",
-                                                        "color": "#e74c3c"
+                                                        "color": "#e74c3c",
+                                                        "fill": "#e74c3c",
+                                                        "dropShadow": false
                                                     },
                                                     "blocking": true,
                                                     "dismissOnContinue": true
@@ -522,14 +532,8 @@
                                     "parameters": {
                                         "elementId": "tip-message",
                                         "text": "提示：帮助小鹿也许会有意想不到的收获。",
-                                        "position": {
-                                            "x": 100,
-                                            "y": 400
-                                        },
-                                        "style": {
-                                            "fontSize": "16px",
-                                            "color": "#16a085"
-                                        },
+                                        "position": { "x": 100, "y": 400 },
+                                        "style": { "fontSize": "16px", "color": "#16a085", "fill": "#16a085", "dropShadow": false },
                                         "duration": 3000,
                                         "blocking": true,
                                         "dismissOnContinue": true
@@ -588,6 +592,19 @@
                                                 "parameters": {
                                                     "elementId": "stats-display",
                                                     "text": "💰 金币: ${gameState.gold} | ❤️ 生命: ${gameState.health} | ⭐ 得分: ${gameState.score} | 🗝️ 魔法钥匙: ✅"
+                                                }
+                                            },
+                                            {
+                                                "id": "show-tip",
+                                                "type": "SHOW_TEXT",
+                                                "parameters": {
+                                                    "elementId": "tip-message",
+                                                    "text": "小鹿得到了帮助，给了你一把钥匙。",
+                                                    "position": { "x": 100, "y": 400 },
+                                                    "style": { "fontSize": "16px", "color": "#16a085", "fill": "#16a085", "dropShadow": false },
+                                                    "duration": 3000,
+                                                    "blocking": true,
+                                                    "dismissOnContinue": true
                                                 }
                                             },
                                             {
@@ -651,8 +668,8 @@
                             "parameters": {
                                 "elementId": "countdown-text",
                                 "text": "⏳ ${gameState.countdown}s",
-                                "position": { "x": 720, "y": 10 },
-                                "style": { "fontSize": "16px", "color": "#e67e22", "textAlign": "right", "maxWidth": 80 }
+                                "position": { "x": 740, "y": 10 },
+                                "style": { "fontSize": "16px", "color": "#ffffff", "fill": "#ffffff","stroke": "#000000","strokeThickness": 3, "textAlign": "right", "maxWidth": 80, "dropShadow": false, "zIndex": 100 }
                             }
                         },
                         {
@@ -667,7 +684,7 @@
                                     { "id": "tick-jump", "type": "JUMP_TO", "parameters": { "target": "tick" } }
                                 ],
                                 "falseCommands": [
-                                    { "id": "timeout-msg", "type": "SHOW_TEXT", "parameters": { "elementId": "timeout-msg", "text": "⏳ 60秒已到，故事进入尾声。", "position": { "x": 60, "y": 520 }, "style": { "fontSize": "18px", "color": "#e67e22" }, "blocking": true, "dismissOnContinue": true } },
+                                    { "id": "timeout-msg", "type": "SHOW_TEXT", "parameters": { "elementId": "timeout-msg", "text": "⏳ 60秒已到，故事进入尾声。", "position": { "x": 60, "y": 520 }, "style": { "fontSize": "18px", "color": "#000000", "stroke": "#ffffff", "strokeThickness": 3 }, "blocking": true, "dismissOnContinue": true } },
                                     { "id": "bgm-stop-on-timeout", "type": "BGM_STOP", "parameters": {} },
                                     { "id": "timeout-over", "type": "GAME_OVER", "parameters": { "reason": "timeout", "message": "超时结束", "resetGame": true } }
                                 ]
@@ -685,16 +702,6 @@
                         }
                     ],
                     "commands": [
-                        {
-                            "id": "victory-message",
-                            "type": "SHOW_TEXT",
-                            "parameters": {
-                                "elementId": "victory-msg",
-                                "text": "🏆 10秒后游戏结束，gameover，音乐停止。",
-                                "position": { "x": 60, "y": 520 },
-                                "style": { "fontSize": "18px", "color": "#000000" }
-                            }
-                        },
                         {
                             "id": "wait-10s",
                             "type": "WAIT",

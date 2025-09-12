@@ -9,6 +9,7 @@ export enum CommandType {
   // 显示控制
   SHOW_IMAGE = 'SHOW_IMAGE',
   SHOW_TEXT = 'SHOW_TEXT',
+  SHOW_MEDIA = 'SHOW_MEDIA',
   HIDE_ELEMENT = 'HIDE_ELEMENT',
   HIDE_ELEMENTS = 'HIDE_ELEMENTS',
   UPDATE_TEXT = 'UPDATE_TEXT',
@@ -18,6 +19,7 @@ export enum CommandType {
   MOVE_TO = 'MOVE_TO',
   SCALE_TO = 'SCALE_TO',
   ROTATE_TO = 'ROTATE_TO',
+  FLIP_CARD = 'FLIP_CARD',
   
   // 状态控制
   SET_VARIABLE = 'SET_VARIABLE',
@@ -30,7 +32,7 @@ export enum CommandType {
   LOOP = 'LOOP',
   BREAK = 'BREAK',
   CONTINUE = 'CONTINUE',
-  CALL_EVENT = 'CALL_EVENT',
+  EMIT_SIGNAL = 'EMIT_SIGNAL',
   RETURN = 'RETURN',
   
   // 用户交互

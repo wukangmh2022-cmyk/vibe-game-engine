@@ -8,7 +8,10 @@ export class FlipCardHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const elementId: string = p.elementId;
+    let elementId: string | undefined = p.elementId;
+    if (!elementId && p.elementIdVar && (context as any).stateManager?.getVariable) {
+      try { elementId = (context as any).stateManager.getVariable(p.elementIdVar); } catch {}
+    }
     if (!elementId) return this.createErrorResult('Missing required parameter: elementId');
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(elementId) : null;
@@ -32,8 +35,8 @@ export class FlipCardHandler extends BaseCommandHandler {
     const showBack: boolean = p.showBack !== false; // 默认翻到背面
 
     const animator = new Animator();
-    // 使用中心翻转
-    if ((node as any).anchor && (node as any).anchor.set) {
+    // 使用中心翻转（仅首次调整）
+    if (!(node as any).__anchorCentered && (node as any).anchor && (node as any).anchor.set) {
       const oldAx = (node as any).anchor.x ?? 0;
       const oldAy = (node as any).anchor.y ?? 0;
       const oldX = (node as any).x || 0;
@@ -41,17 +44,22 @@ export class FlipCardHandler extends BaseCommandHandler {
       const w = (node as any).width || 0;
       const h = (node as any).height || 0;
       (node as any).anchor.set(0.5);
-      (node as any).x = oldX + w * (oldAx - 0.5);
-      (node as any).y = oldY + h * (oldAy - 0.5);
+      // compensate so that visual top-left stays unchanged after anchor change
+      (node as any).x = oldX + w * (0.5 - oldAx);
+      (node as any).y = oldY + h * (0.5 - oldAy);
+      (node as any).__anchorCentered = true;
     }
 
     // 第一半：缩到 0
     const from1 = { ...this.stateToAnim(node) };
-    const to1   = { scale: { x: 0.01, y: node.scale?.y ?? 1 } };
+    const to1   = { scale: { x: 0.001, y: node.scale?.y ?? 1 } };
     await animator.animate(node as any, from1, to1, half, easing);
 
     // 中点：切贴图
+    const prevRenderable = (node as any).renderable ?? true;
+    (node as any).renderable = false;
     this.setTexture(node, showBack ? backUrl : frontUrl);
+    await new Promise<void>(resolve => requestAnimationFrame(() => { (node as any).renderable = prevRenderable; resolve(); }));
 
     // 第二半：从 0 回到 1
     const from2 = { ...this.stateToAnim(node) };
@@ -62,6 +70,17 @@ export class FlipCardHandler extends BaseCommandHandler {
     (node as any).__frontSrc = frontUrl;
     (node as any).__backSrc = backUrl;
     (node as any).__isBack = showBack;
+
+    try {
+      (context as any).eventManager?.emit?.('card_face_changed', {
+        elementId,
+        showBack,
+        frontResourceId: p.frontResourceId,
+        backResourceId: p.backResourceId,
+        frontSrc: frontUrl,
+        backSrc: backUrl
+      });
+    } catch {}
 
     return this.createSuccessResult({ elementId, showBack, duration: total });
   }

@@ -1,0 +1,345 @@
+{
+  "id": "flip-memory-game-v1",
+  "name": "翻牌记忆配对 V1 (2×2)",
+  "version": "1.0.0",
+  "schema": "v2",
+  "resources": {
+    "images": [
+      { "id": "card-back", "src": "images/card-back.svg" },
+      { "id": "card-a", "src": "images/card-a.svg" },
+      { "id": "card-b", "src": "images/card-b.svg" },
+      { "id": "star", "src": "images/star.svg" },
+      { "id": "count-1", "src": "images/count-1.svg" },
+      { "id": "count-2", "src": "images/count-2.svg" },
+      { "id": "count-3", "src": "images/count-3.svg" },
+      { "id": "count-4", "src": "images/count-4.svg" },
+      { "id": "count-5", "src": "images/count-5.svg" },
+      { "id": "count-go", "src": "images/count-go.svg" },
+      { "id": "btn-orange", "src": "images/btn-orange.svg" },
+      { "id": "btn-blue", "src": "images/btn-blue.svg" },
+      { "id": "panel-blue-2", "src": "images/panel-blue-2.svg" }
+    ],
+    "audios": []
+  },
+  "levels": [
+    {
+      "id": "memory-2x2",
+      "name": "记忆关卡 2×2",
+      "canvasWidth": 800,
+      "canvasHeight": 600,
+      "initialState": {},
+      "commands": [
+        {
+          "id": "welcome-text",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "welcome-text",
+            "text": "欢迎来到翻牌记忆配对！点击开始后在限定时间内配对两两相同的卡片。",
+            "position": { "x": 60, "y": 80 },
+            "style": {
+              "fontSize": "20px",
+              "color": "#ffffff",
+              "fontFamily": "Arial, Helvetica, sans-serif",
+              "stroke": "#1e3a8a",
+              "strokeThickness": 3,
+              "dropShadow": true,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 2,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "maxWidth": "560px",
+              "lineHeight": "1.6",
+              "zIndex": 12
+            },
+            "backgroundResourceId": "panel-blue-2",
+            "backgroundPadding": 16,
+            "blocking": false
+          }
+        },
+        {
+          "id": "title",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "title",
+            "text": "🃏 单卡翻牌示例",
+            "position": { "x": 20, "y": 20 },
+            "style": { "fontSize": "24px", "color": "#ffffff" }
+          }
+        },
+        {
+          "id": "show-card-1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-1",
+            "resourceId": "card-a",
+            "position": { "x": 340, "y": 200 },
+            "size": { "width": 120, "height": 160 },
+            "zIndex": 5
+          }
+        },
+        {
+          "id": "click-card-1",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card-1",
+            "clickable": false,
+            "onClick": "flip",
+            "frontResourceId": "card-a",
+            "backResourceId": "card-back"
+          }
+        },
+        {
+          "id": "show-card-2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-2",
+            "resourceId": "card-a",
+            "position": { "x": 500, "y": 200 },
+            "size": { "width": 120, "height": 160 },
+            "zIndex": 5
+          }
+        },
+        {
+          "id": "click-card-2",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card-2",
+            "clickable": false,
+            "onClick": "flip",
+            "frontResourceId": "card-a",
+            "backResourceId": "card-back"
+          }
+        },
+        {
+          "id": "show-card-3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-3",
+            "resourceId": "card-b",
+            "position": { "x": 340, "y": 380 },
+            "size": { "width": 120, "height": 160 },
+            "zIndex": 5
+          }
+        },
+        {
+          "id": "click-card-3",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card-3",
+            "clickable": false,
+            "onClick": "flip",
+            "frontResourceId": "card-b",
+            "backResourceId": "card-back"
+          }
+        },
+        {
+          "id": "show-card-4",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-4",
+            "resourceId": "card-b",
+            "position": { "x": 500, "y": 380 },
+            "size": { "width": 120, "height": 160 },
+            "zIndex": 5
+          }
+        },
+        {
+          "id": "click-card-4",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card-4",
+            "clickable": false,
+            "onClick": "flip",
+            "frontResourceId": "card-b",
+            "backResourceId": "card-back"
+          }
+        },
+        { "id": "preview-wait-2s", "type": "WAIT", "parameters": { "duration": 2000 } },
+        { "id": "flip-back-1", "type": "FLIP_CARD", "parameters": { "elementId": "card-1", "backResourceId": "card-back", "showBack": true } },
+        { "id": "flip-back-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-2", "backResourceId": "card-back", "showBack": true } },
+        { "id": "flip-back-3", "type": "FLIP_CARD", "parameters": { "elementId": "card-3", "backResourceId": "card-back", "showBack": true } },
+        { "id": "flip-back-4", "type": "FLIP_CARD", "parameters": { "elementId": "card-4", "backResourceId": "card-back", "showBack": true } },
+        { "id": "enable-click-1", "type": "set_clickable", "parameters": { "elementId": "card-1", "clickable": true, "onClick": "commands", "commands": [
+          { "id": "c1-if-first-null", "type": "if_condition", "parameters": { "condition": { "type": "variable", "key": "first_pick_id", "operator": "eq", "value": null },
+            "trueCommands": [
+              { "id": "c1-mark-first-id", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": "card-1" } },
+              { "id": "c1-mark-first-key", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": "card-a" } },
+              { "id": "c1-flip-front", "type": "FLIP_CARD", "parameters": { "elementId": "card-1", "frontResourceId": "card-a", "backResourceId": "card-back", "showBack": false } }
+            ],
+            "falseCommands": [
+              { "id": "c1-if-not-same", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') !== 'card-1'" },
+                "trueCommands": [
+                  { "id": "c1-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-1", "frontResourceId": "card-a", "backResourceId": "card-back", "showBack": false } },
+                  { "id": "c1-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-a'" },
+                    "trueCommands": [
+                      { "id": "c1-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c1-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-1", "attachToId": "card-1", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c1-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c1-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-1", "clickable": false } },
+                      { "id": "c1-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c1-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ],
+                    "falseCommands": [
+                      { "id": "c1-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
+                      { "id": "c1-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
+                        { "id": "c1-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                      ], "falseCommands": [] } },
+                      { "id": "c1-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-1", "backResourceId": "card-back", "showBack": true } },
+                      { "id": "c1-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c1-clear-4", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ]
+                  } }
+                ]
+              } }
+            ]
+          } }
+        ] } },
+        { "id": "enable-click-2", "type": "set_clickable", "parameters": { "elementId": "card-2", "clickable": true, "onClick": "commands", "commands": [
+          { "id": "c2-if-first-null", "type": "if_condition", "parameters": { "condition": { "type": "variable", "key": "first_pick_id", "operator": "eq", "value": null },
+            "trueCommands": [
+              { "id": "c2-mark-first-id", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": "card-2" } },
+              { "id": "c2-mark-first-key", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": "card-a" } },
+              { "id": "c2-flip-front", "type": "FLIP_CARD", "parameters": { "elementId": "card-2", "frontResourceId": "card-a", "backResourceId": "card-back", "showBack": false } }
+            ],
+            "falseCommands": [
+              { "id": "c2-if-not-same", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') !== 'card-2'" },
+                "trueCommands": [
+                  { "id": "c2-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-2", "frontResourceId": "card-a", "backResourceId": "card-back", "showBack": false } },
+                  { "id": "c2-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-a'" },
+                    "trueCommands": [
+                      { "id": "c2-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c2-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-2", "attachToId": "card-2", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c2-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c2-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-2", "clickable": false } },
+                      { "id": "c2-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c2-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ],
+                    "falseCommands": [
+                      { "id": "c2-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
+                      { "id": "c2-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
+                        { "id": "c2-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                      ], "falseCommands": [] } },
+                      { "id": "c2-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-2", "backResourceId": "card-back", "showBack": true } },
+                      { "id": "c2-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c2-clear-4", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ]
+                  } }
+                ]
+              } }
+            ]
+          } }
+        ] } },
+
+        { "id": "enable-click-3", "type": "set_clickable", "parameters": { "elementId": "card-3", "clickable": true, "onClick": "commands", "commands": [
+          { "id": "c3-if-first-null", "type": "if_condition", "parameters": { "condition": { "type": "variable", "key": "first_pick_id", "operator": "eq", "value": null },
+            "trueCommands": [
+              { "id": "c3-mark-first-id", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": "card-3" } },
+              { "id": "c3-mark-first-key", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": "card-b" } },
+              { "id": "c3-flip-front", "type": "FLIP_CARD", "parameters": { "elementId": "card-3", "frontResourceId": "card-b", "backResourceId": "card-back", "showBack": false } }
+            ],
+            "falseCommands": [
+              { "id": "c3-if-not-same", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') !== 'card-3'" },
+                "trueCommands": [
+                  { "id": "c3-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-3", "frontResourceId": "card-b", "backResourceId": "card-back", "showBack": false } },
+                  { "id": "c3-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-b'" },
+                    "trueCommands": [
+                      { "id": "c3-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c3-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-3", "attachToId": "card-3", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c3-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c3-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-3", "clickable": false } },
+                      { "id": "c3-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c3-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ],
+                    "falseCommands": [
+                      { "id": "c3-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
+                      { "id": "c3-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
+                        { "id": "c3-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                      ], "falseCommands": [] } },
+                      { "id": "c3-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-3", "backResourceId": "card-back", "showBack": true } },
+                      { "id": "c3-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c3-clear-4", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ]
+                  } }
+                ]
+              } }
+            ]
+          } }
+        ] } },
+
+        { "id": "enable-click-4", "type": "set_clickable", "parameters": { "elementId": "card-4", "clickable": true, "onClick": "commands", "commands": [
+          { "id": "c4-if-first-null", "type": "if_condition", "parameters": { "condition": { "type": "variable", "key": "first_pick_id", "operator": "eq", "value": null },
+            "trueCommands": [
+              { "id": "c4-mark-first-id", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": "card-4" } },
+              { "id": "c4-mark-first-key", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": "card-b" } },
+              { "id": "c4-flip-front", "type": "FLIP_CARD", "parameters": { "elementId": "card-4", "frontResourceId": "card-b", "backResourceId": "card-back", "showBack": false } }
+            ],
+            "falseCommands": [
+              { "id": "c4-if-not-same", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') !== 'card-4'" },
+                "trueCommands": [
+                  { "id": "c4-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-4", "frontResourceId": "card-b", "backResourceId": "card-back", "showBack": false } },
+                  { "id": "c4-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-b'" },
+                    "trueCommands": [
+                      { "id": "c4-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c4-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-4", "attachToId": "card-4", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c4-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c4-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-4", "clickable": false } },
+                      { "id": "c4-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c4-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ],
+                    "falseCommands": [
+                      { "id": "c4-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
+                      { "id": "c4-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
+                        { "id": "c4-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                      ], "falseCommands": [] } },
+                      { "id": "c4-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-4", "backResourceId": "card-back", "showBack": true } },
+                      { "id": "c4-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
+                      { "id": "c4-clear-4", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
+                    ]
+                  } }
+                ]
+              } }
+            ]
+          } }
+        ] } }
+      ],
+      "events": [
+        {
+          "id": "overlay-countdown",
+          "name": "开局倒计时（并行）",
+          "triggers": [ { "type": "auto", "start": "immediate" } ],
+          "commands": [
+            { "id": "count-5-show", "type": "SHOW_IMAGE", "parameters": { "elementId": "countdown-5", "resourceId": "count-5", "position": { "x": 400, "y": 300 }, "size": { "width": 240, "height": 240 }, "style": { "anchorCenter": true }, "zIndex": 20 } },
+            { "id": "count-5-anim", "type": "ANIMATE_IN", "parameters": { "elementId": "countdown-5", "preset": "scaleIn", "duration": 260 } },
+            { "id": "count-5-wait", "type": "WAIT", "parameters": { "duration": 740 } },
+            { "id": "count-5-hide", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "countdown-5", "style": { "display": "none" } } },
+
+            { "id": "count-4-show", "type": "SHOW_IMAGE", "parameters": { "elementId": "countdown-4", "resourceId": "count-4", "position": { "x": 400, "y": 300 }, "size": { "width": 240, "height": 240 }, "style": { "anchorCenter": true }, "zIndex": 20 } },
+            { "id": "count-4-anim", "type": "ANIMATE_IN", "parameters": { "elementId": "countdown-4", "preset": "scaleIn", "duration": 260 } },
+            { "id": "count-4-wait", "type": "WAIT", "parameters": { "duration": 740 } },
+            { "id": "count-4-hide", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "countdown-4", "style": { "display": "none" } } },
+
+            { "id": "count-3-show", "type": "SHOW_IMAGE", "parameters": { "elementId": "countdown-3", "resourceId": "count-3", "position": { "x": 400, "y": 300 }, "size": { "width": 240, "height": 240 }, "style": { "anchorCenter": true }, "zIndex": 20 } },
+            { "id": "count-3-anim", "type": "ANIMATE_IN", "parameters": { "elementId": "countdown-3", "preset": "scaleIn", "duration": 260 } },
+            { "id": "count-3-wait", "type": "WAIT", "parameters": { "duration": 740 } },
+            { "id": "count-3-hide", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "countdown-3", "style": { "display": "none" } } },
+
+            { "id": "count-2-show", "type": "SHOW_IMAGE", "parameters": { "elementId": "countdown-2", "resourceId": "count-2", "position": { "x": 400, "y": 300 }, "size": { "width": 240, "height": 240 }, "style": { "anchorCenter": true }, "zIndex": 20 } },
+            { "id": "count-2-anim", "type": "ANIMATE_IN", "parameters": { "elementId": "countdown-2", "preset": "scaleIn", "duration": 260 } },
+            { "id": "count-2-wait", "type": "WAIT", "parameters": { "duration": 740 } },
+            { "id": "count-2-hide", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "countdown-2", "style": { "display": "none" } } },
+
+            { "id": "count-1-show", "type": "SHOW_IMAGE", "parameters": { "elementId": "countdown-1", "resourceId": "count-1", "position": { "x": 400, "y": 300 }, "size": { "width": 240, "height": 240 }, "style": { "anchorCenter": true }, "zIndex": 20 } },
+            { "id": "count-1-anim", "type": "ANIMATE_IN", "parameters": { "elementId": "countdown-1", "preset": "scaleIn", "duration": 260 } },
+            { "id": "count-1-wait", "type": "WAIT", "parameters": { "duration": 740 } },
+            { "id": "count-1-hide", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "countdown-1", "style": { "display": "none" } } },
+
+            { "id": "count-go-show", "type": "SHOW_IMAGE", "parameters": { "elementId": "countdown-go", "resourceId": "count-go", "position": { "x": 400, "y": 300 }, "size": { "width": 240, "height": 240 }, "style": { "anchorCenter": true }, "zIndex": 20 } },
+            { "id": "count-go-anim", "type": "ANIMATE_IN", "parameters": { "elementId": "countdown-go", "preset": "scaleIn", "duration": 220 } },
+            { "id": "count-go-wait", "type": "WAIT", "parameters": { "duration": 430 } },
+            { "id": "count-go-hide", "type": "SET_ELEMENT_STYLE", "parameters": { "elementId": "countdown-go", "style": { "display": "none" } } }
+          ]
+        }
+      ]
+    }
+  ]
+}
