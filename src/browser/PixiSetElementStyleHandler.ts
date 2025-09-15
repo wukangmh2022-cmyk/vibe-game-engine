@@ -42,6 +42,21 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
         }
 
         rm.updateElement(id, updates);
+        // Also apply to paired background (nine-slice) if exists: `${id}__bg`
+        const bgId = `${id}__bg`;
+        const bgNode = rm.getNode ? rm.getNode(bgId) : null;
+        if (bgNode) {
+          const bgUpdates: any = {};
+          if (style.display !== undefined) bgUpdates.visible = style.display !== 'none';
+          if (style.visibility !== undefined) bgUpdates.visible = style.visibility !== 'hidden';
+          if (style.opacity !== undefined) { try { bgNode.alpha = Number(style.opacity); } catch {} }
+          if (style.left !== undefined || style.top !== undefined) {
+            const bx = style.left !== undefined ? Number(style.left) : undefined;
+            const by = style.top !== undefined ? Number(style.top) : undefined;
+            bgUpdates.position = { x: bx, y: by };
+          }
+          rm.updateElement(bgId, bgUpdates);
+        }
         return this.createSuccessResult({ elementId: id, style });
       }
       return this.createErrorResult('Renderer does not support updateElement');
@@ -53,4 +68,3 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
 
   protected getRequiredParameters(): string[] { return ['elementId', 'style']; }
 }
-

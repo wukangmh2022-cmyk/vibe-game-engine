@@ -318,7 +318,7 @@ export interface ILogger {
 // 渲染元素配置
 export interface ElementConfig {
   id: string;
-  type: 'image' | 'text' | 'container' | 'button';
+  type: 'image' | 'text' | 'container' | 'button' | 'nine-slice';
   position: { x: number; y: number };
   size?: { width: number; height: number };
   rotation?: number;

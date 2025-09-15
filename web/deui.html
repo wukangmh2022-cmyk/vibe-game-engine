@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>deui - Slice 可视化调试</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background:#101114; color:#e8eaed; font: 14px/1.5 -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, PingFang SC, Microsoft Yahei, sans-serif; }
+    .top { display:flex; gap:12px; padding:10px 12px; align-items:center; background:#1b1c20; border-bottom:1px solid #2a2d33; position:sticky; top:0; }
+    .top input[type="number"] { width:72px; }
+    .top input[type="text"], .top select { min-width: 180px; }
+    .main { display:flex; gap:0; padding:12px; }
+    .panel { background:#15161a; border:1px solid #2a2d33; border-radius:6px; padding:10px; }
+    .left { width: 560px; min-width:360px; }
+    .right { flex:1 1 auto; min-width:420px; margin-left:12px; }
+    .divider { width:8px; cursor:col-resize; background:#23252b; border-left:1px solid #2a2d33; border-right:1px solid #2a2d33; margin:0 6px; border-radius:4px; }
+    #leftStage, #rightStage { width: 100%; height: 520px; background:#0d0e12; border:1px solid #2a2d33; }
+    .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+    textarea { width: 100%; height: 64px; resize: vertical; }
+    .btn { background:#2b6cb0; color:#fff; border:0; padding:6px 10px; border-radius:4px; cursor:pointer; }
+    .hint { color:#aab; font-size:12px; }
+  </style>
+  <script src="https://unpkg.com/pixi.js@7/dist/pixi.min.js"></script>
+</head>
+<body>
+  <div class="top">
+    <div class="row">
+      <label>素材</label>
+      <select id="imgList">
+        <option value="/images/ui-blue.svg">ui-blue.svg</option>
+        <option value="/images/ui-blue2.svg">ui-blue2.svg</option>
+        <option value="/images/btn-blue.svg">btn-blue.svg</option>
+        <option value="/images/btn-orange.svg">btn-orange.svg</option>
+        <option value="/images/btn-org.png">btn-org.png</option>
+      </select>
+      <span class="hint">或自定义URL</span>
+      <input id="imgUrl" type="text" placeholder="/images/xxx.svg 或 .png" />
+      <button class="btn" id="clearCache">清缓存</button>
+    </div>
+    <div class="row">
+      <label>Slice L</label><input id="sl" type="number" value="24">
+      <label>T</label><input id="st" type="number" value="24">
+      <label>R</label><input id="sr" type="number" value="24">
+      <label>B</label><input id="sb" type="number" value="24">
+      <label>显示边框</label><input id="showBounds" type="checkbox" checked>
+      <button class="btn" id="copySlice">复制 slice</button>
+      <button class="btn" id="copySkin">复制 URL+slice</button>
+    </div>
+    <div class="row">
+      <label>字号</label><input id="fontSize" type="number" value="20">
+      <label>PadX</label><input id="padX" type="number" value="16">
+      <label>PadY</label><input id="padY" type="number" value="12">
+      <label>rowMax(Choices)</label><input id="rowMax" type="number" value="3">
+      <label>minW(Buttons/Choices)</label><input id="minW" type="number" value="220">
+      <label>gapX</label><input id="gapX" type="number" value="10">
+      <label>gapY</label><input id="gapY" type="number" value="8">
+      <label>gap(Yes/No)</label><input id="gap" type="number" value="8">
+      <label>maxWidth</label><input id="maxWidth" type="number" value="9999">
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="panel left">
+      <div class="row"><strong>素材 + Slice 预览</strong><span class="hint">拖动彩色切线</span></div>
+      <div id="leftStage"></div>
+    </div>
+    <div class="divider" id="divider"></div>
+    <div class="panel right">
+      <div class="row"><strong>UI 实时预览</strong></div>
+      <div class="row"><label>对话文本</label></div>
+      <textarea id="text">你站在一片神秘的森林前。传说这里隐藏着古老的宝藏，但也充满了危险。是否立刻进入森林?</textarea>
+      <div class="row"><label>选项(每行一个)</label></div>
+      <textarea id="choices">⬅️ 左边的小径
+➡️ 右边的大路
+💝 帮助受伤的小鹿（花费30金币）</textarea>
+      <div id="rightStage" style="margin-top:10px;"></div>
+    </div>
+  </div>
+
+  <script>
+    // Two PIXI apps: left for slice editor, right for UI preview
+    const appL = new PIXI.Application({ width: 560, height: 520, backgroundColor: 0x0d0e12, antialias:true });
+    const appR = new PIXI.Application({ width: 960, height: 520, backgroundColor: 0x0d0e12, antialias:true });
+    document.getElementById('leftStage').appendChild(appL.view);
+    document.getElementById('rightStage').appendChild(appR.view);
+    appL.stage.sortableChildren = true; appR.stage.sortableChildren = true;
+
+    const state = {
+      url: '/images/ui-blue.svg',
+      slice: { left:24, top:24, right:24, bottom:24 },
+      tex: null, w: 0, h: 0,
+      // UI params
+      fontSize: 20, padX: 16, padY: 12,
+      rowMax: 3, minW: 220,
+      gapX: 10, gapY: 8,
+      maxWidth: 9999
+    };
+
+    function resolveUrl(u){
+      if (!u) return '';
+      if (/^https?:\/\//.test(u) || u.startsWith('/')) return u;
+      if (u.startsWith('../')) return u;
+      if (u.startsWith('images/')) return '/' + u;
+      return u;
+    }
+    function getUrl(){ const u = document.getElementById('imgUrl').value.trim(); return resolveUrl(u || document.getElementById('imgList').value); }
+    function n(id){ return Number(document.getElementById(id).value); }
+    function onInputs(ids, fn){ ids.forEach(id => document.getElementById(id).addEventListener('input', fn)); }
+
+    function clearPixiCache(){ try{ const BT = PIXI.utils.BaseTextureCache, TC=PIXI.utils.TextureCache; for(const k in BT){ try{BT[k].destroy(true);}catch{} delete BT[k]; } for(const k in TC){ try{TC[k].destroy(true);}catch{} delete TC[k]; } console.info('[Pixi] cache cleared'); }catch(e){ console.warn(e); } }
+    document.getElementById('clearCache').onclick = () => { clearPixiCache(); reloadTexture(true); };
+
+    // ----- Left: slice editor -----
+    let imgSprite = null; let gOverlay = null; let lines = {};
+    function reloadTexture(force){
+      state.url = getUrl();
+      if (force) clearPixiCache();
+      const tex = PIXI.Texture.from(state.url);
+      if (tex.baseTexture.valid){
+        setTex(tex);
+      } else {
+        tex.baseTexture.once('loaded', () => setTex(tex));
+      }
+    }
+    function setTex(tex){
+      state.tex = tex; state.w = Math.round(tex.width); state.h = Math.round(tex.height);
+      // init sprite
+      appL.stage.removeChildren();
+      imgSprite = new PIXI.Sprite(tex); imgSprite.x = 0; imgSprite.y = 0; appL.stage.addChild(imgSprite);
+      // overlay
+      gOverlay = new PIXI.Graphics(); gOverlay.zIndex = 10; appL.stage.addChild(gOverlay);
+      // default slice to bounds if 0
+      syncSliceFromInputs();
+      drawSliceOverlay();
+      createDragLines();
+      renderPreview();
+    }
+
+    function syncSliceFromInputs(){
+      state.slice.left = n('sl'); state.slice.top = n('st'); state.slice.right = n('sr'); state.slice.bottom = n('sb');
+      // clamp
+      state.slice.left = Math.max(0, Math.min(state.slice.left, state.w-1));
+      state.slice.right = Math.max(0, Math.min(state.slice.right, state.w-1));
+      state.slice.top = Math.max(0, Math.min(state.slice.top, state.h-1));
+      state.slice.bottom = Math.max(0, Math.min(state.slice.bottom, state.h-1));
+    }
+
+    function drawSliceOverlay(){
+      const {left,top,right,bottom} = state.slice; const w=state.w,h=state.h;
+      const lx = left, rx = w - right, ty = top, by = h - bottom;
+      gOverlay.clear();
+      // grid tint areas
+      const cells = [
+        [0,0,lx,ty,0x44ff88],[lx,0,rx-lx,ty,0x44c0ff],[rx,0,w-rx,ty,0x44ff88],
+        [0,ty,lx,by-ty,0x4499ff],[lx,ty,rx-lx,by-ty,0x4444ff],[rx,ty,w-rx,by-ty,0x4499ff],
+        [0,by,lx,h-by,0x44ff88],[lx,by,rx-lx,h-by,0x44c0ff],[rx,by,w-rx,h-by,0x44ff88],
+      ];
+      for(const c of cells){ gOverlay.beginFill(c[4], 0.08); gOverlay.drawRect(c[0],c[1],c[2],c[3]); gOverlay.endFill(); }
+      // lines
+      gOverlay.lineStyle(2,0xff4081,0.9);
+      gOverlay.moveTo(lx,0); gOverlay.lineTo(lx,h);
+      gOverlay.moveTo(rx,0); gOverlay.lineTo(rx,h);
+      gOverlay.moveTo(0,ty); gOverlay.lineTo(w,ty);
+      gOverlay.moveTo(0,by); gOverlay.lineTo(w,by);
+    }
+
+    function createDragLines(){
+      const mkLine = (dir)=>{
+        const g=new PIXI.Graphics(); g.zIndex=20; g.interactive=true; g.cursor=(dir==='L'||dir==='R')?'ew-resize':'ns-resize';
+        let dragging=false;
+        const onDown=(e)=>{ dragging=true; };
+        const onUp=()=>{ dragging=false; };
+        const onMove=(e)=>{
+          if(!dragging) return;
+          const p = e.data.getLocalPosition(imgSprite);
+          const px = Math.max(0, Math.min(Math.round(p.x), state.w-1));
+          const py = Math.max(0, Math.min(Math.round(p.y), state.h-1));
+          if(dir==='L'){ state.slice.left = px; document.getElementById('sl').value=String(state.slice.left); }
+          if(dir==='R'){ state.slice.right = Math.max(0, state.w - px); document.getElementById('sr').value=String(state.slice.right); }
+          if(dir==='T'){ state.slice.top = py - 10; if (state.slice.top<0) state.slice.top=0; document.getElementById('st').value=String(state.slice.top); }
+          if(dir==='B'){ state.slice.bottom = Math.max(0, state.h - (py - 10)); document.getElementById('sb').value=String(state.slice.bottom); }
+          drawSliceOverlay(); renderPreview();
+        };
+        g.on('pointerdown',onDown); g.on('pointerup',onUp); g.on('pointerupoutside',onUp); g.on('pointermove',onMove); appL.stage.addChild(g); return g;
+      };
+      lines.L = mkLine('L'); lines.R = mkLine('R'); lines.T = mkLine('T'); lines.B = mkLine('B');
+    }
+
+    // ----- Right: UI preview -----
+    function clearR(){ appR.stage.removeChildren(); }
+    function mkNineSlice(url, slice, w, h){ const tex = PIXI.Texture.from(url); const n = new PIXI.NineSlicePlane(tex, slice.left, slice.top, slice.right, slice.bottom); n.width=w; n.height=h; return n; }
+
+    function renderPreview(){
+      clearR();
+      const url = getUrl(); const slice = state.slice;
+      const fs = n('fontSize'); const padX = n('padX'); const padY = n('padY');
+      const rowMax = Math.max(1, n('rowMax'));
+      const minW = n('minW');
+      const gapX = n('gapX'); const gapY = n('gapY');
+      const maxW = Math.max(0, n('maxWidth')) || 9999;
+      const showBounds = document.getElementById('showBounds').checked;
+
+      // Dialog
+      const tStyle = new PIXI.TextStyle({ fontSize: fs, fill:'#ffffff', stroke:'#000000', strokeThickness:3, dropShadow:true, dropShadowDistance:2, dropShadowBlur:2 });
+      const t = new PIXI.Text(document.getElementById('text').value, tStyle); t.x=60; t.y=60; appR.stage.addChild(t);
+      const dw = Math.ceil(t.width)+padX*2, dh=Math.ceil(t.height)+padY*2; const bg=mkNineSlice(url, slice, dw, dh); bg.x=t.x-padX; bg.y=t.y-padY; appR.stage.addChildAt(bg,0);
+      if (showBounds){ const g1=new PIXI.Graphics(); g1.lineStyle(2,0x00ffff,0.8); g1.drawRect(bg.x,bg.y,bg.width,bg.height); appR.stage.addChild(g1); const g2=new PIXI.Graphics(); g2.lineStyle(2,0xff00ff,0.8); g2.drawRect(t.x,t.y,t.width,t.height); appR.stage.addChild(g2); }
+
+      // Choices
+      const linesTxt = document.getElementById('choices').value.split('\n').filter(s=>s.trim().length>0);
+      const gC = new PIXI.Container(); gC.x=80; gC.y=240; appR.stage.addChild(gC);
+      let x=0,y=0,col=0; for(const line of linesTxt){
+        const doWrap = maxW > 0 && maxW < 9999;
+        const wrapW = doWrap ? Math.max(10, maxW - padX*2) : undefined;
+        const tt=new PIXI.Text(line,new PIXI.TextStyle({fontSize:fs, fill:'#fff', stroke:'#000', strokeThickness:2, wordWrap:doWrap, wordWrapWidth:wrapW }));
+        const contentH = Math.ceil(tt.height);
+        const btnH = contentH + padY*2;
+        let w=Math.max(minW,Math.ceil(tt.width)+padX*2);
+        const ns=mkNineSlice(url,slice,w,btnH);
+        const c=new PIXI.Container(); c.addChild(ns);
+        tt.x=Math.round((w-tt.width)/2); tt.y=Math.round((btnH-tt.height)/2); c.addChild(tt);
+        c.x=x; c.y=y; gC.addChild(c);
+        if(showBounds){ const gb=new PIXI.Graphics(); gb.lineStyle(1,0x00ffff,0.7); gb.drawRect(c.x,c.y,w,btnH); appR.stage.addChild(gb); }
+        col++;
+        if(col>=rowMax){ col=0; x=0; y+=btnH+gapY; } else { x+=w+gapX; }
+      }
+
+      // Buttons
+      const gB = new PIXI.Container(); gB.x=80; gB.y=200; appR.stage.addChild(gB);
+      let x2=0; for(const lbl of ['是','否']){
+        const doWrap = maxW > 0 && maxW < 9999;
+        const wrapW = doWrap ? Math.max(10, maxW - padX*2) : undefined;
+        const tt=new PIXI.Text(lbl,new PIXI.TextStyle({fontSize:fs, fill:'#fff', stroke:'#000', strokeThickness:2, wordWrap:doWrap, wordWrapWidth:wrapW}));
+        const contentH2 = Math.ceil(tt.height);
+        const btnH = contentH2 + padY*2;
+        let w=Math.max(minW,Math.ceil(tt.width)+padX*2);
+        const ns=mkNineSlice(url,slice,w,btnH);
+        const b=new PIXI.Container(); b.addChild(ns);
+        tt.x=Math.round((w-tt.width)/2); tt.y=Math.round((btnH-tt.height)/2); b.addChild(tt);
+        b.x=x2; gB.addChild(b);
+        if(showBounds){ const gb=new PIXI.Graphics(); gb.lineStyle(1,0x00ffff,0.7); gb.drawRect(gB.x+b.x,gB.y,w,btnH); appR.stage.addChild(gb); }
+        x2+=w+gapX;
+      }
+    }
+
+    // Reactivity: update immediately on any change
+    function bindRealtime(){
+      ['imgList','imgUrl','sl','st','sr','sb','fontSize','padX','padY','rowMax','minW','gapX','gapY','maxWidth','text','choices','showBounds'].forEach(id=>{
+        document.getElementById(id).addEventListener('input', ()=>{ if(id==='imgList'||id==='imgUrl'){ reloadTexture(true); } else { syncSliceFromInputs(); drawSliceOverlay(); renderPreview(); } });
+      });
+      // 数字输入拖拽调值（Shift 加速）
+      // enable drag-to-adjust for numeric inputs
+      const dragNums = ['sl','st','sr','sb','fontSize','padX','padY','rowMax','minW','gapX','gapY','maxWidth'];
+      dragNums.forEach(id=>{
+        const el = document.getElementById(id);
+        if(!el) return;
+        let dragging = false, startX = 0, startVal = 0;
+        el.addEventListener('mousedown', (e)=>{
+          if(e.button !== 0) return;
+          dragging = true; startX = e.clientX;
+          const v = (el && ('value' in el) && (el.value != null)) ? el.value : '0';
+          startVal = Number(v) || 0;
+          e.preventDefault();
+        });
+        window.addEventListener('mousemove', (e)=>{
+          if(!dragging) return;
+          const dx = e.clientX - startX;
+          const step = e.shiftKey ? 5 : 1;
+          const nv = Math.max(0, startVal + dx * step);
+          if (el && ('value' in el)) { el.value = String(nv); }
+          el.dispatchEvent(new Event('input'));
+        });
+        window.addEventListener('mouseup', ()=>{ dragging = false; });
+      });
+      // 可拖拽分隔条
+      const divider=document.getElementById('divider'); const left=document.querySelector('.left'); const right=document.querySelector('.right'); let drag=false, sx=0, sw=0;
+      const resizeApps=()=>{ const lw=document.getElementById('leftStage').clientWidth; const rw=document.getElementById('rightStage').clientWidth; const h=520; appL.renderer.resize(lw,h); appR.renderer.resize(rw,h); drawSliceOverlay(); renderPreview(); };
+      divider.addEventListener('mousedown',(e)=>{ drag=true; sx=e.clientX; sw=left.getBoundingClientRect().width; e.preventDefault(); });
+      window.addEventListener('mousemove',(e)=>{ if(!drag) return; const dx=e.clientX-sx; const nw=Math.max(360, Math.min(sw+dx, window.innerWidth*0.7)); left.style.width=nw+'px'; resizeApps(); });
+      window.addEventListener('mouseup',()=>{ drag=false; });
+      window.addEventListener('resize', ()=> resizeApps());
+    }
+
+    // 复制按钮
+    document.addEventListener('DOMContentLoaded', ()=>{
+      document.getElementById('copySlice').addEventListener('click', ()=>{ const s=state.slice; const txt=JSON.stringify({left:s.left, top:s.top, right:s.right, bottom:s.bottom}); navigator.clipboard?.writeText(txt).then(()=>console.info('slice copied:', txt)); });
+      document.getElementById('copySkin').addEventListener('click', ()=>{ const s=state.slice; const out=JSON.stringify({ imageUrl:getUrl(), slice:{ left:s.left, top:s.top, right:s.right, bottom:s.bottom } }); navigator.clipboard?.writeText(out).then(()=>console.info('skin copied:', out)); });
+    });
+
+    bindRealtime();
+    reloadTexture(false);
+  </script>
+</body>
+</html>

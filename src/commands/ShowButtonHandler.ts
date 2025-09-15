@@ -24,19 +24,38 @@ export class ShowButtonHandler extends BaseCommandHandler {
   readonly type = CommandType.SHOW_BUTTON;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
-    const { elementId, text } = command.parameters || {};
-    const ui = {
-      theme: (command.parameters || {}).theme,
-      buttonResourceId: (command.parameters || {}).buttonResourceId,
-      yesResourceId: (command.parameters || {}).yesResourceId,
-      noResourceId: (command.parameters || {}).noResourceId,
-      autosize: (command.parameters || {}).autosize !== false,
-      minWidth: (command.parameters || {}).minWidth ?? 160,
-      height: (command.parameters || {}).height ?? 48,
-      paddingX: (command.parameters || {}).paddingX ?? 24,
-      fontSize: (command.parameters || {}).fontSize ?? 16,
-      color: (command.parameters || {}).color || '#fff'
+    const params = command.parameters || {};
+    const { elementId, text } = params;
+    const pos = params.position || {};
+    const px: number | undefined = params.x ?? pos.x;
+    const py: number | undefined = params.y ?? pos.y;
+    const pui = params.ui || {};
+    const pick = (obj: any, keys: string[]) => {
+      if (!obj) return undefined;
+      for (const k of keys) { if (obj[k] != null) return obj[k]; }
+      return undefined;
     };
+    const ui: any = {};
+    // only forward provided values; do NOT inject defaults here
+    const assignIf = (k: string, v: any) => { if (v != null) ui[k] = v; };
+    assignIf('theme', pui.theme ?? params.theme);
+    assignIf('buttonResourceId', pui.buttonResourceId ?? params.buttonResourceId);
+    assignIf('yesResourceId', pui.yesResourceId ?? params.yesResourceId);
+    assignIf('noResourceId', pui.noResourceId ?? params.noResourceId);
+    assignIf('buttonSkinId', pui.buttonSkinId ?? params.buttonSkinId);
+    assignIf('autosize', (pui.autosize != null ? !!pui.autosize : (params.autosize != null ? !!params.autosize : undefined)));
+    assignIf('minWidth', pui.minWidth ?? params.minWidth);
+    // height/maxWidth intentionally not forwarded by default
+    assignIf('height', pui.height ?? params.height);
+    assignIf('maxWidth', pui.maxWidth ?? (params as any).maxWidth);
+    assignIf('paddingX', pui.paddingX ?? params.paddingX);
+    assignIf('paddingY', pui.paddingY ?? (params as any).paddingY);
+    assignIf('fontSize', pui.fontSize ?? params.fontSize);
+    assignIf('color', pui.color ?? params.color);
+    assignIf('tileNineSlice', (pui.tileNineSlice != null ? !!pui.tileNineSlice : (params.tileNineSlice != null ? !!params.tileNineSlice : undefined)));
+    assignIf('rowMax', pui.rowMax ?? (pui as any).maxrow ?? (pui as any).maxRow ?? params.rowMax ?? (params as any).maxrow ?? (params as any).maxRow);
+    assignIf('gapX', pick(pui, ['gapX','gapx','gap_x','gap-x']) ?? pick(params, ['gapX','gapx','gap_x','gap-x']));
+    assignIf('gapY', pick(pui, ['gapY','gapy','gap_y','gap-y']) ?? pick(params, ['gapY','gapy','gap_y','gap-y']));
     const branches = (command as any).branches || {};
 
     // 基础校验
@@ -72,7 +91,7 @@ export class ShowButtonHandler extends BaseCommandHandler {
     // 打印/记录（实际渲染由上层适配器完成，这里只负责行为与事件契约）
     context.logger?.info('Displaying yes/no button', { elementId, text, branches });
     // 发射一个展示事件，供上层渲染 UI
-    context.eventManager.emit('button_displayed', { commandId: command.id, elementId, text, branches, ui });
+    context.eventManager.emit('button_displayed', { commandId: command.id, elementId, text, branches, ui, position: (px != null && py != null) ? { x: Number(px), y: Number(py) } : undefined });
 
     return this.createSuccessResult({ elementId, text, ui });
   }

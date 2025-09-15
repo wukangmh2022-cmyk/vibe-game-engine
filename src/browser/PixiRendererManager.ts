@@ -19,32 +19,41 @@ export class PixiRendererManager implements IRendererManager {
       const texture = PIXI.Texture.from(config.src || '');
       const sprite = new PIXI.Sprite(texture);
       node = sprite;
+    } else if (config.type === 'nine-slice') {
+      const texture = PIXI.Texture.from(config.src || '');
+      const s = (config as any).slice || { left: 12, top: 12, right: 12, bottom: 12 };
+      const plane = new PIXI.NineSlicePlane(texture, Number(s.left||12), Number(s.top||12), Number(s.right||12), Number(s.bottom||12));
+      node = plane;
     } else if (config.type === 'text') {
       const rawStyle: any = config.style || {};
       // Map style fields
       const fill = (rawStyle.fill || rawStyle.color) || '#ffffff';
       const fontSize = rawStyle.fontSize ? parseInt(String(rawStyle.fontSize)) : 16;
+      const lineHeight = rawStyle.lineHeight ? parseInt(String(rawStyle.lineHeight)) : Math.round(fontSize * 1.3);
       // compute wrap width: prefer explicit maxWidth, else canvas width minus padding
       const rendererWidth = this.app?.renderer?.width || 800;
       let wrapWidth: number | undefined;
-      if (rawStyle.maxWidth) {
+      if (rawStyle.maxWidth != null) {
         const v = String(rawStyle.maxWidth);
         wrapWidth = v.endsWith('px') ? parseInt(v) : Number(v);
+      } else if (rawStyle.wordWrapWidth != null) {
+        wrapWidth = Number(rawStyle.wordWrapWidth);
       } else {
-        const pad = rawStyle.padding ? parseInt(String(rawStyle.padding)) : 40;
-        wrapWidth = Math.max(100, rendererWidth - pad * 2);
+        wrapWidth = undefined; // do not force wrap width; keep by content/default
       }
       const safeColor = (v: any, fallback: any) => (typeof v === 'string' || typeof v === 'number') ? v : fallback;
       const textStyle: any = {
         fill: safeColor(fill, '#ffffff'),
         fontSize,
-        wordWrap: true,
+        wordWrap: wrapWidth != null,
         wordWrapWidth: wrapWidth,
         align: rawStyle.textAlign || rawStyle.align || 'left',
-        lineHeight: rawStyle.lineHeight ? parseInt(String(rawStyle.lineHeight)) : undefined,
-        fontFamily: rawStyle.fontFamily || rawStyle.font || 'Arial, Helvetica, sans-serif',
-        dropShadow: rawStyle.dropShadow === true,
+        lineHeight,
+      fontFamily: rawStyle.fontFamily || rawStyle.font || 'Arial, Helvetica, sans-serif',
+      dropShadow: rawStyle.dropShadow === true,
       };
+      // For Pixi v6 compatibility, provide leading
+      (textStyle as any).leading = Math.max(0, lineHeight - fontSize);
       // only include stroke when provided
       const strokeVal = rawStyle.stroke || rawStyle.strokeColor;
       if (strokeVal != null && strokeVal !== 'none') {
@@ -70,8 +79,10 @@ export class PixiRendererManager implements IRendererManager {
     node.x = config.position?.x || 0;
     node.y = config.position?.y || 0;
     if (config.size && node.width !== undefined && node.height !== undefined) {
-      node.width = config.size.width;
-      node.height = config.size.height;
+      const w = Math.round(config.size.width || 0);
+      const h = Math.round(config.size.height || 0);
+      node.width = w > 0 ? w : config.size.width;
+      node.height = h > 0 ? h : config.size.height;
     }
     node.visible = config.visible !== false;
     if (config.style?.zIndex != null) node.zIndex = config.style.zIndex;
@@ -113,7 +124,11 @@ export class PixiRendererManager implements IRendererManager {
     const node = this.elements.get(id);
     if (!node) return;
     if (updates.position) { node.x = updates.position.x ?? node.x; node.y = updates.position.y ?? node.y; }
-    if (updates.size && node.width !== undefined) { node.width = updates.size.width ?? node.width; node.height = updates.size.height ?? node.height; }
+    if (updates.size && node.width !== undefined) {
+      const w = updates.size.width != null ? Math.round(updates.size.width) : undefined;
+      const h = updates.size.height != null ? Math.round(updates.size.height) : undefined;
+      node.width = w ?? node.width; node.height = h ?? node.height;
+    }
     if (updates.visible != null) node.visible = updates.visible;
     if (updates.rotation != null) node.rotation = updates.rotation;
     if (updates.scale && node.scale) { node.scale.x = updates.scale.x ?? node.scale.x; node.scale.y = updates.scale.y ?? node.scale.y; }

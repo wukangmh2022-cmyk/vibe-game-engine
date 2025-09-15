@@ -1,18 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Symmetric orange button (no bottom-offset shadow) -->
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="64" viewBox="0 0 240 64">
   <defs>
-    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#ffa94d"/>
-      <stop offset="100%" stop-color="#ff7f50"/>
+    <linearGradient id="mainGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FF9A56"/>
+      <stop offset="50%" stop-color="#FF7043"/>
+      <stop offset="100%" stop-color="#E64A19"/>
     </linearGradient>
-    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feOffset dx="0" dy="2"/>
-      <feGaussianBlur stdDeviation="2" result="b"/>
-      <feColorMatrix type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.3 0"/>
-      <feBlend in="SourceGraphic" in2="b" mode="normal"/>
-    </filter>
+    <linearGradient id="highlight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.4"/>
+      <stop offset="30%" stop-color="#FFFFFF" stop-opacity="0.15"/>
+      <stop offset="70%" stop-color="#FFFFFF" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="maskRect">
+      <rect x="6" y="6" width="228" height="52" rx="12"/>
+    </clipPath>
   </defs>
-  <rect x="4" y="6" width="232" height="52" rx="12" fill="#000" opacity="0.15"/>
-  <rect x="4" y="4" width="232" height="52" rx="12" fill="url(#g1)" filter="url(#shadow)"/>
-  <rect x="4" y="4" width="232" height="52" rx="12" fill="none" stroke="#fff" stroke-opacity="0.6"/>
-  <path d="M8,18 C18,8 222,8 232,18" fill="none" stroke="#fff" stroke-opacity="0.35"/>
+  <rect x="6" y="6" width="228" height="52" rx="12" fill="url(#mainGrad)"/>
+  <g clip-path="url(#maskRect)">
+    <rect x="6" y="6" width="228" height="26" rx="12" fill="url(#highlight)"/>
+  </g>
+  <rect x="6" y="6" width="228" height="52" rx="12" fill="none" stroke="#FFFFFF" stroke-width="0.5" stroke-opacity="0.3"/>
 </svg>

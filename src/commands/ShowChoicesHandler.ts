@@ -10,10 +10,14 @@ export class ShowChoicesHandler extends BaseCommandHandler {
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
       const { title: rawTitle, timeout, elementId } = command.parameters;
+      // 位置（供运行时渲染器决定放置处）
+      const pos = command.parameters.position || {};
+      const px: number | undefined = (command.parameters.x ?? pos.x);
+      const py: number | undefined = (command.parameters.y ?? pos.y);
       // 兼容V2：options 字段与 text 作为标题
       // 选项可来自 parameters.choices / parameters.options / 顶层 options（V2）
       let choices = command.parameters.choices || command.parameters.options || (command as any).options;
-      const title = rawTitle || command.parameters.text;
+      const title = rawTitle || command.parameters.text || '';
 
       // 验证必需参数
       if (!choices || !Array.isArray(choices) || choices.length === 0) {
@@ -28,16 +32,14 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       }
 
       context.logger?.info('Displaying choices', {
-        title: title || 'Please choose:',
+        title: title || '',
         choiceCount: choices.length,
         choices: choices.map((choice, index) => `${index + 1}. ${choice.text}`)
       });
 
       // 模拟显示选择界面
       console.log('\n=== CHOICES ===');
-      if (title) {
-        console.log(`Title: ${title}`);
-      }
+      // no title output
       choices.forEach((choice: any, index: number) => {
         console.log(`${index + 1}. ${choice.text}`);
         if (choice.description) {
@@ -74,21 +76,33 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       context.eventManager?.once('choice_selected', onSelect);
 
       // 触发选择显示事件（供上层渲染）
-      const ui = {
-        rowMax: (command.parameters?.rowMax ?? command.parameters?.ui?.rowMax) || 1,
-        theme: command.parameters?.theme || command.parameters?.ui?.theme || 'orange',
-        buttonResourceId: command.parameters?.buttonResourceId || command.parameters?.ui?.buttonResourceId,
-        fontSize: command.parameters?.fontSize || command.parameters?.ui?.fontSize || 16,
-        minWidth: command.parameters?.minWidth || command.parameters?.ui?.minWidth || 140,
-        height: command.parameters?.height || command.parameters?.ui?.height || 44,
-        paddingX: command.parameters?.paddingX || command.parameters?.ui?.paddingX || 18,
-        color: command.parameters?.color || command.parameters?.ui?.color || '#fff'
+      const pick = (obj: any, keys: string[]) => {
+        if (!obj) return undefined;
+        for (const k of keys) { if (obj[k] != null) return obj[k]; }
+        return undefined;
       };
+
+      const ui: any = {};
+      const assignIf = (k: string, v: any) => { if (v != null) (ui as any)[k] = v; };
+      assignIf('rowMax', (command.parameters?.rowMax ?? (command.parameters as any)?.maxrow ?? (command.parameters as any)?.maxRow ?? command.parameters?.ui?.rowMax ?? (command.parameters as any)?.ui?.maxrow ?? (command.parameters as any)?.ui?.maxRow));
+      assignIf('buttonSkinId', command.parameters?.buttonSkinId || command.parameters?.ui?.buttonSkinId);
+      assignIf('buttonResourceId', command.parameters?.buttonResourceId || command.parameters?.ui?.buttonResourceId);
+      assignIf('fontSize', command.parameters?.fontSize || command.parameters?.ui?.fontSize);
+      assignIf('minWidth', command.parameters?.minWidth || command.parameters?.ui?.minWidth);
+      assignIf('maxWidth', (command.parameters as any)?.maxWidth || (command.parameters as any)?.ui?.maxWidth);
+      assignIf('height', command.parameters?.height || command.parameters?.ui?.height);
+      assignIf('paddingX', command.parameters?.paddingX || command.parameters?.ui?.paddingX);
+      assignIf('paddingY', (command.parameters as any)?.paddingY || (command.parameters as any)?.ui?.paddingY);
+      assignIf('color', command.parameters?.color || command.parameters?.ui?.color);
+      assignIf('gapX', pick(command.parameters?.ui, ['gapX','gapx','gap_x','gap-x']) ?? pick(command.parameters, ['gapX','gapx','gap_x','gap-x']));
+      assignIf('gapY', pick(command.parameters?.ui, ['gapY','gapy','gap_y','gap-y']) ?? pick(command.parameters, ['gapY','gapy','gap_y','gap-y']));
+      assignIf('tileNineSlice', (command.parameters as any)?.tileNineSlice != null ? !!(command.parameters as any)?.tileNineSlice : ((command.parameters as any)?.ui?.tileNineSlice != null ? !!(command.parameters as any)?.ui?.tileNineSlice : undefined));
 
       context.eventManager?.emit('choices_displayed', {
         commandId: command.id,
         elementId,
-        title: title || 'Please choose:',
+        position: (px != null && py != null) ? { x: Number(px), y: Number(py) } : undefined,
+        title: '',
         choices,
         timeout,
         ui
@@ -97,7 +111,7 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       return this.createSuccessResult({
         message: `Displayed ${choices.length} choices`,
         choiceCount: choices.length,
-        title: title || 'Please choose:',
+        title: '',
         choices,
         elementId
       });

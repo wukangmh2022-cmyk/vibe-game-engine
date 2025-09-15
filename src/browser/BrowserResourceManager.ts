@@ -2,6 +2,7 @@ import { IResourceManager, ResourceConfig, ResourceId } from '../types';
 
 export class BrowserResourceManager implements IResourceManager {
   private map = new Map<ResourceId, any>();
+  private skins = new Map<string, { imageId: string; slice?: { left: number; top: number; right: number; bottom: number } }>();
 
   private normalize(url?: string): string | undefined {
     if (!url) return url;
@@ -33,4 +34,17 @@ export class BrowserResourceManager implements IResourceManager {
   unloadResource(id: ResourceId): void {
     this.map.delete(id);
   }
+
+  // Skins support
+  setSkins(arr: Array<{ id: string; imageId: string; slice?: any }> | Record<string, any>) {
+    this.skins.clear();
+    if (Array.isArray(arr)) {
+      arr.forEach(s => { if (s?.id && s?.imageId) this.skins.set(s.id, { imageId: s.imageId, slice: s.slice }); });
+    } else if (arr && typeof arr === 'object') {
+      Object.values(arr).forEach((group: any) => {
+        if (Array.isArray(group)) group.forEach((s: any) => { if (s?.id && s?.imageId) this.skins.set(s.id, { imageId: s.imageId, slice: s.slice }); });
+      });
+    }
+  }
+  getSkin(id: string) { return this.skins.get(id); }
 }

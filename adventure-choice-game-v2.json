@@ -1,816 +1,1005 @@
 {
-    "id": "adventure-choice-game-v2",
-    "name": "冒险选择游戏 V2",
-    "description": "按钮内置是/否分支与选择多路分支；删除绝大多数事件到子命令，仅保留一个并行等待60秒的剧情事件",
-    "version": "2.0.0",
-    "schema": "v2",
-    "globalVariables": {
+  "id": "adventure-choice-game-v2",
+  "name": "冒险选择游戏 V2",
+  "description": "按钮内置是/否分支与选择多路分支；删除绝大多数事件到子命令，仅保留一个并行等待60秒的剧情事件",
+  "version": "2.0.0",
+  "schema": "v2",
+  "globalVariables": {
+    "score": 0,
+    "health": 100,
+    "gold": 50,
+    "hasKey": false,
+    "hasSword": false,
+    "currentLocation": "forest"
+  },
+  "globalSwitches": {},
+  "audio": {
+    "globalVolume": 0.8
+  },
+  "resources": {
+    "images": [
+      {
+        "id": "forest-bg",
+        "src": "images/forest.png"
+      },
+      {
+        "id": "road",
+        "src": "images/road.jpg"
+      },
+      {
+        "id": "treasure-room",
+        "src": "images/cave.png"
+      },
+      {
+        "id": "game-over-screen",
+        "src": "images/game-over.svg"
+      },
+      {
+        "id": "backpack",
+        "src": "images/backpack.svg"
+      },
+      {
+        "id": "legendary-sword",
+        "src": "images/sword2.svg"
+      },
+      {
+        "id": "btn-orange",
+        "src": "images/btn-org.png"
+      },
+      {
+        "id": "btn-blue",
+        "src": "images/btn-blue.svg"
+      },
+      {
+        "id": "panel-blue-1",
+        "src": "images/ui-blue.svg"
+      }
+    ],
+    "audios": [
+      {
+        "id": "bgm-main",
+        "src": "audio/bgm/063-Slow06.mp3"
+      },
+      {
+        "id": "se-click",
+        "src": "audio/se/001-System01.ogg"
+      }
+    ],
+    "animations": [
+      {
+        "id": "anim-fade-in",
+        "src": "animations/entry/fade-in.json"
+      },
+      {
+        "id": "anim-bounce-in",
+        "src": "animations/entry/bounce-in.json"
+      },
+      {
+        "id": "anim-scale-pop-in",
+        "src": "animations/entry/scale-pop-in.json"
+      },
+      {
+        "id": "anim-slide-in-right",
+        "src": "animations/entry/slide-in-right.json"
+      },
+      {
+        "id": "anim-scale-0-1",
+        "src": "animations/entry/scale-0-1.json"
+      },
+      {
+        "id": "anim-hover-slow",
+        "src": "animations/loop/hover-slow.json"
+      }
+    ],
+    "videos": [
+      {
+        "id": "intro-video",
+        "src": "media/intro.mp4"
+      }
+    ]
+  },
+  "levels": [
+    {
+      "id": "adventure-start-v2",
+      "name": "冒险开始 V2",
+      "description": "基于V2数据结构的开场关卡",
+      "canvasWidth": 800,
+      "canvasHeight": 600,
+      "initialState": {
         "score": 0,
         "health": 100,
         "gold": 50,
         "hasKey": false,
         "hasSword": false,
         "currentLocation": "forest"
-    },
-    "globalSwitches": {},
-    "audio": {
-        "globalVolume": 0.8
-    },
-    "resources": {
-        "images": [
-            {
-                "id": "forest-bg",
-                "src": "images/forest.png"
-            },
-            {
-                "id": "road",
-                "src": "images/road.jpg"
-            },
-            {
-                "id": "treasure-room",
-                "src": "images/cave.png"
-            },
-            {
-                "id": "game-over-screen",
-                "src": "images/game-over.svg"
-            },
-            {
-                "id": "backpack",
-                "src": "images/backpack.svg"
-            },
-            {
-                "id": "legendary-sword",
-                "src": "images/sword2.svg"
-            },
-            { "id": "btn-orange", "src": "images/btn-orange.svg" },
-            { "id": "btn-blue", "src": "images/btn-blue.svg" },
-            { "id": "panel-blue-1", "src": "images/panel-blue-1.svg" },
-            { "id": "panel-blue-2", "src": "images/panel-blue-2.svg" }
-        ],
-        "audios": [
-            { "id": "bgm-main", "src": "audio/bgm/063-Slow06.mp3" },
-            { "id": "se-click", "src": "audio/se/001-System01.ogg" }
-        ],
-        "animations": [
-            { "id": "anim-fade-in", "src": "animations/entry/fade-in.json" },
-            { "id": "anim-bounce-in", "src": "animations/entry/bounce-in.json" },
-            { "id": "anim-scale-pop-in", "src": "animations/entry/scale-pop-in.json" },
-            { "id": "anim-slide-in-right", "src": "animations/entry/slide-in-right.json" },
-            { "id": "anim-scale-0-1", "src": "animations/entry/scale-0-1.json" },
-            { "id": "anim-hover-slow", "src": "animations/loop/hover-slow.json" }
-        ],
-        "videos": [
-            { "id": "intro-video", "src": "media/intro.mp4" }
-        ],
-        "skins": {
-            "dialogs": [
-                {
-                    "id": "dialog-default-9slice",
-                    "label": "默认对话框(九宫格)",
-                    "type": "nine-slice",
-                    "imageId": null,
-                    "slice": { "left": 12, "right": 12, "top": 12, "bottom": 12 },
-                    "style": {
-                        "backgroundColor": "#ffffff",
-                        "borderColor": "#2c3e50",
-                        "borderWidth": 2,
-                        "borderRadius": 10,
-                        "shadow": "0 6px 16px rgba(0,0,0,0.18)"
-                    },
-                    "padding": { "left": 16, "right": 16, "top": 16, "bottom": 16 }
-                }
-            ],
-            "buttons": [
-                {
-                    "id": "btn-primary-9slice",
-                    "label": "主要按钮(九宫格)",
-                    "type": "nine-slice",
-                    "imageId": null,
-                    "slice": { "left": 10, "right": 10, "top": 10, "bottom": 10 },
-                    "style": {
-                        "backgroundColor": "#27ae60",
-                        "hoverColor": "#2ecc71",
-                        "textColor": "#ffffff",
-                        "borderRadius": 8,
-                        "shadow": "0 3px 8px rgba(39,174,96,0.35)"
-                    },
-                    "textStyle": {
-                        "fontSize": "16px",
-                        "fontWeight": "600"
-                    },
-                    "padding": { "left": 12, "right": 12, "top": 8, "bottom": 8 }
-                },
-                {
-                    "id": "btn-secondary-9slice",
-                    "label": "次要按钮(九宫格)",
-                    "type": "nine-slice",
-                    "imageId": null,
-                    "slice": { "left": 10, "right": 10, "top": 10, "bottom": 10 },
-                    "style": {
-                        "backgroundColor": "#34495e",
-                        "hoverColor": "#455a6f",
-                        "textColor": "#ecf0f1",
-                        "borderRadius": 8,
-                        "shadow": "0 3px 8px rgba(52,73,94,0.35)"
-                    },
-                    "textStyle": {
-                        "fontSize": "16px",
-                        "fontWeight": "600"
-                    },
-                    "padding": { "left": 12, "right": 12, "top": 8, "bottom": 8 }
-                }
-            ]
-        },
-        "dialogs": [
-            {
-                "id": "dialog-composite-default",
-                "label": "复合对话框默认",
-                "type": "composite",
-                "background": {
-                    "imageId": null,
-                    "color": "#ffffff",
-                    "shadow": "0 10px 24px rgba(0,0,0,0.22)",
-                    "cornerRadius": 12
-                },
-                "titleBar": {
-                    "visible": true,
-                    "height": 36,
-                    "backgroundColor": "#2c3e50",
-                    "textStyle": { "color": "#ecf0f1", "fontSize": "16px", "fontWeight": "bold" },
-                    "padding": { "left": 12, "right": 8 }
-                },
-                "closeButton": {
-                    "visible": true,
-                    "position": { "right": 8, "top": 8 },
-                    "size": { "width": 20, "height": 20 }
-                },
-                "content": {
-                    "textArea": { "x": 20, "y": 56, "width": 480, "height": 120 },
-                    "imageSlot": { "x": 510, "y": 56, "width": 160, "height": 120 }
-                },
-                "actions": {
-                    "layout": "right",
-                    "buttons": [
-                        { "slot": "confirm", "label": "确定", "skinId": "btn-primary-9slice" },
-                        { "slot": "cancel", "label": "取消", "skinId": "btn-secondary-9slice" }
-                    ]
-                }
-            }
-        ]
-    },
-    "levels": [
+      },
+      "commands": [
         {
-            "id": "adventure-start-v2",
-            "name": "冒险开始 V2",
-            "description": "基于V2数据结构的开场关卡",
-            "canvasWidth": 800,
-            "canvasHeight": 600,
-            "initialState": {
-                "score": 0,
-                "health": 100,
-                "gold": 50,
-                "hasKey": false,
-                "hasSword": false,
-                "currentLocation": "forest"
+          "id": "show-forest-background",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "background",
+            "resourceId": "forest-bg",
+            "position": {
+              "x": 0,
+              "y": 0
             },
-            "commands": [
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "anim-fade-in"
+              }
+            }
+          }
+        },
+        {
+          "id": "show-title",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "game-title",
+            "text": "🗡️ 冒险选择游戏 V2 🗡️",
+            "position": {
+              "x": 20,
+              "y": 20
+            },
+            "style": {
+              "fontSize": 30.0,
+              "color": "#ffffff",
+              "fontFamily": "Arial, Helvetica, sans-serif",
+              "stroke": "#000000",
+              "strokeThickness": 3,
+              "dropShadow": true,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 2,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "maxWidth": "600px",
+              "lineHeight": 36,
+              "zIndex": 12
+            },
+            "animation": {
+              "entry": {
+                "animId": "anim-fade-in"
+              }
+            }
+          }
+        },
+        {
+          "id": "show-story",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "story-text",
+            "text": "你站在一片神秘的森林前。传说这里隐藏着古老的宝藏，\n但也充满了危险。是否立刻进入森林？",
+            "position": {
+              "x": 50,
+              "y": 80
+            },
+            "style": {
+              "fontSize": 20.0,
+              "color": "#ffffff",
+              "fontFamily": "Arial, Helvetica, sans-serif",
+              "stroke": "#1e3a8a",
+              "strokeThickness": 3,
+              "dropShadow": true,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 2,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "lineHeight": 28,
+              "zIndex": 12
+            },
+            "blocking": false,
+            "skinId": "dialog-default-9slice",
+            "padding": 14
+          }
+        },
+        {
+          "id": "show-stats",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "stats-display",
+            "text": "💰 金币: 50 | ❤️ 生命: 100 | ⭐ 得分: 0",
+            "position": {
+              "x": 345,
+              "y": 25
+            },
+            "style": {
+              "fontSize": 16.0,
+              "color": "#ffffff",
+              "fontFamily": "Arial, Helvetica, sans-serif",
+              "stroke": "#000000",
+              "strokeThickness": 3,
+              "dropShadow": true,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 2,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "maxWidth": "600px",
+              "lineHeight": 32,
+              "zIndex": 12
+            }
+          }
+        },
+        {
+          "id": "enter-forest-question",
+          "type": "BUTTON",
+          "parameters": {
+            "elementId": "btn-enter-forest",
+            "position": {
+              "x": 50,
+              "y": 200
+            },
+            "ui": {
+              "rowMax": 2,
+              "fontSize": 16,
+              
+              "paddingX" : 20,
+              "paddingY" : 10,
+              "gapX" : 40,
+              "gapY" : 20,
+
+              "minWidth": 80,
+              "buttonSkinId": "btn-primary-9slice"
+            }
+          },
+          "branches": {
+            "yes": {
+              "label": "是",
+              "commands": [
                 {
-                    "id": "show-forest-background",
-                    "type": "SHOW_IMAGE",
-                    "parameters": {
-                        "elementId": "background",
-                        "resourceId": "forest-bg",
-                        "position": {
+                  "id": "update-story-forest",
+                  "type": "UPDATE_TEXT",
+                  "parameters": {
+                    "elementId": "story-text",
+                    "text": "你勇敢地走进了森林。不久，\n你遇到了一只受伤的小鹿，并看到前方有两条路。"
+                  }
+                },
+                {
+                  "id": "show-forest-background",
+                  "type": "SHOW_IMAGE",
+                  "parameters": {
+                    "elementId": "background",
+                    "resourceId": "road",
+                    "position": {
+                      "x": 0,
+                      "y": 0
+                    },
+                    "size": {
+                      "width": 800,
+                      "height": 600
+                    },
+                    "zIndex": 0,
+                    "animation": {
+                      "entry": {
+                        "animId": "anim-fade-in"
+                      }
+                    }
+                  }
+                },
+                {
+                  "id": "bgm-start",
+                  "type": "BGM_PLAY",
+                  "parameters": {
+                    "musicId": "bgm-main",
+                    "volume": 0.6,
+                    "loop": true
+                  }
+                },
+                {
+                  "id": "gain-kindness-score",
+                  "type": "set_variable",
+                  "parameters": {
+                    "key": "score",
+                    "op": "add",
+                    "value": 10
+                  }
+                },
+                {
+                  "id": "emit-entered-forest",
+                  "type": "EMIT_SIGNAL",
+                  "parameters": {
+                    "signal": "entered-forest"
+                  }
+                }
+              ]
+            },
+            "no": {
+              "label": "否",
+              "commands": [
+                {
+                  "id": "update-story-stay",
+                  "type": "UPDATE_TEXT",
+                  "parameters": {
+                    "elementId": "story-text",
+                    "text": "你决定先在入口观察一会儿，也许还能收集到更多信息。"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "id": "path-choices",
+          "type": "CHOICES",
+          "parameters": {
+            "elementId": "choices-path",
+            "position": {
+              "x": 50,
+              "y": 200
+            },
+            "style": {
+              "fontSize": "18px",
+              "color": "#ffffff"
+            },
+            "ui": {
+              "rowMax": 1,
+              "gapX" : 20,
+              "gapY" : 20,
+              "fontSize": 16,
+              "minWidth": 0,
+              "buttonSkinId": "btn-primary-9slice"
+            }
+          },
+          "options": [
+            {
+              "id": "left-path",
+              "text": "⬅️ 左边的小径",
+              "commands": [
+                {
+                  "id": "left-path-check-key",
+                  "type": "if_condition",
+                  "parameters": {
+                    "condition": {
+                      "type": "expression",
+                      "expression": "context.stateManager.getVariable('hasKey') === true"
+                    },
+                    "trueCommands": [
+                      {
+                        "id": "enter-cave",
+                        "type": "UPDATE_TEXT",
+                        "parameters": {
+                          "elementId": "story-text",
+                          "text": "你用钥匙打开了洞穴门，发现了一把传说之剑。\n请将它拖拽到右下角的背包图标中以收集！"
+                        }
+                      },
+                      {
+                        "id": "show-cave-background",
+                        "type": "SHOW_IMAGE",
+                        "parameters": {
+                          "elementId": "background",
+                          "resourceId": "treasure-room",
+                          "position": {
                             "x": 0,
                             "y": 0
-                        },
-                        "size": {
+                          },
+                          "size": {
                             "width": 800,
                             "height": 600
-                        },
-                        "zIndex": 0,
-                        "animation": { "entry": { "animId": "anim-fade-in" } }
-                    }
-                },
-                {
-                    "id": "show-title",
-                    "type": "SHOW_TEXT",
-                    "parameters": {
-                        "elementId": "game-title",
-                        "text": "🗡️ 冒险选择游戏 V2 🗡️",
-                        "position": {
-                            "x": 20,
-                            "y": 20
-                        },
-                        "style": {
-                            "fontSize": "30px",
-                            "color": "#ffffff",
-                            "fontFamily": "Arial, Helvetica, sans-serif",
-                            "stroke": "#000000",
-                            "strokeThickness": 3,
-                            "dropShadow": true,
-                            "dropShadowColor": "#000000",
-                            "dropShadowBlur": 2,
-                            "dropShadowAngle": 1.2,
-                            "dropShadowDistance": 2,
-                            "maxWidth": "600px",
-                            "lineHeight": "1.6",
-                            "zIndex": 12
-                        },
-                        "animation": { "entry": { "animId": "anim-fade-in" } }
-                    }
-                },
-                {
-                    "id": "show-story",
-                    "type": "SHOW_TEXT",
-                    "parameters": {
-                        "elementId": "story-text",
-                        "text": "你站在一片神秘的森林前。传说这里隐藏着古老的宝藏，\n但也充满了危险。是否立刻进入森林？",
-                        "position": {
-                            "x": 50,
-                            "y": 80
-                        },
-                        "style": {
-                            "fontSize": "20px",
-                            "color": "#ffffff",
-                            "fontFamily": "Arial, Helvetica, sans-serif",
-                            "stroke": "#1e3a8a",
-                            "strokeThickness": 3,
-                            "dropShadow": true,
-                            "dropShadowColor": "#000000",
-                            "dropShadowBlur": 2,
-                            "dropShadowAngle": 1.2,
-                            "dropShadowDistance": 2,
-                            "maxWidth": "600px",
-                            "lineHeight": "1.6",
-                            "zIndex": 12
-                        },
-                        "backgroundResourceId": "panel-blue-1",
-                        "backgroundPadding": 14,
-                        "blocking": false
-                    }
-                },
-                {
-                    "id": "show-stats",
-                    "type": "SHOW_TEXT",
-                    "parameters": {
-                        "elementId": "stats-display",
-                        "text": "💰 金币: 50 | ❤️ 生命: 100 | ⭐ 得分: 0",
-                        "position": {
-                            "x": 345,
-                            "y": 25
-                        },
-                        "style": {
-                            "fontSize": "16px",
-                            "color": "#ffffff",
-                            "fontFamily": "Arial, Helvetica, sans-serif",
-                            "stroke": "#000000",
-                            "strokeThickness": 3,
-                            "dropShadow": true,
-                            "dropShadowColor": "#000000",
-                            "dropShadowBlur": 2,
-                            "dropShadowAngle": 1.2,
-                            "dropShadowDistance": 2,
-                            "maxWidth": "600px",
-                            "lineHeight": "1.6",
-                            "zIndex": 12
+                          },
+                          "zIndex": 0,
+                          "animation": {
+                            "entry": {
+                              "animId": "anim-fade-in"
+                            }
+                          }
                         }
-                    }
-                },
-                {
-                    "id": "enter-forest-question",
-                    "type": "BUTTON",
-                    "parameters": {
-                        "elementId": "btn-enter-forest",
-                        "text": "🌲 现在进入森林吗？",
-                        "position": {
+                      },
+                      {
+                        "id": "gain-treasure",
+                        "type": "set_variable",
+                        "parameters": {
+                          "key": "gold",
+                          "op": "add",
+                          "value": 200
+                        }
+                      },
+                      {
+                        "id": "get-sword",
+                        "type": "set_variable",
+                        "parameters": {
+                          "key": "hasSword",
+                          "op": "set",
+                          "value": true
+                        }
+                      },
+                      {
+                        "id": "update-stats-after-treasure",
+                        "type": "UPDATE_TEXT",
+                        "parameters": {
+                          "elementId": "stats-display",
+                          "text": "💰 金币: ${gameState.gold} | ❤️ 生命: ${gameState.health} | ⭐ 得分: ${gameState.score} | ⚔️ 传说之剑: ✅"
+                        }
+                      },
+                      {
+                        "id": "show-backpack",
+                        "type": "SHOW_IMAGE",
+                        "parameters": {
+                          "elementId": "backpack",
+                          "resourceId": "backpack",
+                          "position": {
+                            "x": 620,
+                            "y": 420
+                          },
+                          "size": {
+                            "width": 120,
+                            "height": 120
+                          },
+                          "animation": {
+                            "entry": {
+                              "animId": "anim-slide-in-right"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "id": "create-backpack-dropzone",
+                        "type": "CREATE_DROP_ZONE",
+                        "parameters": {
+                          "dropZoneId": "bag-drop-zone",
+                          "position": {
+                            "x": 620,
+                            "y": 420
+                          },
+                          "size": {
+                            "width": 120,
+                            "height": 120
+                          },
+                          "acceptTypes": [
+                            "legendary-sword"
+                          ],
+                          "label": "背包",
+                          "style": {
+                            "backgroundColor": "rgba(0,0,0,0.05)",
+                            "borderColor": "#34495e",
+                            "color": "#34495e",
+                            "fontWeight": "bold"
+                          }
+                        }
+                      },
+                      {
+                        "id": "show-sword",
+                        "type": "SHOW_IMAGE",
+                        "parameters": {
+                          "elementId": "sword",
+                          "resourceId": "legendary-sword",
+                          "position": {
+                            "x": 320,
+                            "y": 320
+                          },
+                          "size": {
+                            "width": 80,
+                            "height": 80
+                          },
+                          "animation": {
+                            "entry": {
+                              "animId": "anim-scale-pop-in"
+                            },
+                            "loop": {
+                              "animId": "anim-hover-slow"
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "id": "set-sword-draggable",
+                        "type": "SET_DRAGGABLE",
+                        "parameters": {
+                          "elementId": "sword",
+                          "draggable": true,
+                          "dragType": "legendary-sword"
+                        }
+                      }
+                    ],
+                    "falseCommands": [
+                      {
+                        "id": "locked-door-msg",
+                        "type": "SHOW_TEXT",
+                        "parameters": {
+                          "elementId": "locked-door-msg",
+                          "text": "🚪 门被锁住了，你需要一把钥匙才能进入",
+                          "position": {
                             "x": 100,
-                            "y": 200
-                        },
-                        "ui": { "theme": "orange", "minWidth": 200, "height": 52, "fontSize": 18 }
-                    },
-                    "branches": {
-                        "yes": {
-                            "label": "是",
-                            "commands": [
-                                {
-                                    "id": "update-story-forest",
-                                    "type": "UPDATE_TEXT",
-                                    "parameters": {
-                                        "elementId": "story-text",
-                                        "text": "你勇敢地走进了森林。不久，\n你遇到了一只受伤的小鹿，并看到前方有两条路。"
-                                    }
-                                },
-                                {
-                                    "id": "show-forest-background",
-                                    "type": "SHOW_IMAGE",
-                                    "parameters": {
-                                        "elementId": "background",
-                                        "resourceId": "road",
-                                        "position": {
-                                            "x": 0,
-                                            "y": 0
-                                        },
-                                        "size": {
-                                            "width": 800,
-                                            "height": 600
-                                        },
-                                        "zIndex": 0,
-                                        "animation": { "entry": { "animId": "anim-fade-in" } }
-                                    }
-                                },
-                                {
-                                    "id": "bgm-start",
-                                    "type": "BGM_PLAY",
-                                    "parameters": { "musicId": "bgm-main", "volume": 0.6, "loop": true }
-                                },
-                                {
-                                    "id": "gain-kindness-score",
-                                    "type": "set_variable",
-                                    "parameters": {
-                                        "key": "score",
-                                        "op": "add",
-                                        "value": 10
-                                    }
-                                },
-                                {
-                                    "id": "emit-entered-forest",
-                                    "type": "EMIT_SIGNAL",
-                                    "parameters": {
-                                        "signal": "entered-forest"
-                                    }
-                                }
-                            ]
-                        },
-                        "no": {
-                            "label": "否",
-                            "commands": [
-                                {
-                                    "id": "update-story-stay",
-                                    "type": "UPDATE_TEXT",
-                                    "parameters": {
-                                        "elementId": "story-text",
-                                        "text": "你决定先在入口观察一会儿，也许还能收集到更多信息。"
-                                    }
-                                }
-                            ]
+                            "y": 350
+                          },
+                          "style": {
+                            "fontSize": 16.0,
+                            "color": "#e74c3c",
+                            "fill": "#e74c3c",
+                            "dropShadow": false
+                          },
+                          "blocking": true,
+                          "dismissOnContinue": true,
+                          "skinId": "btn-primary-9slice"
                         }
-                    }
-                },
-                {
-                    "id": "path-choices",
-                    "type": "CHOICES",
-                    "parameters": {
-                        "elementId": "choices-path",
-                        "text": "选择你的道路：",
-                        "position": {
-                            "x": 100,
-                            "y": 270
-                        },
-                        "style": { "fontSize": "18px", "color": "#ffffff" },
-                        "ui": { "rowMax": 3, "theme": "orange", "fontSize": 16, "minWidth": 160, "height": 48 }
-                    },
-                    "options": [
-                        {
-                            "id": "left-path",
-                            "text": "⬅️ 左边的小径",
-                            "commands": [
-                                {
-                                    "id": "left-path-check-key",
-                                    "type": "if_condition",
-                                    "parameters": {
-                                        "condition": {
-                                            "type": "expression",
-                                            "expression": "context.stateManager.getVariable('hasKey') === true"
-                                        },
-                                        "trueCommands": [
-                                            {
-                                                "id": "enter-cave",
-                                                "type": "UPDATE_TEXT",
-                                                "parameters": {
-                                                    "elementId": "story-text",
-                                                    "text": "你用钥匙打开了洞穴门，发现了一把传说之剑。\n请将它拖拽到右下角的背包图标中以收集！"
-                                                }
-                                            },
-                                            {
-                                                "id": "show-cave-background",
-                                                "type": "SHOW_IMAGE",
-                                                "parameters": {
-                                                    "elementId": "background",
-                                                    "resourceId": "treasure-room",
-                                                    "position": { "x": 0, "y": 0 },
-                                                    "size": { "width": 800, "height": 600 },
-                                                    "zIndex": 0,
-                                                    "animation": { "entry": { "animId": "anim-fade-in" } }
-                                                }
-                                            },
-                                            {
-                                                "id": "gain-treasure",
-                                                "type": "set_variable",
-                                                "parameters": {
-                                                    "key": "gold",
-                                                    "op": "add",
-                                                    "value": 200
-                                                }
-                                            },
-                                            {
-                                                "id": "get-sword",
-                                                "type": "set_variable",
-                                                "parameters": {
-                                                    "key": "hasSword",
-                                                    "op": "set",
-                                                    "value": true
-                                                }
-                                            },
-
-                                            {
-                                                "id": "update-stats-after-treasure",
-                                                "type": "UPDATE_TEXT",
-                                                "parameters": {
-                                                    "elementId": "stats-display",
-                                                    "text": "💰 金币: ${gameState.gold} | ❤️ 生命: ${gameState.health} | ⭐ 得分: ${gameState.score} | ⚔️ 传说之剑: ✅"
-                                                }
-                                            },
-                                            {
-                                                "id": "show-backpack",
-                                                "type": "SHOW_IMAGE",
-                                                "parameters": {
-                                                    "elementId": "backpack",
-                                                    "resourceId": "backpack",
-                                                    "position": { "x": 620, "y": 420 },
-                                                    "size": { "width": 120, "height": 120 },
-                                                    "animation": { "entry": { "animId": "anim-slide-in-right" } }
-                                                }
-                                            },
-                                            {
-                                                "id": "create-backpack-dropzone",
-                                                "type": "CREATE_DROP_ZONE",
-                                                "parameters": {
-                                                    "dropZoneId": "bag-drop-zone",
-                                                    "position": { "x": 620, "y": 420 },
-                                                    "size": { "width": 120, "height": 120 },
-                                                    "acceptTypes": ["legendary-sword"],
-                                                    "label": "背包",
-                                                    "style": {
-                                                        "backgroundColor": "rgba(0,0,0,0.05)",
-                                                        "borderColor": "#34495e",
-                                                        "color": "#34495e",
-                                                        "fontWeight": "bold"
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "id": "show-sword",
-                                                "type": "SHOW_IMAGE",
-                                                "parameters": {
-                                                    "elementId": "sword",
-                                                    "resourceId": "legendary-sword",
-                                                    "position": { "x": 320, "y": 320 },
-                                                    "size": { "width": 80, "height": 80 },
-                                                    "animation": {
-                                                        "entry": { "animId": "anim-scale-pop-in" },
-                                                        "loop": { "animId": "anim-hover-slow" }
-                                                    }
-                                                }
-                                            },
-                                            {
-                                                "id": "set-sword-draggable",
-                                                "type": "SET_DRAGGABLE",
-                                                "parameters": {
-                                                    "elementId": "sword",
-                                                    "draggable": true,
-                                                    "dragType": "legendary-sword"
-                                                }
-                                            }
-                                        ],
-                                        "falseCommands": [
-                                            {
-                                                "id": "locked-door-msg",
-                                                "type": "SHOW_TEXT",
-                                                "parameters": {
-                                                    "elementId": "locked-door-msg",
-                                                    "text": "🚪 门被锁住了，你需要一把钥匙才能进入",
-                                                    "position": {
-                                                        "x": 100,
-                                                        "y": 350
-                                                    },
-                                                    "style": {
-                                                        "fontSize": "16px",
-                                                        "color": "#e74c3c",
-                                                        "fill": "#e74c3c",
-                                                        "dropShadow": false
-                                                    },
-                                                    "blocking": true,
-                                                    "dismissOnContinue": true
-                                                }
-                                            },
-                                            {
-                                                "id": "jump-back-after-locked",
-                                                "type": "JUMP_TO",
-                                                "parameters": { "target": "path-choices" }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        },
-                        {
-                            "id": "right-path",
-                            "text": "➡️ 右边的大路",
-                            "commands": [
-                                {
-                                    "id": "update-story-right",
-                                    "type": "UPDATE_TEXT",
-                                    "parameters": {
-                                        "elementId": "story-text",
-                                        "text": "你沿着大路前进，遇到一个友善的村民，他告诉你洞穴里可能有宝藏。"
-                                    }
-                                },
-                                {
-                                    "id": "show-tip",
-                                    "type": "SHOW_TEXT",
-                                    "parameters": {
-                                        "elementId": "tip-message",
-                                        "text": "提示：帮助小鹿也许会有意想不到的收获。",
-                                        "position": { "x": 100, "y": 400 },
-                                        "style": { "fontSize": "16px", "color": "#16a085", "fill": "#16a085", "dropShadow": false },
-                                        "duration": 3000,
-                                        "blocking": true,
-                                        "dismissOnContinue": true
-                                    }
-                                },
-                                {
-                                    "id": "jump-back-after-right",
-                                    "type": "JUMP_TO",
-                                    "parameters": { "target": "path-choices" }
-                                }
-                            ]
-                        },
-                        {
-                            "id": "help-deer",
-                            "text": "💝 帮助受伤的小鹿（花费30金币）",
-                            "commands": [
-                                {
-                                    "id": "check-gold",
-                                    "type": "if_condition",
-                                    "parameters": {
-                                        "condition": {
-                                            "type": "expression",
-                                            "expression": "context.stateManager.getVariable('gold') >= 30"
-                                        },
-                                        "trueCommands": [
-                                            {
-                                                "id": "pay-gold",
-                                                "type": "set_variable",
-                                                "parameters": {
-                                                    "key": "gold",
-                                                    "op": "sub",
-                                                    "value": 30
-                                                }
-                                            },
-                                            {
-                                                "id": "gain-key",
-                                                "type": "set_variable",
-                                                "parameters": {
-                                                    "key": "hasKey",
-                                                    "op": "set",
-                                                    "value": true
-                                                }
-                                            },
-                                            {
-                                                "id": "gain-score",
-                                                "type": "set_variable",
-                                                "parameters": {
-                                                    "key": "score",
-                                                    "op": "add",
-                                                    "value": 50
-                                                }
-                                            },
-                                            {
-                                                "id": "update-stats",
-                                                "type": "UPDATE_TEXT",
-                                                "parameters": {
-                                                    "elementId": "stats-display",
-                                                    "text": "💰 金币: ${gameState.gold} | ❤️ 生命: ${gameState.health} | ⭐ 得分: ${gameState.score} | 🗝️ 魔法钥匙: ✅"
-                                                }
-                                            },
-                                            {
-                                                "id": "show-tip",
-                                                "type": "SHOW_TEXT",
-                                                "parameters": {
-                                                    "elementId": "tip-message",
-                                                    "text": "小鹿得到了帮助，给了你一把钥匙。",
-                                                    "position": { "x": 100, "y": 400 },
-                                                    "style": { "fontSize": "16px", "color": "#16a085", "fill": "#16a085", "dropShadow": false },
-                                                    "duration": 3000,
-                                                    "blocking": true,
-                                                    "dismissOnContinue": true
-                                                }
-                                            },
-                                            {
-                                                "id": "se-success",
-                                                "type": "SE_PLAY",
-                                                "parameters": { "soundId": "se-click", "volume": 0.9 }
-                                            },
-                                            {
-                                                "id": "jump-back-after-help",
-                                                "type": "JUMP_TO",
-                                                "parameters": { "target": "path-choices" }
-                                            }
-                                        ],
-                                        "falseCommands": [
-                                            {
-                                                "id": "no-money-msg",
-                                                "type": "SHOW_TEXT",
-                                                "parameters": {
-                                                    "elementId": "no-money-msg",
-                                                    "text": "💸 你的金币不足，无法帮助小鹿",
-                                                    "position": {
-                                                        "x": 100,
-                                                        "y": 450
-                                                    },
-                                                    "style": {
-                                                        "fontSize": "16px",
-                                                        "color": "#e74c3c"
-                                                    },
-                                                    "blocking": true
-                                                }
-                                            },
-                                            {
-                                                "id": "jump-back-after-no-money",
-                                                "type": "JUMP_TO",
-                                                "parameters": { "target": "path-choices" }
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
+                      },
+                      {
+                        "id": "jump-back-after-locked",
+                        "type": "JUMP_TO",
+                        "parameters": {
+                          "target": "path-choices"
                         }
+                      }
                     ]
+                  }
                 }
-            ],
-            "events": [
+              ]
+            },
+            {
+              "id": "right-path",
+              "text": "➡️ 右边的大路",
+              "commands": [
                 {
-                    "id": "ui-countdown-60s",
-                    "name": "右上角倒计时60秒并结束",
-                    "triggers": [
-                        { "type": "auto", "start": "immediate" }
-                    ],
-                    "commands": [
-                        {
-                            "id": "countdown-init",
-                            "type": "set_variable",
-                            "parameters": { "key": "countdown", "op": "set", "value": 60 }
-                        },
-                        {
-                            "id": "countdown-text-show",
-                            "type": "SHOW_TEXT",
-                            "parameters": {
-                                "elementId": "countdown-text",
-                                "text": "⏳ ${gameState.countdown}s",
-                                "position": { "x": 740, "y": 10 },
-                                "style": { "fontSize": "16px", "color": "#ffffff", "fill": "#ffffff","stroke": "#000000","strokeThickness": 3, "textAlign": "right", "maxWidth": 80, "dropShadow": false, "zIndex": 100 }
-                            }
-                        },
-                        {
-                            "id": "tick",
-                            "type": "IF_CONDITION",
-                            "parameters": {
-                                "condition": { "type": "expression", "expression": "context.stateManager.getVariable('countdown') > 0" },
-                                "trueCommands": [
-                                    { "id": "tick-wait", "type": "WAIT", "parameters": { "duration": 1000 } },
-                                    { "id": "tick-sub", "type": "set_variable", "parameters": { "key": "countdown", "op": "sub", "value": 1 } },
-                                    { "id": "tick-update", "type": "UPDATE_TEXT", "parameters": { "elementId": "countdown-text", "text": "⏳ ${gameState.countdown}s" } },
-                                    { "id": "tick-jump", "type": "JUMP_TO", "parameters": { "target": "tick" } }
-                                ],
-                                "falseCommands": [
-                                    { "id": "timeout-msg", "type": "SHOW_TEXT", "parameters": { "elementId": "timeout-msg", "text": "⏳ 60秒已到，故事进入尾声。", "position": { "x": 60, "y": 520 }, "style": { "fontSize": "18px", "color": "#000000", "stroke": "#ffffff", "strokeThickness": 3 }, "blocking": true, "dismissOnContinue": true } },
-                                    { "id": "bgm-stop-on-timeout", "type": "BGM_STOP", "parameters": {} },
-                                    { "id": "timeout-over", "type": "GAME_OVER", "parameters": { "reason": "timeout", "message": "超时结束", "resetGame": true } }
-                                ]
-                            }
-                        }
-                    ]
+                  "id": "update-story-right",
+                  "type": "UPDATE_TEXT",
+                  "parameters": {
+                    "elementId": "story-text",
+                    "text": "你沿着大路前进，遇到一个友善的村民，他告诉你洞穴里可能有宝藏。"
+                  }
                 },
                 {
-                    "id": "signal-wait-10s",
-                    "name": "信号触发后等待10秒并胜利",
-                    "triggers": [
-                        {
-                            "type": "custom",
-                            "target": "treasure_collected"
-                        }
-                    ],
-                    "commands": [
-                        {
-                            "id": "wait-10s",
-                            "type": "WAIT",
-                            "parameters": {
-                                "duration": 10000
-                            }
-                        },
-                        {
-                            "id": "bgm-stop-on-victory",
-                            "type": "BGM_STOP",
-                            "parameters": {}
-                        },
-                        {
-                            "id": "victory-game-over",
-                            "type": "GAME_OVER",
-                            "parameters": {
-                                "reason": "victory",
-                                "message": "🎉 你获得了胜利！"
-                            }
-                        }
-                    ]
+                  "id": "show-tip",
+                  "type": "SHOW_TEXT",
+                  "parameters": {
+                    "elementId": "tip-message",
+                    "text": "提示：帮助小鹿也许会有意想不到的收获。",
+                    "position": {
+                      "x": 100,
+                      "y": 400
+                    },
+                    "style": {
+                      "fontSize": 16.0,
+                      "color": "#16a085",
+                      "fill": "#16a085",
+                      "dropShadow": false
+                    },
+                    "duration": 3000,
+                    "blocking": true,
+                    "dismissOnContinue": true,
+                    "skinId": "btn-primary-9slice"
+                  }
                 },
-                        {
-                            "id": "sword-dropped",
-                            "name": "宝剑投放事件（按投放区ID触发）",
-                            "triggers": [
-                                { "type": "custom", "target": "bag-drop-zone" }
-                            ],
-                            "commands": [
-                                {
-                                    "id": "set-has-sword",
-                                    "type": "set_variable",
-                                    "parameters": { "key": "hasSword", "op": "set", "value": true }
-                                },
-                                {
-                                    "id": "switch-to-outer",
-                                    "type": "SHOW_IMAGE",
-                                    "parameters": {
-                                        "elementId": "background",
-                                        "resourceId": "forest-bg",
-                                        "position": { "x": 0, "y": 0 },
-                                        "size": { "width": 800, "height": 600 },
-                                        "zIndex": 0
-                                    }
-                                },
-                                {
-                                    "id": "hide-sword",
-                                    "type": "SET_ELEMENT_STYLE",
-                                    "parameters": { "elementId": "sword", "style": { "display": "none" } }
-                                },
-                                {
-                                    "id": "hide-stats",
-                                    "type": "SET_ELEMENT_STYLE",
-                                    "parameters": { "elementId": "stats-display", "style": { "display": "none" } }
-                                },
-                                {
-                                    "id": "hide-enter-cave",
-                                    "type": "SET_ELEMENT_STYLE",
-                                    "parameters": { "elementId": "story-text", "style": { "display": "none" } }
-                                },
-                                {
-                                    "id": "hide-show-cave-tip",
-                                    "type": "SET_ELEMENT_STYLE",
-                                    "parameters": { "elementId": "cave-tip", "style": { "display": "none" } }
-                                },
-                                {
-                                    "id": "show-congrats",
-                                    "type": "SHOW_TEXT",
-                                    "parameters": {
-                                        "elementId": "story-text",
-                                        "text": "🎉 恭喜你获得传说之剑！冒险胜利",
-                                        "position": { "x": 60, "y": 480 },
-                                        "style": { "fontSize": "22px", "color": "#ffffff", "maxWidth": 680 }
-                                    }
-                                },
-                                {
-                                    "id": "emit-treasure-collected",
-                                    "type": "EMIT_SIGNAL",
-                                    "parameters": { "signal": "treasure_collected" }
-                                }
-                            ]
+                {
+                  "id": "jump-back-after-right",
+                  "type": "JUMP_TO",
+                  "parameters": {
+                    "target": "path-choices"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "help-deer",
+              "text": "💝 帮助受伤的小鹿（花费30金币）",
+              "commands": [
+                {
+                  "id": "check-gold",
+                  "type": "if_condition",
+                  "parameters": {
+                    "condition": {
+                      "type": "expression",
+                      "expression": "context.stateManager.getVariable('gold') >= 30"
+                    },
+                    "trueCommands": [
+                      {
+                        "id": "pay-gold",
+                        "type": "set_variable",
+                        "parameters": {
+                          "key": "gold",
+                          "op": "sub",
+                          "value": 30
                         }
-            ]
+                      },
+                      {
+                        "id": "gain-key",
+                        "type": "set_variable",
+                        "parameters": {
+                          "key": "hasKey",
+                          "op": "set",
+                          "value": true
+                        }
+                      },
+                      {
+                        "id": "gain-score",
+                        "type": "set_variable",
+                        "parameters": {
+                          "key": "score",
+                          "op": "add",
+                          "value": 50
+                        }
+                      },
+                      {
+                        "id": "update-stats",
+                        "type": "UPDATE_TEXT",
+                        "parameters": {
+                          "elementId": "stats-display",
+                          "text": "💰 金币: ${gameState.gold} | ❤️ 生命: ${gameState.health} | ⭐ 得分: ${gameState.score} | 🗝️ 魔法钥匙: ✅"
+                        }
+                      },
+                      {
+                        "id": "show-tip",
+                        "type": "SHOW_TEXT",
+                        "parameters": {
+                          "elementId": "tip-message",
+                          "text": "小鹿得到了帮助，给了你一把钥匙。",
+                          "position": {
+                            "x": 100,
+                            "y": 400
+                          },
+                          "style": {
+                            "fontSize": 16.0,
+                            "color": "#16a085",
+                            "fill": "#16a085",
+                            "dropShadow": false
+                          },
+                          "duration": 3000,
+                          "blocking": true,
+                          "dismissOnContinue": true,
+                          "skinId": "btn-primary-9slice"
+                        }
+                      },
+                      {
+                        "id": "se-success",
+                        "type": "SE_PLAY",
+                        "parameters": {
+                          "soundId": "se-click",
+                          "volume": 0.9
+                        }
+                      },
+                      {
+                        "id": "jump-back-after-help",
+                        "type": "JUMP_TO",
+                        "parameters": {
+                          "target": "path-choices"
+                        }
+                      }
+                    ],
+                    "falseCommands": [
+                      {
+                        "id": "no-money-msg",
+                        "type": "SHOW_TEXT",
+                        "parameters": {
+                          "elementId": "no-money-msg",
+                          "text": "💸 你的金币不足，无法帮助小鹿",
+                          "position": {
+                            "x": 100,
+                            "y": 450
+                          },
+                          "style": {
+                            "fontSize": 16.0,
+                            "color": "#e74c3c"
+                          },
+                          "blocking": true,
+                          "skinId": "btn-primary-9slice"
+                        }
+                      },
+                      {
+                        "id": "jump-back-after-no-money",
+                        "type": "JUMP_TO",
+                        "parameters": {
+                          "target": "path-choices"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "ui-countdown-60s",
+          "name": "右上角倒计时60秒并结束",
+          "triggers": [
+            {
+              "type": "auto",
+              "start": "immediate"
+            }
+          ],
+          "commands": [
+            {
+              "id": "countdown-init",
+              "type": "set_variable",
+              "parameters": {
+                "key": "countdown",
+                "op": "set",
+                "value": 60
+              }
+            },
+            {
+              "id": "countdown-text-show",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "countdown-text",
+                "text": "⏳ ${gameState.countdown}s",
+                "position": {
+                  "x": 740,
+                  "y": 10
+                },
+                "style": {
+                  "fontSize": 16.0,
+                  "color": "#ffffff",
+                  "fill": "#ffffff",
+                  "stroke": "#000000",
+                  "strokeThickness": 3,
+                  "textAlign": "right",
+                  "maxWidth": 80,
+                  "dropShadow": false,
+                  "zIndex": 100
+                }
+              }
+            },
+            {
+              "id": "tick",
+              "type": "IF_CONDITION",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "context.stateManager.getVariable('countdown') > 0"
+                },
+                "trueCommands": [
+                  {
+                    "id": "tick-wait",
+                    "type": "WAIT",
+                    "parameters": {
+                      "duration": 1000
+                    }
+                  },
+                  {
+                    "id": "tick-sub",
+                    "type": "set_variable",
+                    "parameters": {
+                      "key": "countdown",
+                      "op": "sub",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "id": "tick-update",
+                    "type": "UPDATE_TEXT",
+                    "parameters": {
+                      "elementId": "countdown-text",
+                      "text": "⏳ ${gameState.countdown}s"
+                    }
+                  },
+                  {
+                    "id": "tick-jump",
+                    "type": "JUMP_TO",
+                    "parameters": {
+                      "target": "tick"
+                    }
+                  }
+                ],
+                "falseCommands": [
+                  {
+                    "id": "timeout-msg",
+                    "type": "SHOW_TEXT",
+                    "parameters": {
+                      "elementId": "timeout-msg",
+                      "text": "⏳ 60秒已到，故事进入尾声。",
+                      "position": {
+                        "x": 60,
+                        "y": 520
+                      },
+                      "style": {
+                        "fontSize": 18.0,
+                        "color": "#000000",
+                        "stroke": "#ffffff",
+                        "strokeThickness": 3
+                      },
+                      "blocking": true,
+                      "dismissOnContinue": true,
+                      "skinId": "btn-primary-9slice"
+                    }
+                  },
+                  {
+                    "id": "bgm-stop-on-timeout",
+                    "type": "BGM_STOP",
+                    "parameters": {}
+                  },
+                  {
+                    "id": "timeout-over",
+                    "type": "GAME_OVER",
+                    "parameters": {
+                      "reason": "timeout",
+                      "message": "超时结束",
+                      "resetGame": true
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         },
         {
-            "id": "media-demo-v2",
-            "name": "媒体演示 V2",
-            "description": "演示 SHOW_MEDIA 指令（视频不支持动画）",
-            "canvasWidth": 800,
-            "canvasHeight": 600,
-            "initialState": {},
-            "commands": [
-                {
-                    "id": "show-demo-video",
-                    "type": "SHOW_MEDIA",
-                    "parameters": {
-                        "elementId": "intro-video",
-                        "mediaType": "video",
-                        "resourceId": "intro-video",
-                        "position": { "x": 100, "y": 100 },
-                        "size": { "width": 600, "height": 338 },
-                        "zIndex": 5,
-                        "autoplay": true,
-                        "loop": false,
-                        "muted": false,
-                        "controls": true
-                    }
+          "id": "signal-wait-10s",
+          "name": "信号触发后等待10秒并胜利",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "treasure_collected"
+            }
+          ],
+          "commands": [
+            {
+              "id": "wait-10s",
+              "type": "WAIT",
+              "parameters": {
+                "duration": 10000
+              }
+            },
+            {
+              "id": "bgm-stop-on-victory",
+              "type": "BGM_STOP",
+              "parameters": {}
+            },
+            {
+              "id": "victory-game-over",
+              "type": "GAME_OVER",
+              "parameters": {
+                "reason": "victory",
+                "message": "🎉 你获得了胜利！"
+              }
+            }
+          ]
+        },
+        {
+          "id": "sword-dropped",
+          "name": "宝剑投放事件（按投放区ID触发）",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "bag-drop-zone"
+            }
+          ],
+          "commands": [
+            {
+              "id": "set-has-sword",
+              "type": "set_variable",
+              "parameters": {
+                "key": "hasSword",
+                "op": "set",
+                "value": true
+              }
+            },
+            {
+              "id": "switch-to-outer",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "background",
+                "resourceId": "forest-bg",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "size": {
+                  "width": 800,
+                  "height": 600
+                },
+                "zIndex": 0
+              }
+            },
+            {
+              "id": "hide-sword",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "sword",
+                "style": {
+                  "display": "none"
                 }
-            ]
+              }
+            },
+            {
+              "id": "hide-stats",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "stats-display",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "hide-enter-cave",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "story-text",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "hide-show-cave-tip",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "cave-tip",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "show-congrats",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "story-text",
+                "text": "🎉 恭喜你获得传说之剑！冒险胜利",
+                "position": {
+                  "x": 60,
+                  "y": 480
+                },
+                "style": {
+                  "fontSize": 22.0,
+                  "color": "#ffffff",
+                  "maxWidth": 680
+                }
+              }
+            },
+            {
+              "id": "emit-treasure-collected",
+              "type": "EMIT_SIGNAL",
+              "parameters": {
+                "signal": "treasure_collected"
+              }
+            }
+          ]
         }
-    ]
+      ]
+    },
+    {
+      "id": "media-demo-v2",
+      "name": "媒体演示 V2",
+      "description": "演示 SHOW_MEDIA 指令（视频不支持动画）",
+      "canvasWidth": 800,
+      "canvasHeight": 600,
+      "initialState": {},
+      "commands": [
+        {
+          "id": "show-demo-video",
+          "type": "SHOW_MEDIA",
+          "parameters": {
+            "elementId": "intro-video",
+            "mediaType": "video",
+            "resourceId": "intro-video",
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "size": {
+              "width": 600,
+              "height": 338
+            },
+            "zIndex": 5,
+            "autoplay": true,
+            "loop": false,
+            "muted": false,
+            "controls": true
+          }
+        }
+      ]
+    }
+  ],
+  "skins": [
+    {
+      "id": "dialog-default-9slice",
+      "imageId": "panel-blue-1",
+      "slice": {
+        "left": 28,
+        "top": 28,
+        "right": 28,
+        "bottom": 28
+      }
+    },
+    {
+      "id": "btn-primary-9slice",
+      "imageId": "btn-orange",
+      "slice": {"left":201,"top":53,"right":212,"bottom":54}
+    }
+  ]
 }

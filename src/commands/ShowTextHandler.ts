@@ -36,6 +36,20 @@ export class ShowTextHandler extends BaseCommandHandler {
     }
 
     try {
+      // 预判阻塞模式（用于默认皮肤判断）
+      const blocking: boolean = !!p.blocking || !!p.waitForClick;
+      // Padding: support number | {x,y} | {top,bottom,left,right};
+      // If not provided, derive from fontSize for visually balanced padding.
+      const fontSizeNum = (() => { try { return style.fontSize != null ? parseInt(String(style.fontSize)) : 16; } catch { return 16; } })();
+      const autoPadX = Math.max(12, Math.ceil(fontSizeNum * 0.75));
+      const autoPadY = Math.max(8, Math.ceil(fontSizeNum * 0.55));
+      const padRawAll = p.padding ?? p.backgroundPadding ?? p.panel?.padding;
+      const padX = padRawAll == null ? autoPadX : (typeof padRawAll === 'number' ? padRawAll : (padRawAll?.x ?? autoPadX));
+      const padY = padRawAll == null ? autoPadY : (typeof padRawAll === 'number' ? padRawAll : (padRawAll?.y ?? autoPadY));
+      const padLeft = typeof padRawAll === 'object' && padRawAll.left != null ? Number(padRawAll.left) : padX;
+      const padRight = typeof padRawAll === 'object' && padRawAll.right != null ? Number(padRawAll.right) : padX;
+      const padTop = typeof padRawAll === 'object' && padRawAll.top != null ? Number(padRawAll.top) : padY;
+      const padBottom = typeof padRawAll === 'object' && padRawAll.bottom != null ? Number(padRawAll.bottom) : padY;
       const elementConfig: ElementConfig = {
         id: elementId,
         type: 'text',
@@ -46,44 +60,149 @@ export class ShowTextHandler extends BaseCommandHandler {
       };
 
       const element = context.renderManager.createElement(elementConfig);
-      // Optional: background panel image sized to text bounds + padding
-      // 为避免对现有流程产生影响，默认关闭；仅当 useBackgroundImage === true 时启用
+      // Background skin (nine-slice) if skinId is provided
       let createdBgId: string | null = null;
       try {
-        if (p.useBackgroundImage === true) {
-          const bgResId: string | undefined = p.backgroundResourceId || p.panel?.resourceId;
-          const padRaw = p.backgroundPadding ?? p.panel?.padding ?? 12;
-          const padX = typeof padRaw === 'number' ? padRaw : (padRaw?.x ?? 12);
-          const padY = typeof padRaw === 'number' ? padRaw : (padRaw?.y ?? 12);
-          if (bgResId && (context.renderManager as any)?.getNode) {
-            const node: any = (context.renderManager as any).getNode(elementId);
-            const b = node?.getBounds ? node.getBounds() : null;
-            const url = (context.resourceManager as any)?.getResource?.(bgResId)?.url;
-            if (b && url) {
-              const bgId = `${elementId}__bg`;
-              const zUnder = (style.zIndex != null ? Number(style.zIndex) : 5) - 1;
-              (context.renderManager as any).createElement({
-                id: bgId,
-                type: 'image',
-                position: { x: b.x - padX, y: b.y - padY },
-                size: { width: b.width + padX * 2, height: b.height + padY * 2 },
-                src: url,
-                visible: true,
-                style: { zIndex: zUnder }
+        const skinId: string | undefined = (p.skinId || p.panel?.skinId);
+        // Use per-side padding computed above
+        if (skinId && (context.renderManager as any)?.getNode) {
+          const sk = (context.resourceManager as any)?.getSkin?.(skinId);
+          // Only use mapped skin; do not fallback to arbitrary resource id
+          const imageId = sk?.imageId;
+          let url: string | undefined = imageId ? (context.resourceManager as any)?.getResource?.(imageId)?.url : undefined;
+          const addVer = (u?: string): string | undefined => {
+            if (!u) return u;
+            try {
+              const g: any = globalThis as any;
+              const ver = g.__ASSET_VERSION || g.__BUILD_VERSION || g.__GAME_ASSET_VERSION || 'dev';
+              const hashIdx = u.indexOf('#');
+              const base = hashIdx >= 0 ? u.slice(0, hashIdx) : u;
+              const hash = hashIdx >= 0 ? u.slice(hashIdx) : '';
+              const sep = base.indexOf('?') >= 0 ? '&' : '?';
+              return `${base}${sep}v=${encodeURIComponent(String(ver))}${hash}`;
+            } catch { return u; }
+          };
+          if (!url && imageId) {
+            // Fallback: construct from conventional path
+            url = addVer(`/images/${imageId}.svg`);
+          } else {
+            url = addVer(url);
+          }
+          const slice = sk?.slice || { left: 16, top: 16, right: 16, bottom: 16 };
+          const node: any = (context.renderManager as any).getNode(elementId);
+          // Prefer local bounds to avoid filter/rounding biases and keep symmetric paddings
+          const lb = node?.getLocalBounds ? node.getLocalBounds() : null;
+          if (lb && url) {
+            const bgId = `${elementId}__bg`;
+            const zUnder = (style.zIndex != null ? Number(style.zIndex) : 5) - 1;
+            // Compute visual expansion caused by stroke and dropShadow (not included in localBounds)
+            const strokeTh = Number(style.strokeThickness || 0);
+            const dsEnabled = !!style.dropShadow;
+            const dsDist = dsEnabled ? Number(style.dropShadowDistance || 0) : 0;
+            const dsAngle = dsEnabled ? (typeof style.dropShadowAngle === 'number' ? style.dropShadowAngle : (parseFloat(String(style.dropShadowAngle)) || 0)) : 0;
+            const dsBlur = dsEnabled ? Number(style.dropShadowBlur || 0) : 0;
+            const dsx = Math.cos(dsAngle) * dsDist;
+            const dsy = Math.sin(dsAngle) * dsDist;
+            const blurPad = dsBlur * 0.6; // perceptual spread
+            const strokePad = strokeTh * 0.5;
+            const extraLeft = Math.max(0, -dsx) + blurPad + strokePad;
+            const extraRight = Math.max(0, dsx) + blurPad + strokePad;
+            const extraTop = Math.max(0, -dsy) + blurPad + strokePad;
+            const extraBottom = Math.max(0, dsy) + blurPad + strokePad;
+
+            // Compute from local bounds, then make padding strictly symmetric via integer pads
+            const textLeft = (node.x ?? 0) + lb.x;
+            const textTop = (node.y ?? 0) + lb.y;
+            const textW = lb.width;
+            const textH = lb.height;
+            // float pads with visual extras
+            const padL = padLeft + extraLeft;
+            const padR = padRight + extraRight;
+            const padT = padTop + extraTop;
+            const padB = padBottom + extraBottom;
+            // integer symmetric pads (average both sides to avoid 1px drift)
+            const intPadX = Math.max(0, Math.round((padL + padR) / 2));
+            const intPadY = Math.max(0, Math.round((padT + padB) / 2));
+            let bgX = Math.round(textLeft - intPadX);
+            let bgY = Math.round(textTop - intPadY);
+            let bgW = Math.round(textW + intPadX * 2);
+            let bgH = Math.round(textH + intPadY * 2);
+            // Debug print for padding and bounds
+            try {
+              (context.logger || console).info('DEBUG_SHOW_TEXT', {
+                elementId,
+                fontSize: fontSizeNum,
+                padding: { left: padLeft, right: padRight, top: padTop, bottom: padBottom },
+                strokeThickness: Number(style.strokeThickness || 0),
+                dropShadow: {
+                  enabled: !!style.dropShadow,
+                  distance: Number(style.dropShadowDistance || 0),
+                  angle: typeof style.dropShadowAngle === 'number' ? style.dropShadowAngle : (parseFloat(String(style.dropShadowAngle)) || 0),
+                  blur: Number(style.dropShadowBlur || 0),
+                },
+                text: { x: (node as any).x ?? 0, y: (node as any).y ?? 0, lbx: lb.x, lby: lb.y, lbw: lb.width, lbh: lb.height },
+                background: { x: bgX, y: bgY, w: bgW, h: bgH }
               });
-              createdBgId = bgId;
-            }
+            } catch {}
+
+            (context.renderManager as any).createElement({
+              id: bgId,
+              type: 'nine-slice',
+              position: { x: bgX, y: bgY },
+              size: { width: bgW, height: bgH },
+              src: url,
+              visible: true,
+              style: { zIndex: zUnder },
+              slice
+            } as any);
+            createdBgId = bgId;
+
+            // After render: compute actual rendered paddings from real bounds
+            try {
+              const bgNode: any = (context.renderManager as any).getNode(bgId);
+              const tNode: any = (context.renderManager as any).getNode(elementId);
+              const tb = tNode?.getBounds ? tNode.getBounds() : null;
+              const bb = bgNode?.getBounds ? bgNode.getBounds() : null;
+              if (tb && bb) {
+                const sL = Number((slice as any)?.left || 0), sT = Number((slice as any)?.top || 0), sR = Number((slice as any)?.right || 0), sB = Number((slice as any)?.bottom || 0);
+                // content-area paddings (remove slice thickness)
+                const padRenderTop = Math.round((tb.y) - (bb.y + sT));
+                const padRenderBottom = Math.round((bb.y + bb.height - sB) - (tb.y + tb.height));
+                const padRenderLeft = Math.round((tb.x) - (bb.x + sL));
+                const padRenderRight = Math.round((bb.x + bb.width - sR) - (tb.x + tb.width));
+                (context.logger || console).info('DEBUG_SHOW_TEXT_RENDERED', {
+                  elementId,
+                  textBounds: { x: Math.round(tb.x), y: Math.round(tb.y), w: Math.round(tb.width), h: Math.round(tb.height) },
+                  bgBounds: { x: Math.round(bb.x), y: Math.round(bb.y), w: Math.round(bb.width), h: Math.round(bb.height) },
+                  renderedPadding: { top: padRenderTop, bottom: padRenderBottom, left: padRenderLeft, right: padRenderRight }
+                });
+
+                // Persist slice + content paddings on bg node for UPDATE_TEXT reuse
+                try {
+                  const bgReal: any = (context.renderManager as any).getNode(bgId);
+                  if (bgReal) {
+                    (bgReal as any).__slice = { left: sL, top: sT, right: sR, bottom: sB };
+                    (bgReal as any).__contentPad = { left: padRenderLeft, right: padRenderRight, top: padRenderTop, bottom: padRenderBottom };
+                  }
+                } catch {}
+
+                // Optional: draw semi-transparent overlay rectangles for verification
+                // overlay removed
+              }
+            } catch {}
           }
         }
       } catch {}
       
       context.logger.debug(`Text displayed: ${text} at (${x}, ${y})`);
-      // 支持阻塞模式：等待点击继续
-      const blocking: boolean = !!p.blocking || !!p.waitForClick;
+      // 支持阻塞模式：等待点击继续（已在前面定义 blocking）
       // 默认阻塞文本点击后移除（可通过 dismissOnContinue:false 关闭）
       const dismissOnContinue: boolean = p.dismissOnContinue === false ? false : (!!p.blocking || !!p.waitForClick);
       if (blocking) {
-        context.eventManager.emit('text_displayed', { elementId, blocking: true, dismissOnContinue, panelResourceId: (p.useBackgroundImage === true ? (p.backgroundResourceId || p.panel?.resourceId) : undefined) });
+        // Only propagate panelResourceId when explicit skin exists and is resolvable
+        const sid = p.skinId || p.panel?.skinId;
+        const panelResourceId = sid ? (context.resourceManager as any)?.getSkin?.(sid)?.imageId : undefined;
+        context.eventManager.emit('text_displayed', { elementId, blocking: true, dismissOnContinue, panelResourceId });
       await new Promise<void>((resolve) => {
           const once = (payload?: any) => {
             if (!payload || payload.elementId === elementId) resolve();
