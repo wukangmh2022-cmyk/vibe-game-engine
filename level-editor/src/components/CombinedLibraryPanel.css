@@ -1,0 +1,29 @@
+.combined-lib { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.combined-lib .lib-tabs { display: flex; gap: 6px; padding: 6px; background: #f8f9fa; border-bottom: 1px solid #e9ecef; position: sticky; top: 0; z-index: 1; }
+.combined-lib .lib-tab { padding: 6px 10px; font-size: 12px; border-radius: 6px; background: #eef1f5; color: #556; border: 1px solid #dde3ea; min-width: 64px; }
+.combined-lib .lib-tab.active { background: #fff; color: #222; border-color: #cdd6e0; }
+.combined-lib .lib-body { flex: 1; min-height: 0; overflow: hidden; background: #fff; }
+.combined-lib .lib-scroll { height: 100%; overflow: auto; padding: 6px; }
+
+/* 变量/开关面板压缩样式与滚动适配 */
+.combined-lib .vars-compact .variable-switch-manager { background: transparent; border-radius: 0; }
+.combined-lib .vars-compact .variable-switch-manager .panel-header { display: none; }
+.combined-lib .vars-compact .variable-switch-manager .tabs-container { display: none; }
+.combined-lib .vars-compact .variable-switch-manager .tab-content { padding: 8px; height: auto !important; min-height: 0; overflow: hidden; }
+.combined-lib .vars-compact .variable-switch-manager .content-header { margin: 4px 0 8px; }
+.combined-lib .vars-compact .variable-switch-manager .content-header h4 { display: none; }
+.combined-lib .vars-compact .variable-switch-manager .add-button { padding: 6px 10px; font-size: 12px; }
+.combined-lib .vars-compact .variable-switch-manager .items-list { height: auto; max-height: none; overflow: auto; border-radius: 6px; }
+.combined-lib .vars-compact .variable-switch-manager .item { padding: 6px 8px; }
+.combined-lib .vars-compact .variable-switch-manager .item-name { font-size: 12px; }
+.combined-lib .vars-compact .variable-switch-manager .item-value { font-size: 12px; }
+.combined-lib .vars-compact .variable-switch-manager .item-type { font-size: 10px; padding: 2px 6px; }
+.combined-lib .vars-compact .variable-switch-manager .op-button { padding: 2px 6px; font-size: 11px; }
+.combined-lib .vars-compact .variable-switch-manager .action-button { width: 22px; height: 22px; font-size: 12px; }
+
+/* 资源面板压缩滚动 */
+.combined-lib .res-compact { min-height: 0; }
+.combined-lib .res-compact > div { min-height: 0; height: 100%; display: flex; flex-direction: column; }
+.combined-lib .res-compact [style*='overflow: auto'] { /* ResourceListPanel 内部列表 */
+  min-height: 0;
+}

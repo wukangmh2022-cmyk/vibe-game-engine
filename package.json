@@ -13,8 +13,8 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "dev": "ts-node src/examples/basic-game.ts",
-    "start": "node dist/examples/basic-game.js"
+    "start": "node scripts/serve.js",
+    "start:port": "node scripts/serve.js 8090"
   },
   "keywords": [
     "game-engine",

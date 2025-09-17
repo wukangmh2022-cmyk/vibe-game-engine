@@ -11,8 +11,8 @@ interface TopStatusBarProps {
   onSaveJson: () => void;
   isPlaying: boolean;
   onPlayToggle: (playing: boolean) => void;
-  onLoadTestData?: () => void; // 新增：加载测试数据
   onShowBlueprint?: () => void; // 新增：显示蓝图
+  onExitToHome?: () => void; // 新增：返回初始页
 }
 
 export const TopStatusBar: React.FC<TopStatusBarProps> = ({
@@ -25,7 +25,8 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
   isPlaying,
   onPlayToggle,
   onLoadTestData, // 新增参数
-  onShowBlueprint // 新增参数
+  onShowBlueprint, // 新增参数
+  onExitToHome
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,6 +89,11 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
   return (
     <div className="top-status-bar">
       <div className="status-left">
+        {onExitToHome && (
+          <button className="load-button" onClick={onExitToHome}>
+            ⬅️ 返回初始页
+          </button>
+        )}
         <div className="level-selector">
           <label>当前关卡:</label>
           <select 
@@ -102,9 +108,7 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
           </select>
         </div>
         
-        <div className="level-info">
-          <span>指令数: {currentLevel.commands.length}</span>
-        </div>
+        
         
         <div className="canvas-settings">
           <label>画布设置:</label>
@@ -140,7 +144,7 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
       </div>
       
       <div className="status-center">
-        <h2>关卡编辑器</h2>
+        <h2>开发·编辑平台</h2>
       </div>
       
       <div className="status-right">
@@ -148,27 +152,18 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
           className={`play-button ${isPlaying ? 'playing' : ''}`}
           onClick={() => onPlayToggle(!isPlaying)}
         >
-          {isPlaying ? '⏸️ 暂停' : '▶️ 播放'}
+          {isPlaying ? '⏸️ 终止' : '▶️ 播放'}
         </button>
         
-        <button className="load-button" onClick={handleLoadClick}>
-          📁 加载JSON
-        </button>
-        
-        {onLoadTestData && (
-          <button className="test-button" onClick={onLoadTestData}>
-            🧪 加载测试数据
-          </button>
-        )}
         
         {onShowBlueprint && (
           <button className="blueprint-button" onClick={onShowBlueprint}>
-            📊 蓝图
+            📊 流程导图
           </button>
         )}
         
         <button className="save-button" onClick={onSaveJson}>
-          💾 保存JSON
+          💾 保存关卡
         </button>
         
         <input

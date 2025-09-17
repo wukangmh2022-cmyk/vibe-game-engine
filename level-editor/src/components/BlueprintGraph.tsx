@@ -14,6 +14,7 @@ interface BlueprintNode {
   outputs: ConnectionPoint[];
   command: GameCommand;
   color: string;
+  children?: BlueprintNode[];
 }
 
 interface ConnectionPoint {

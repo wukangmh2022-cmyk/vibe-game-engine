@@ -1,0 +1,29 @@
+{
+    "project_name": "example",
+    "scene-tree": {
+        "curnode": "scene/entry.json",
+        "child_node": [
+            {
+                "curnode": "scene/adventure-choice-game-v2.json",
+                "child_node": []
+            },
+            {
+                "curnode": "scene/flip-memory-game-v1.json",
+                "child_node": []
+            },
+            {
+                "curnode": "scene/select-cards-2x2.json",
+                "child_node": []
+            }
+        ]
+    },
+    "user_data_sheet": {
+        "user_nickname": "default",
+        "level_scores": [
+            0,
+            0,
+            0
+        ],
+        "level_states":[0,0,0]
+    }
+}

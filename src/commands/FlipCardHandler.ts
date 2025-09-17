@@ -58,7 +58,7 @@ export class FlipCardHandler extends BaseCommandHandler {
     // 中点：切贴图
     const prevRenderable = (node as any).renderable ?? true;
     (node as any).renderable = false;
-    this.setTexture(node, showBack ? backUrl : frontUrl);
+    this.setTexture(node, showBack ? backUrl : frontUrl, context);
     await new Promise<void>(resolve => requestAnimationFrame(() => { (node as any).renderable = prevRenderable; resolve(); }));
 
     // 第二半：从 0 回到 1
@@ -101,10 +101,11 @@ export class FlipCardHandler extends BaseCommandHandler {
     } catch { return undefined; }
   }
 
-  private setTexture(node: any, url?: string) {
+  private setTexture(node: any, url?: string, context?: CommandContext) {
     if (!url) return;
     try {
-      const tex = (globalThis as any).PIXI?.Texture?.from ? (globalThis as any).PIXI.Texture.from(url) : null;
+      const P = (context as any)?.renderManager?.getPixi?.() || (globalThis as any).PIXI;
+      const tex = P?.Texture?.from ? P.Texture.from(url) : null;
       if (tex) node.texture = tex;
     } catch {}
   }

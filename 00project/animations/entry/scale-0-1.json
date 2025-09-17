@@ -1,0 +1,12 @@
+{
+  "id": "anim-scale-0-1",
+  "formatVersion": "1.0",
+  "category": "entry",
+  "relative": false,
+  "origin": "center",
+  "timeline": [
+    { "time": 0,   "props": { "alpha": 0, "scaleX": 0.0, "scaleY": 0.0 } },
+    { "time": 400, "ease": "easeOutBack", "props": { "alpha": 1, "scaleX": 1.0, "scaleY": 1.0 } }
+  ]
+}
+

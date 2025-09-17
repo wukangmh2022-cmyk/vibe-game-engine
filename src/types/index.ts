@@ -100,7 +100,7 @@ export enum CommandType {
   CHECK_ANSWER = 'check_answer',
   ADD_SCORE = 'add_score',
   NEXT_LEVEL = 'next_level',
-  GAME_OVER = 'game_over'
+  SCENE_REDIRECT = 'scene_redirect'
 }
 
 // 游戏配置接口

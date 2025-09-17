@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Editor Runtime Test (Pixi + Runtime)</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #1e1e1e; color: #e5e5e5; font-family: -apple-system, system-ui, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif; }
+    #app { position: relative; width: 800px; height: 600px; margin: 16px auto; border: 1px solid #333; background: #000; }
+    #overlay { position: absolute; inset: 0; pointer-events: none; }
+    .topbar { width: 800px; margin: 8px auto 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .topbar label { font-size: 14px; color: #bbb; }
+    .topbar select { background: #2c3e50; color: #fff; border: 1px solid #444; border-radius: 4px; padding: 4px 8px; }
+  </style>
+  <script>
+    // 动态选择工程与场景，注入 __ASSET_BASE__ 与 __GAME_JSON_URL
+    (function() {
+      const qs = new URLSearchParams(location.search);
+      const storageProject = 'editor-runtime:projectBase';
+      const storageScene = 'editor-runtime:selectedScene';
+
+      const ensureSlash = (s) => (s.endsWith('/') ? s : (s + '/'));
+      const projectOptions = [
+        { id: 'default', name: 'default-project', base: '/default-project/' },
+        { id: '00project', name: '00project', base: '/00project/' }
+      ];
+
+      function setProjectBase(base) {
+        const b = ensureSlash(base);
+        window.__ASSET_BASE__ = b;
+        localStorage.setItem(storageProject, b);
+      }
+
+      async function populateScenes(base) {
+        const gamePicker = document.getElementById('gamePicker');
+        if (!gamePicker) return;
+        gamePicker.innerHTML = '';
+        const cfgUrl = ensureSlash(base) + 'config.json';
+        let scenes = [];
+        try {
+          const res = await fetch(cfgUrl);
+          if (res.ok) {
+            const cfg = await res.json();
+            const root = cfg?.['scene-tree']?.curnode;
+            const children = Array.isArray(cfg?.['scene-tree']?.child_node) ? cfg['scene-tree'].child_node : [];
+            if (root) scenes.push(root);
+            children.forEach(c => { if (c?.curnode) scenes.push(c.curnode); });
+          }
+        } catch (e) { console.warn('load config failed', e); }
+        if (scenes.length === 0) {
+          // fallback guesses
+          scenes = ['scene/hello-world.json'];
+        }
+        scenes.forEach((p, idx) => {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          gamePicker.appendChild(opt);
+        });
+        const saved = localStorage.getItem(storageScene);
+        if (saved && scenes.includes(saved)) gamePicker.value = saved;
+        window.__GAME_JSON_URL = ensureSlash(base) + (gamePicker.value || scenes[0]);
+        gamePicker.addEventListener('change', (e) => {
+          const rel = e.target.value;
+          localStorage.setItem(storageScene, rel);
+          window.__GAME_JSON_URL = ensureSlash(base) + rel;
+          location.reload();
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        const projectPicker = document.getElementById('projectPicker');
+        // init project options
+        projectOptions.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.base; opt.textContent = p.name; projectPicker.appendChild(opt);
+        });
+        const fromQs = qs.get('project');
+        const savedBase = localStorage.getItem(storageProject);
+        const base = ensureSlash(fromQs || savedBase || '/default-project/');
+        setProjectBase(base);
+        projectPicker.value = base;
+        projectPicker.addEventListener('change', async (e) => {
+          const b = e.target.value; setProjectBase(b); await populateScenes(b);
+        });
+        await populateScenes(base);
+      });
+    })();
+  </script>
+</head>
+<body>
+  <div class="topbar">
+    <label for="projectPicker">选择工程:</label>
+    <select id="projectPicker"></select>
+    <label for="gamePicker">选择关卡:</label>
+    <select id="gamePicker">
+    </select>
+  </div>
+  <div id="app">
+    <div id="overlay"></div>
+  </div>
+  <!-- 使用库化运行时入口（bootstrap.js）直接挂载，避免旧 main.ts 管线差异 -->
+  <script type="module">
+    const PIXI_CDNS = [
+      'https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js',
+      'https://unpkg.com/pixi.js@7/dist/pixi.min.js'
+    ];
+    async function loadPixi() {
+      for (const url of PIXI_CDNS) {
+        try {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = url; s.onload = () => resolve(null); s.onerror = () => reject(new Error('CDN failed: ' + url));
+            document.head.appendChild(s);
+          });
+          if (window.PIXI) return;
+        } catch (e) { console.warn(e); }
+      }
+      throw new Error('Pixi.js 加载失败');
+    }
+
+    async function start() {
+      await loadPixi();
+      const { mountRuntime } = await import('/web/dist/browser/bootstrap.js?v=editor');
+      const appEl = document.getElementById('app');
+      let mounted = null;
+
+      const loadAndRun = async (urlOrData) => {
+        try {
+          if (mounted) { try { mounted.dispose(); } catch {} mounted = null; appEl.innerHTML = ''; }
+          let game = urlOrData;
+          if (typeof urlOrData === 'string') {
+            const res = await fetch(urlOrData);
+            game = await res.json();
+          }
+          mounted = await mountRuntime(appEl, game, { width: 800, height: 600, pixi: window.PIXI });
+        } catch (e) {
+          console.error('[editor-runtime] mount failed:', e);
+          const box = document.createElement('div');
+          Object.assign(box.style, { position: 'absolute', left: '12px', top: '12px', padding: '10px 12px', background: 'rgba(0,0,0,0.7)', color: '#f88', borderRadius: '6px', zIndex: 9999 });
+          box.textContent = '运行时挂载失败: ' + (e && e.message ? e.message : String(e));
+          document.body.appendChild(box);
+        }
+      };
+
+      const url = (window).__GAME_JSON_URL;
+      await loadAndRun(url);
+      window.addEventListener('message', async (e) => {
+        const msg = e?.data || {};
+        if (msg && msg.type === 'LOAD_GAME_JSON') {
+          await loadAndRun(msg.payload);
+        }
+      });
+    }
+    start();
+  </script>
+</body>
+</html>

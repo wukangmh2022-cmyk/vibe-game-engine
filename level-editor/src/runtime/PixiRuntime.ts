@@ -9,7 +9,6 @@ export class PixiRuntime {
   private app: PIXI.Application;
   private elements: Map<string, PIXI.DisplayObject> = new Map();
   private container: HTMLElement;
-  private elementAnimCancels: Map<string, (() => void)[]> = new Map();
 
   // 简易全局状态（P0）：变量与开关
   private variables: Map<string, any> = new Map();
@@ -78,9 +77,6 @@ export class PixiRuntime {
     switch (commandType) {
       case 'show_image':
         await this.showImage(command);
-        break;
-      case 'show_media':
-        await this.showMedia(command);
         break;
       case 'show_text':
         await this.showText(command);
@@ -190,13 +186,7 @@ export class PixiRuntime {
 
   // 显示图片
   private async showImage(command: GameCommand): Promise<void> {
-    const params = command.parameters || {};
-    const src: string | undefined = params.src;
-    const x = params.x ?? params.position?.x ?? 0;
-    const y = params.y ?? params.position?.y ?? 0;
-    const width = params.width ?? params.size?.width;
-    const height = params.height ?? params.size?.height;
-    const id = params.id || params.elementId;
+    const { src, x = 0, y = 0, width, height, id } = command.parameters;
     if (!src) {
       console.error('Missing required parameter: src');
       return;
@@ -213,23 +203,6 @@ export class PixiRuntime {
       }
       this.app.stage.addChild(sprite);
       this.elements.set(elementId, sprite);
-
-      // 动画：入场与循环
-      if (params.animation) {
-        const entrySpec = params.animation.entry;
-        const loopSpec = params.animation.loop;
-        try {
-          if (entrySpec?.src) {
-            await this.playAnimationFromSpec(sprite, entrySpec.src);
-          }
-          if (loopSpec?.src) {
-            const cancel = await this.playLoopFromSpec(sprite, loopSpec.src);
-            this.registerAnimCancel(elementId, cancel);
-          }
-        } catch (e) {
-          console.warn('Animation play failed:', e);
-        }
-      }
     } catch (e) {
       console.error('Failed to load image:', src, e);
     }
@@ -237,14 +210,7 @@ export class PixiRuntime {
 
   // 显示文本
   private async showText(command: GameCommand): Promise<void> {
-    const params = command.parameters || {};
-    const text = params.text;
-    const x = params.x ?? params.position?.x ?? 0;
-    const y = params.y ?? params.position?.y ?? 0;
-    const fontSize = params.fontSize ?? params.style?.fontSize ?? 16;
-    const color = params.color ?? params.style?.color ?? '#000000';
-    const fontFamily = params.fontFamily ?? 'Arial';
-    const id = params.id || params.elementId;
+    const { text, x = 0, y = 0, fontSize = 16, color = '#000000', fontFamily = 'Arial', id } = command.parameters;
     if (!text) {
       console.error('Missing required parameter: text');
       return;
@@ -317,12 +283,6 @@ export class PixiRuntime {
   private hideElement(command: GameCommand): void {
     const { elementId } = command.parameters;
     if (!elementId) return console.error('Missing required parameter: elementId');
-    // 停止该元素的循环动画
-    const cancels = this.elementAnimCancels.get(elementId);
-    if (cancels) {
-      cancels.forEach(fn => { try { fn(); } catch {} });
-      this.elementAnimCancels.delete(elementId);
-    }
     const element = this.elements.get(elementId);
     if (element) {
       this.app.stage.removeChild(element);
@@ -390,9 +350,6 @@ export class PixiRuntime {
 
   // 清空画布
   clearCanvas(): void {
-    // 停止所有动画
-    this.elementAnimCancels.forEach((list) => list.forEach(fn => { try { fn(); } catch {} }));
-    this.elementAnimCancels.clear();
     this.app.stage.removeChildren();
     this.elements.clear();
   }
@@ -407,181 +364,9 @@ export class PixiRuntime {
     this.aborted = true;
     this.abortResolvers.forEach((fn) => fn());
     this.abortResolvers.clear();
-    this.elementAnimCancels.forEach((list) => list.forEach(fn => { try { fn(); } catch {} }));
-    this.elementAnimCancels.clear();
     this.app.destroy(true, true);
     this.elements.clear();
     this.variables.clear();
     this.switches.clear();
-  }
-
-  // ===== 动画系统（基于脚本时间轴） =====
-  private easings = {
-    linear: (t: number) => t,
-    easeInOutQuad: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
-    easeOutQuad: (t: number) => t * (2 - t),
-    easeOutBounce: (t: number) => {
-      const n1 = 7.5625, d1 = 2.75;
-      if (t < 1 / d1) return n1 * t * t;
-      if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
-      if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
-      return n1 * (t -= 2.625 / d1) * t + 0.984375;
-    },
-    easeOutBack: (t: number) => {
-      const c1 = 1.70158, c3 = c1 + 1;
-      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-    },
-  };
-
-  private registerAnimCancel(elementId: string, cancel: () => void) {
-    const list = this.elementAnimCancels.get(elementId) || [];
-    list.push(cancel);
-    this.elementAnimCancels.set(elementId, list);
-  }
-
-  private async fetchJson(url: string): Promise<any> {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch ${url}`);
-    return res.json();
-  }
-
-  private resolveProps(base: any, props: any, relative: boolean) {
-    const out: any = {};
-    for (const k of Object.keys(props || {})) {
-      const v = props[k];
-      if (relative && typeof base[k] === 'number' && typeof v === 'number') out[k] = base[k] + v;
-      else out[k] = v;
-    }
-    return out;
-  }
-
-  private getSpriteState(sprite: any) {
-    return {
-      x: sprite.x ?? 0,
-      y: sprite.y ?? 0,
-      alpha: sprite.alpha ?? 1,
-      scaleX: sprite.scale?.x ?? 1,
-      scaleY: sprite.scale?.y ?? 1,
-    };
-  }
-
-  private applyProps(sprite: any, props: any) {
-    if (!props) return;
-    if (props.x !== undefined) sprite.x = props.x;
-    if (props.y !== undefined) sprite.y = props.y;
-    if (props.alpha !== undefined) sprite.alpha = props.alpha;
-    if (props.scaleX !== undefined) {
-      if (!sprite.scale) sprite.scale = { x: 1, y: 1 } as any;
-      sprite.scale.x = props.scaleX;
-    }
-    if (props.scaleY !== undefined) {
-      if (!sprite.scale) sprite.scale = { x: 1, y: 1 } as any;
-      sprite.scale.y = props.scaleY;
-    }
-  }
-
-  private async tween(sprite: any, from: any, to: any, duration: number, easeName?: string) {
-    const ease = (this.easings as any)[easeName || 'linear'] || this.easings.linear;
-    const keys = Object.keys(to);
-    const start = Date.now();
-    return new Promise<void>((resolve) => {
-      const step = () => {
-        if (this.aborted) return resolve();
-        const t = Math.min(1, duration <= 0 ? 1 : (Date.now() - start) / duration);
-        const e = ease(t);
-        const cur: any = {};
-        keys.forEach(k => {
-          const fv = from[k] ?? 0;
-          const tv = to[k];
-          cur[k] = typeof tv === 'number' ? fv + (tv - fv) * e : tv;
-        });
-        this.applyProps(sprite, cur);
-        if (t < 1) requestAnimationFrame(step); else resolve();
-      };
-      requestAnimationFrame(step);
-    });
-  }
-
-  private async playAnimationFromSpec(sprite: any, url: string) {
-    const data = await this.fetchJson(url);
-    const timeline: Array<{ time: number; props: any; ease?: string }> = (data.timeline || []).slice().sort((a: any, b: any) => a.time - b.time);
-    const relative: boolean = !!data.relative;
-    const origin = data.origin;
-    if (origin === 'center' && sprite.anchor) sprite.anchor.set(0.5);
-    const base = this.getSpriteState(sprite);
-    if (timeline.length === 0) return;
-    // 应用第一个关键帧
-    const first = timeline[0];
-    const firstAbs = this.resolveProps(base, first.props || {}, relative);
-    this.applyProps(sprite, firstAbs);
-    // 逐段补间
-    for (let i = 0; i < timeline.length - 1; i++) {
-      const cur = timeline[i];
-      const nxt = timeline[i + 1];
-      const curState = this.getSpriteState(sprite);
-      const target = this.resolveProps(base, nxt.props || {}, relative);
-      const dt = Math.max(0, (nxt.time ?? 0) - (cur.time ?? 0));
-      await this.tween(sprite, curState, target, dt, nxt.ease);
-      if (this.aborted) break;
-    }
-  }
-
-  private async playLoopFromSpec(sprite: any, url: string): Promise<() => void> {
-    let canceled = false;
-    const cancel = () => { canceled = true; };
-    const run = async () => {
-      while (!this.aborted && !canceled) {
-        try {
-          await this.playAnimationFromSpec(sprite, url);
-        } catch (e) {
-          console.warn('Loop animation error:', e);
-          break;
-        }
-        // 若动画脚本自身未声明重复，这里自然循环
-      }
-    };
-    run();
-    return cancel;
-  }
-
-  // ===== 媒体（视频） =====
-  private async showMedia(command: GameCommand): Promise<void> {
-    const params = command.parameters || {};
-    const mediaType = (params.mediaType || 'video').toLowerCase();
-    if (mediaType !== 'video') {
-      console.warn('SHOW_MEDIA currently supports video only');
-      return;
-    }
-    const src: string | undefined = params.src;
-    const x = params.x ?? params.position?.x ?? 0;
-    const y = params.y ?? params.position?.y ?? 0;
-    const width = params.width ?? params.size?.width;
-    const height = params.height ?? params.size?.height;
-    const id = params.id || params.elementId || `media_${Date.now()}`;
-    if (!src) return console.error('SHOW_MEDIA missing src');
-
-    try {
-      const texture = PIXI.Texture.from(src);
-      const sprite = new PIXI.Sprite(texture);
-      sprite.x = x; sprite.y = y;
-      if (width && height) { sprite.width = width; sprite.height = height; }
-      const videoEl: HTMLVideoElement | undefined = (texture.baseTexture as any)?.resource?.source;
-      if (videoEl) {
-        if (typeof params.muted === 'boolean') videoEl.muted = params.muted;
-        if (typeof params.loop === 'boolean') videoEl.loop = params.loop;
-        // controls 对 Pixi Sprite 不生效，但保留以供后续原生呈现
-        if (params.autoplay !== false) {
-          try { await videoEl.play(); } catch {}
-        }
-      }
-      if (this.elements.has(id)) {
-        const old = this.elements.get(id)!;
-        this.app.stage.removeChild(old);
-      }
-      this.app.stage.addChild(sprite);
-      this.elements.set(id, sprite);
-    } catch (e) {
-      console.error('Failed to show media:', src, e);
-    }
   }
 }

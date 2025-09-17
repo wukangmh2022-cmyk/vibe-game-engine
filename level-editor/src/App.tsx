@@ -5,9 +5,11 @@ import { EventListPanel } from './components/EventListPanel';
 import { VariableSwitchManager } from './components/VariableSwitchManager';
 import { PixiCanvas } from './components/PixiCanvas';
 import { TopStatusBar } from './components/TopStatusBar';
-import { TriggerModalEditor } from './components/TriggerModalEditor';
 import { FloatingPanel } from './components/FloatingPanel';
-import BlueprintGraph from './components/BlueprintGraph';
+import { CommandTreePanel } from './components/CommandTreePanel';
+import { CombinedLibraryPanel } from './components/CombinedLibraryPanel';
+import { ProjectHome } from './components/ProjectHome';
+import { TriggerModalEditor } from './components/TriggerModalEditor';
 import './App.css';
 
 interface AppState {
@@ -24,37 +26,11 @@ interface AppState {
     triggerIndex: number;
     triggerData: any;
   } | null;
-  // 保存原始导入的 JSON 数据
-  originalJsonData: any;
-  // 蓝图预览状态
-  isBlueprintOpen: boolean;
-  // 面板状态管理
-  panels: {
-    events: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      isMinimized: boolean;
-      isMaximized: boolean;
-    };
-    commands: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      isMinimized: boolean;
-      isMaximized: boolean;
-    };
-    canvas: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-      isMinimized: boolean;
-      isMaximized: boolean;
-    };
-  };
+  // 新：用于运行时预览的完整 JSON
+  runtimeGameData?: any | null;
+  // 初始页/工程选择
+  isHome?: boolean;
+  projectBase?: string;
 }
 
 // 添加事件触发条件更新函数的类型定义
@@ -81,14 +57,7 @@ const App: React.FC = () => {
       }],
       globalVariables: {},
       globalSwitches: {},
-      resources: [
-        // 默认资源
-        { id: 'forest-bg', type: 'image', src: '/images/forest-background.svg', name: '森林背景' },
-        { id: 'cave-entrance', type: 'image', src: '/images/cave-entrance.svg', name: '洞穴入口' },
-        { id: 'village-shop', type: 'image', src: '/images/village-shop.svg', name: '村庄商店' },
-        { id: 'treasure-room', type: 'image', src: '/images/treasure-room.svg', name: '宝藏房间' },
-        { id: 'game-over-screen', type: 'image', src: '/images/game-over.svg', name: '游戏结束画面' }
-      ]
+      resources: []
     },
     currentLevelId: 'level1',
     selectedCommandIndex: -1,
@@ -98,14 +67,9 @@ const App: React.FC = () => {
     // 初始化触发器编辑器状态
     isTriggerEditorOpen: false,
     editingTrigger: null,
-    originalJsonData: null, // 初始化为 null
-    isBlueprintOpen: false, // 初始化为 false
-    // 初始化面板状态
-    panels: {
-      events: { x: 20, y: 100, width: 250, height: 400, isMinimized: false, isMaximized: false },
-      commands: { x: 300, y: 100, width: 500, height: 500, isMinimized: false, isMaximized: false },
-      canvas: { x: 820, y: 100, width: 400, height: 500, isMinimized: false, isMaximized: false }
-    }
+    runtimeGameData: null,
+    isHome: true,
+    projectBase: '/default-project/'
   });
 
   const currentLevel = appState.currentProject?.levels.find(l => l.id === appState.currentLevelId) || appState.currentProject?.levels[0];
@@ -336,39 +300,6 @@ const App: React.FC = () => {
     }));
   };
 
-  // 新增：关卡更新处理函数
-  const handleLevelUpdate = (levelId: string, updates: any) => {
-    setAppState(prev => {
-      if (!prev.currentProject) return prev;
-      
-      const updatedLevels = prev.currentProject.levels.map(level => {
-        if (level.id === levelId) {
-          return { ...level, ...updates };
-        }
-        return level;
-      });
-      
-      return {
-        ...prev,
-        currentProject: {
-          ...prev.currentProject,
-          levels: updatedLevels
-        }
-      };
-    });
-  };
-
-  // 面板状态更新处理函数
-  const handlePanelStateChange = (panelName: 'events' | 'commands' | 'canvas', state: any) => {
-    setAppState(prev => ({
-      ...prev,
-      panels: {
-        ...prev.panels,
-        [panelName]: state
-      }
-    }));
-  };
-
   // 新增：事件选择处理函数
   const handleEventSelect = (eventId: string | null) => {
     setAppState(prev => ({
@@ -380,48 +311,14 @@ const App: React.FC = () => {
 
   const handleLoadJson = (gameData: any) => {
     if (gameData.levels && Array.isArray(gameData.levels)) {
-      // 资源映射（兼容对象/数组两种结构）
-      const imageMap = new Map<string, string>();
-      const audioMap = new Map<string, string>();
-      const videoMap = new Map<string, string>();
-      const animationMap = new Map<string, string>();
-      
-      const normalizeUrl = (src: string) => src; // 可根据需要转换为绝对路径
-      
-      const resources = gameData.resources;
-      if (Array.isArray(resources)) {
-        // 旧格式：数组 [{id,type,url}]
-        resources.forEach((res: any) => {
-          const url = res.url || res.src;
-          if (!url) return;
-          if (res.type === 'image') imageMap.set(res.id, normalizeUrl(url));
-          if (res.type === 'audio') audioMap.set(res.id, normalizeUrl(url));
-          if (res.type === 'video') videoMap.set(res.id, normalizeUrl(url));
-          if (res.type === 'animation') animationMap.set(res.id, normalizeUrl(url));
-        });
-      } else if (resources && typeof resources === 'object') {
-        // 新格式：对象 { images: [], audios: [], videos: [], animations: [] }
-        if (Array.isArray(resources.images)) {
-          resources.images.forEach((img: any) => {
-            if (img?.id && img?.src) imageMap.set(img.id, normalizeUrl(img.src));
-          });
-        }
-        if (Array.isArray(resources.audios)) {
-          resources.audios.forEach((au: any) => {
-            if (au?.id && au?.src) audioMap.set(au.id, normalizeUrl(au.src));
-          });
-        }
-        if (Array.isArray(resources.videos)) {
-          resources.videos.forEach((v: any) => {
-            if (v?.id && v?.src) videoMap.set(v.id, normalizeUrl(v.src));
-          });
-        }
-        if (Array.isArray(resources.animations)) {
-          resources.animations.forEach((an: any) => {
-            if (an?.id && an?.src) animationMap.set(an.id, normalizeUrl(an.src));
-          });
-        }
-      }
+      // 首先构建资源映射（支持对象格式：images/audios/animations/videos）
+      const resourceMap = new Map();
+      const base = (window as any).__ASSET_BASE__ || (window as any).__PROJECT_BASE__ || '/00project/';
+      const isAbs = (p: string) => /^(https?:|blob:|data:|file:)/.test(p) || p.startsWith('/') || p.startsWith('../');
+      const join = (p: string) => isAbs(p) ? p : (base.endsWith('/') ? `${base}${p.replace(/^\.\//,'')}` : `${base}/${p.replace(/^\.\//,'')}`);
+      const resObj = (gameData.resources && typeof gameData.resources === 'object') ? gameData.resources : {};
+      const imgs = Array.isArray((resObj as any).images) ? (resObj as any).images : [];
+      imgs.forEach((r: any) => { if (r?.id && r?.src) resourceMap.set(r.id, join(r.src)); });
 
       // 递归处理指令，包括事件和条件分支中的指令
       interface GameEvent {
@@ -452,44 +349,9 @@ const App: React.FC = () => {
         }
         const id = cmd.id || `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-        // 通用：兼容 position/size 展平
-        if (parameters.position) {
-          if (parameters.position.x !== undefined) parameters.x = parameters.position.x;
-          if (parameters.position.y !== undefined) parameters.y = parameters.position.y;
-        }
-        if (parameters.size) {
-          if (parameters.size.width !== undefined) parameters.width = parameters.size.width;
-          if (parameters.size.height !== undefined) parameters.height = parameters.size.height;
-        }
-
         // 处理图片资源
         if (commandType === 'SHOW_IMAGE' && parameters.resourceId) {
-          parameters.src = imageMap.get(parameters.resourceId) || parameters.resourceId;
-        }
-
-        // 处理文本样式
-        if (commandType === 'SHOW_TEXT' && parameters.style) {
-          if (parameters.style.fontSize !== undefined) parameters.fontSize = parameters.style.fontSize;
-          if (parameters.style.color !== undefined) parameters.color = parameters.style.color;
-        }
-
-        // 处理动画资源为可访问的 src
-        if (commandType === 'SHOW_IMAGE' && parameters.animation) {
-          if (parameters.animation.entry && parameters.animation.entry.animId) {
-            const aId = parameters.animation.entry.animId;
-            const aSrc = animationMap.get(aId);
-            if (aSrc) parameters.animation.entry.src = aSrc;
-          }
-          if (parameters.animation.loop && parameters.animation.loop.animId) {
-            const aId = parameters.animation.loop.animId;
-            const aSrc = animationMap.get(aId);
-            if (aSrc) parameters.animation.loop.src = aSrc;
-          }
-        }
-
-        // 处理媒体资源
-        if (commandType === 'SHOW_MEDIA' && parameters.resourceId) {
-          parameters.src = videoMap.get(parameters.resourceId) || parameters.resourceId;
+          parameters.src = resourceMap.get(parameters.resourceId) || parameters.resourceId;
         }
 
         // 处理按钮转换为选项
@@ -619,45 +481,28 @@ const App: React.FC = () => {
 
       const levels: LevelConfig[] = gameData.levels.map((level: any, index: number) => {
         const commands = processLevelCommands(level);
-        
-        // 保存原始的events数据到level中，以便事件列表组件可以访问
-        const levelWithEvents = {
+        const levelWithEvents: any = {
           id: level.id || `level${index + 1}`,
           name: level.name || `关卡${index + 1}`,
           commands,
           resources: level.resources || [],
-          events: level.events || [], // 保存原始事件数据
-          canvasWidth: level.canvasWidth || 800, // 添加画布宽度
-          canvasHeight: level.canvasHeight || 600 // 添加画布高度
+          events: level.events || [],
+          canvasWidth: level.canvasWidth || 800,
+          canvasHeight: level.canvasHeight || 600,
+          rawCommands: Array.isArray(level.commands) ? level.commands : [] // 保留原始JSON命令用于树编辑
         };
-        
-        return levelWithEvents;
+        return levelWithEvents as LevelConfig;
       });
       
-      // 合并默认资源和加载的资源
-      const defaultResources = [
-        { id: 'forest-bg', type: 'image', src: '/images/forest-background.svg', name: '森林背景' },
-        { id: 'cave-entrance', type: 'image', src: '/images/cave-entrance.svg', name: '洞穴入口' },
-        { id: 'village-shop', type: 'image', src: '/images/village-shop.svg', name: '村庄商店' },
-        { id: 'treasure-room', type: 'image', src: '/images/treasure-room.svg', name: '宝藏房间' },
-        { id: 'game-over-screen', type: 'image', src: '/images/game-over.svg', name: '游戏结束画面' }
-      ];
-      
-      // 将新旧资源结构统一成编辑器可展示的数组
-      const loadedResources = (() => {
-        if (Array.isArray(gameData.resources)) return gameData.resources;
-        const arr: any[] = [];
-        const res = gameData.resources || {};
-        const pushAll = (list: any[], type: string) => {
-          list.forEach((r: any) => arr.push({ id: r.id, type, src: r.src, name: r.id }));
-        };
-        if (Array.isArray(res.images)) pushAll(res.images, 'image');
-        if (Array.isArray(res.audios)) pushAll(res.audios, 'audio');
-        if (Array.isArray(res.videos)) pushAll(res.videos, 'video');
-        if (Array.isArray(res.animations)) pushAll(res.animations, 'animation');
-        return arr;
-      })();
-      const allResources = [...defaultResources, ...loadedResources];
+      // 构建编辑器资源列表（扁平化）
+      const editorResources: any[] = [];
+      try {
+        const r = resObj as any;
+        (r.images || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'image', src: join(x.src), name: x.name || x.id }));
+        (r.audios || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'audio', src: join(x.src), name: x.name || x.id }));
+        (r.animations || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'animation', src: join(x.src), name: x.name || x.id }));
+        (r.videos || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'video', src: join(x.src), name: x.name || x.id }));
+      } catch {}
       
       setAppState({
         currentProject: {
@@ -667,136 +512,88 @@ const App: React.FC = () => {
           levels,
           globalVariables: gameData.globalVariables || {},
           globalSwitches: gameData.globalSwitches || {},
-          resources: allResources
+          resources: editorResources
         },
         currentLevelId: levels[0]?.id || 'level1',
         selectedCommandIndex: -1,
         selectedEventId: null,
         middlePanelTab: 'commands',
         isPlaying: false,
-        isTriggerEditorOpen: false,
-        editingTrigger: null,
-        originalJsonData: gameData // 保存原始导入的 JSON 数据
+        runtimeGameData: gameData,
+        isHome: false,
+        projectBase: (window as any).__ASSET_BASE__ || appState.projectBase || '/default-project/'
       });
     }
+  };
+
+  // 关卡属性更新（例如画布宽高）
+  const handleLevelUpdate = (levelId: string, updates: Partial<LevelConfig>) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const nextLevels = prev.currentProject.levels.map(l => l.id === levelId ? ({ ...l, ...updates }) : l);
+      return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
+    });
+  };
+
+  // 指令树变更：更新当前关卡的原始命令和运行时JSON
+  const handleTreeCommandsChange = (newJsonCommands: any[]) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const curLevelId = prev.currentLevelId;
+      const editingEventId = prev.selectedEventId;
+      const nextLevels = prev.currentProject.levels.map(l => {
+        if (l.id !== curLevelId) return l;
+        const lv: any = { ...l };
+        if (editingEventId) {
+          // update target event commands
+          const evs = Array.isArray(lv.events) ? lv.events.map((e: any) => {
+            if (e?.id === editingEventId) return { ...e, commands: Array.isArray(newJsonCommands) ? newJsonCommands : [] };
+            return e;
+          }) : [];
+          lv.events = evs;
+        } else {
+          lv.rawCommands = Array.isArray(newJsonCommands) ? newJsonCommands : [];
+        }
+        return lv;
+      });
+
+      // 同步到运行时JSON
+      let nextRuntime = prev.runtimeGameData;
+      try {
+        if (nextRuntime && Array.isArray((nextRuntime as any).levels)) {
+          const clone = JSON.parse(JSON.stringify(nextRuntime));
+          const li = clone.levels.findIndex((lv: any) => (lv.id || '') === curLevelId);
+          if (li >= 0) {
+            if (editingEventId) {
+              const evs = Array.isArray(clone.levels[li].events) ? clone.levels[li].events : [];
+              const idx = evs.findIndex((e: any) => e?.id === editingEventId);
+              if (idx >= 0) evs[idx].commands = newJsonCommands;
+              else clone.levels[li].events = evs;
+            } else {
+              clone.levels[li].commands = newJsonCommands;
+            }
+          } else if (!editingEventId && clone.levels.length > 0) {
+            clone.levels[0].commands = newJsonCommands;
+          }
+          nextRuntime = clone;
+        }
+      } catch {}
+
+      return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, runtimeGameData: nextRuntime };
+    });
   };
 
   const handleSaveJson = () => {
     if (!appState.currentProject) return;
     
-    // 将当前处理后的数据转换回原始格式
-    const convertToOriginalFormat = () => {
-      // 转换levels数据，确保包含画布宽高信息
-      const levelsData = appState.currentProject!.levels.map(level => {
-        const levelData: any = {
-          id: level.id,
-          name: level.name,
-          resources: level.resources || [],
-          canvasWidth: level.canvasWidth || 800,
-          canvasHeight: level.canvasHeight || 600
-        };
-        
-        // 转换commands回原始格式
-        const convertCommandsToOriginal = (commands: GameCommand[]): any[] => {
-          return commands.map(cmd => {
-            let originalType = cmd.type;
-            // 将大写转换回小写
-            if (originalType === 'SET_VARIABLE') {
-              originalType = 'set_variable';
-            } else if (originalType === 'SET_SWITCH') {
-              originalType = 'set_switch';
-            } else if (originalType === 'if_condition') {
-              originalType = 'if_condition';
-            } else {
-              originalType = originalType.toLowerCase();
-            }
-            
-            const convertedCmd: any = {
-              id: cmd.id,
-              type: originalType,
-              parameters: cmd.parameters,
-              enabled: cmd.enabled,
-              description: cmd.description
-            };
-            
-            // 处理条件分支指令的子指令
-            if (originalType === 'if_condition' && cmd.children && cmd.children.length > 0) {
-              const trueCommands: any[] = [];
-              const falseCommands: any[] = [];
-              
-              cmd.children.forEach(child => {
-                let childType = child.type;
-                if (childType === 'SET_VARIABLE') {
-                  childType = 'set_variable';
-                } else if (childType === 'SET_SWITCH') {
-                  childType = 'set_switch';
-                } else {
-                  childType = childType.toLowerCase();
-                }
-                
-                const childCmd = {
-                  id: child.id,
-                  type: childType,
-                  parameters: child.parameters,
-                  enabled: child.enabled,
-                  description: child.description
-                };
-                
-                // 根据groupName判断是trueCommands还是falseCommands
-                if (child.groupName === '条件成立时') {
-                  trueCommands.push(childCmd);
-                } else if (child.groupName === '条件不成立时') {
-                  falseCommands.push(childCmd);
-                }
-              });
-              
-              if (trueCommands.length > 0) {
-                convertedCmd.parameters.trueCommands = trueCommands;
-              }
-              if (falseCommands.length > 0) {
-                convertedCmd.parameters.falseCommands = falseCommands;
-              }
-            }
-            
-            return convertedCmd;
-          });
-        };
-        
-        levelData.commands = convertCommandsToOriginal(level.commands);
-        
-        // 如果有events数据，也需要保存并转换
-        if ((level as any).events) {
-          levelData.events = (level as any).events;
-        }
-        
-        return levelData;
-      });
-      
-      return {
-        id: appState.currentProject!.id,
-        name: appState.currentProject!.name,
-        version: appState.currentProject!.version,
-        globalVariables: appState.currentProject!.globalVariables,
-        globalSwitches: appState.currentProject!.globalSwitches,
-        audio: {
-          globalVolume: 0.8,
-          soundVolume: 1.0,
-          musicVolume: 0.6,
-          muted: false
-        },
-        levels: levelsData,
-        resources: appState.currentProject!.resources
-      };
+    const gameData = {
+      id: appState.currentProject.id,
+      name: appState.currentProject.name,
+      version: appState.currentProject.version,
+      globalVariables: appState.currentProject.globalVariables,
+      levels: appState.currentProject.levels,
+      resources: appState.currentProject.resources
     };
-    
-    // 获取转换后的数据
-    const gameData = convertToOriginalFormat();
-    
-    // 更新originalJsonData以便下次导出时使用最新数据
-    setAppState(prev => ({
-      ...prev,
-      originalJsonData: gameData
-    }));
     
     const dataStr = JSON.stringify(gameData, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -811,7 +608,7 @@ const App: React.FC = () => {
   // 新增：加载测试数据
   const handleLoadTestData = async () => {
     try {
-      const response = await fetch('/adventure-choice-game-v2.json');
+      const response = await fetch('/00project/scene/adventure-choice-game-v2.json');
       if (response.ok) {
         const gameData = await response.json();
         handleLoadJson(gameData);
@@ -822,21 +619,6 @@ const App: React.FC = () => {
       console.error('加载测试数据失败:', error);
       alert('加载测试数据失败');
     }
-  };
-
-  // 蓝图相关处理函数
-  const handleShowBlueprint = () => {
-    setAppState(prev => ({
-      ...prev,
-      isBlueprintOpen: true
-    }));
-  };
-
-  const handleCloseBlueprint = () => {
-    setAppState(prev => ({
-      ...prev,
-      isBlueprintOpen: false
-    }));
   };
 
   // 新增：更新事件触发条件
@@ -991,12 +773,18 @@ const App: React.FC = () => {
     });
   };
 
-  if (!currentLevel) {
-    return <div>加载中...</div>;
-  }
-
   return (
     <div className="app">
+      {appState.isHome ? (
+        <ProjectHome
+          onOpenScene={(base, sceneRel, data) => {
+            try { (window as any).__ASSET_BASE__ = base; } catch {}
+            setAppState(prev => ({ ...prev, projectBase: base }));
+            handleLoadJson(data);
+          }}
+        />
+      ) : (
+      <>
       <TopStatusBar
         currentLevel={currentLevel}
         levels={appState.currentProject?.levels || []}
@@ -1006,100 +794,70 @@ const App: React.FC = () => {
         onSaveJson={handleSaveJson}
         isPlaying={appState.isPlaying}
         onPlayToggle={(playing: boolean) => setAppState(prev => ({ ...prev, isPlaying: playing }))}
-        onShowBlueprint={handleShowBlueprint}
+        onLoadTestData={handleLoadTestData}
+        onExitToHome={() => setAppState(prev => ({ ...prev, isHome: true, runtimeGameData: null, isPlaying: false }))}
       />
       
-      {/* 浮动事件面板 */}
-      <FloatingPanel
-        id="events-panel"
-        title="📋 事件列表"
-        defaultX={appState.panels.events.x}
-        defaultY={appState.panels.events.y}
-        defaultWidth={appState.panels.events.width}
-        defaultHeight={appState.panels.events.height}
-        minWidth={200}
-        minHeight={150}
-        onStateChange={(state) => handlePanelStateChange('events', state)}
-      >
-        <EventListPanel
-          level={currentLevel}
-          selectedEventId={appState.selectedEventId}
-          onEventSelect={handleEventSelect}
-          onOpenTriggerEditor={handleOpenTriggerEditor}
-        />
-      </FloatingPanel>
-      
-      {/* 浮动指令面板 */}
-      <FloatingPanel
-        id="commands-panel"
-        title="⚡ 指令编辑器"
-        defaultX={appState.panels.commands.x}
-        defaultY={appState.panels.commands.y}
-        defaultWidth={appState.panels.commands.width}
-        defaultHeight={appState.panels.commands.height}
-        minWidth={300}
-        minHeight={200}
-        onStateChange={(state) => handlePanelStateChange('commands', state)}
-      >
-        <div className="panel-tabs">
-          <div className="tab-header">
-            <button 
-              className={`tab-btn ${appState.middlePanelTab === 'commands' ? 'active' : ''}`}
-              onClick={() => setAppState(prev => ({ ...prev, middlePanelTab: 'commands' }))}
-            >
-              📋 指令列表
-            </button>
-            <button 
-              className={`tab-btn ${appState.middlePanelTab === 'variables' ? 'active' : ''}`}
-              onClick={() => setAppState(prev => ({ ...prev, middlePanelTab: 'variables' }))}
-            >
-              📊 变量开关
-            </button>
-          </div>
-          <div className="tab-content">
-            {appState.middlePanelTab === 'commands' ? (
-              <CommandListPanel
-                commands={currentCommands}
-                selectedIndex={appState.selectedCommandIndex}
-                project={appState.currentProject}
-                onCommandsChange={handleCommandsChange}
-                onCommandSelect={handleCommandSelect}
-              />
-            ) : (
-              <VariableSwitchManager
-                project={appState.currentProject}
-                onVariableChange={handleVariableChange}
-                onSwitchChange={handleSwitchChange}
-                onVariableAdd={handleVariableAdd}
-                onSwitchAdd={handleSwitchAdd}
-                onVariableDelete={handleVariableDelete}
-                onSwitchDelete={handleSwitchDelete}
-              />
-            )}
-          </div>
-        </div>
-      </FloatingPanel>
-      
-      {/* 浮动画面面板 */}
-      <FloatingPanel
-        id="canvas-panel"
-        title="🎮 游戏预览"
-        defaultX={appState.panels.canvas.x}
-        defaultY={appState.panels.canvas.y}
-        defaultWidth={appState.panels.canvas.width}
-        defaultHeight={appState.panels.canvas.height}
-        minWidth={300}
-        minHeight={200}
-        onStateChange={(state) => handlePanelStateChange('canvas', state)}
-      >
-        <PixiCanvas
-          commands={currentCommands}
-          selectedCommandIndex={appState.selectedCommandIndex}
-          isPlaying={appState.isPlaying}
-          canvasWidth={(currentLevel as any).canvasWidth || 800}
-          canvasHeight={(currentLevel as any).canvasHeight || 600}
-        />
-      </FloatingPanel>
+      <div className="editor-content" style={{ position: 'relative' }}>
+        {/* 浮动面板：预览（游戏画面） */}
+        <FloatingPanel
+          id="panel-preview"
+          title="预览"
+          defaultX={560}
+          defaultY={80}
+          defaultWidth={(currentLevel as any).canvasWidth ? Math.min(900, Math.max(320, Math.round(((currentLevel as any).canvasWidth as any) * 0.8))) : 640}
+          defaultHeight={(currentLevel as any).canvasHeight ? Math.min(700, Math.max(240, Math.round(((currentLevel as any).canvasHeight as any) * 0.8))) : 400}
+        >
+          <PixiCanvas
+            commands={currentCommands}
+            selectedCommandIndex={appState.selectedCommandIndex}
+            isPlaying={appState.isPlaying}
+            canvasWidth={(currentLevel as any).canvasWidth || 800}
+            canvasHeight={(currentLevel as any).canvasHeight || 600}
+            gameData={appState.runtimeGameData}
+          />
+        </FloatingPanel>
+
+        {/* 浮动面板：事件列表 */}
+        <FloatingPanel id="panel-events" title="事件" defaultX={16} defaultY={80} defaultWidth={240} defaultHeight={260}>
+          <EventListPanel
+            level={currentLevel}
+            selectedEventId={appState.selectedEventId}
+            onEventSelect={handleEventSelect}
+            onOpenTriggerEditor={handleOpenTriggerEditor}
+          />
+        </FloatingPanel>
+
+        {/* 浮动面板：指令树编辑器 */}
+        <FloatingPanel id="panel-commands" title="指令树" defaultX={270} defaultY={80} defaultWidth={520} defaultHeight={520}>
+          <CommandTreePanel
+            key={appState.selectedEventId || (currentLevel as any).id}
+            project={appState.currentProject}
+            initialCommandsJson={(() => {
+              const lv: any = currentLevel as any;
+              if (appState.selectedEventId) {
+                const ev = Array.isArray(lv?.events) ? lv.events.find((e: any) => e?.id === appState.selectedEventId) : null;
+                return (ev && Array.isArray(ev.commands)) ? ev.commands : [];
+              }
+              return (lv?.rawCommands || []);
+            })()}
+            onChange={handleTreeCommandsChange}
+          />
+        </FloatingPanel>
+
+        {/* 浮动面板：综合库面板（变量/开关 + 资源） */}
+        <FloatingPanel id="panel-library" title="综合库面板" defaultX={16} defaultY={360} defaultWidth={360} defaultHeight={360}>
+          <CombinedLibraryPanel
+            project={appState.currentProject}
+            onVariableChange={handleVariableChange}
+            onSwitchChange={handleSwitchChange}
+            onVariableAdd={handleVariableAdd}
+            onSwitchAdd={handleSwitchAdd}
+            onVariableDelete={handleVariableDelete}
+            onSwitchDelete={handleSwitchDelete}
+          />
+        </FloatingPanel>
+      </div>
       
       {/* 触发器编辑器模态框 */}
       <TriggerModalEditor
@@ -1111,14 +869,7 @@ const App: React.FC = () => {
         onSave={handleSaveTriggerEdit}
         onCancel={handleCloseTriggerEditor}
       />
-      
-      {/* 蓝图预览组件 */}
-      {currentLevel && (
-        <BlueprintGraph
-          level={currentLevel}
-          isOpen={appState.isBlueprintOpen}
-          onClose={handleCloseBlueprint}
-        />
+      </>
       )}
     </div>
   );

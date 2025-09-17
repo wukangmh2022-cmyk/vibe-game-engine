@@ -7,7 +7,7 @@
   overflow: hidden;
 }
 
-.panel-header {
+.variable-switch-manager .panel-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   padding: 12px 16px;
@@ -17,7 +17,7 @@
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.panel-header h3 {
+.variable-switch-manager .panel-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;

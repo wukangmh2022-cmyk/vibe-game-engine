@@ -23,6 +23,9 @@ export * from './handlers';
 // 导出工具类
 export { Logger, LogLevel };
 
+// Library-style browser bootstrap API (mount the runtime into a container)
+export * from './browser/bootstrap';
+
 // 导出版本信息
 export const VERSION = '1.0.0';
 

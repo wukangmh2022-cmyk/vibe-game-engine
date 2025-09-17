@@ -8,6 +8,7 @@ interface PanelState {
   height: number;
   isMinimized: boolean;
   isMaximized: boolean;
+  z: number;
   previousState?: {
     x: number;
     y: number;
@@ -43,13 +44,19 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
   className = '',
   onStateChange
 }) => {
+  // global z-index counter to ensure last-focused panel is on top
+  // eslint-disable-next-line @typescript-eslint/no-inferrable-types
+  const zGlobal = (FloatingPanel as any).__zTop = (FloatingPanel as any).__zTop || 300;
+  const nextZ = () => ((FloatingPanel as any).__zTop = ((FloatingPanel as any).__zTop || 300) + 1);
+
   const [state, setState] = useState<PanelState>({
     x: defaultX,
     y: defaultY,
     width: defaultWidth,
     height: defaultHeight,
     isMinimized: false,
-    isMaximized: false
+    isMaximized: false,
+    z: zGlobal + 1
   });
 
   const panelRef = useRef<HTMLDivElement>(null);
@@ -58,6 +65,34 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
   const isResizing = useRef(false);
   const dragStartPos = useRef({ x: 0, y: 0, startX: 0, startY: 0 });
   const resizeStartPos = useRef({ x: 0, y: 0, width: 0, height: 0 });
+
+  // Debug layout logs (toggle via localStorage.DEBUG_LAYOUT = '1')
+  useEffect(() => {
+    const debug = typeof window !== 'undefined' && localStorage.getItem('DEBUG_LAYOUT') === '1';
+    if (!debug) return;
+    const log = () => {
+      try {
+        const pb = panelRef.current?.getBoundingClientRect();
+        const hb = headerRef.current?.getBoundingClientRect();
+        const content = panelRef.current?.querySelector('.panel-content') as HTMLElement | null;
+        const cb = content?.getBoundingClientRect();
+        console.info('[FP] sizes', {
+          panel: pb ? { w: Math.round(pb.width), h: Math.round(pb.height) } : null,
+          header: hb ? { h: Math.round(hb.height) } : null,
+          content: cb ? { h: Math.round(cb.height), scrollH: content?.scrollHeight } : null
+        });
+      } catch {}
+    };
+    log();
+    const RO = (window as any).ResizeObserver;
+    let ro: any = null;
+    if (RO) {
+      ro = new RO(log);
+      if (panelRef.current) ro.observe(panelRef.current);
+    }
+    window.addEventListener('resize', log);
+    return () => { try { ro?.disconnect?.(); window.removeEventListener('resize', log); } catch {} };
+  }, []);
 
   // 通知父组件状态变化 - 只在特定状态变化时通知
   useEffect(() => {
@@ -133,8 +168,12 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
     };
   }, [minWidth, minHeight]);
 
+  // 拖拽/点击任意处时置顶
+  const bringToFront = () => setState(prev => ({ ...prev, z: nextZ() }));
+
   // 开始拖拽
   const handleDragStart = (e: React.MouseEvent) => {
+    bringToFront();
     if (state.isMaximized) return;
     
     // 先更新拖拽起始位置为当前状态
@@ -160,6 +199,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
   // 开始调整大小
   const handleResizeStart = (e: React.MouseEvent) => {
+    bringToFront();
     if (state.isMaximized) return;
     
     e.stopPropagation();
@@ -180,11 +220,16 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
 
   // 最小化/最大化/还原
   const handleMinimize = () => {
+    try {
+      console.info('[FloatingPanel] minimize click', { id, before: { minimized: state.isMinimized, maximized: state.isMaximized, x: state.x, y: state.y, w: state.width, h: state.height, z: state.z } });
+    } catch {}
     setState(prev => {
       if (prev.isMinimized) {
-        return { ...prev, isMinimized: false };
+        const next = { ...prev, isMinimized: false };
+        try { console.info('[FloatingPanel] minimize -> restore', { id, after: { minimized: next.isMinimized, x: next.x, y: next.y, w: next.width, h: next.height, z: next.z } }); } catch {}
+        return next;
       } else {
-        return { 
+        const next = { 
           ...prev, 
           isMinimized: true,
           previousState: {
@@ -193,31 +238,43 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
             width: prev.width,
             height: prev.height
           }
-        };
+        } as PanelState;
+        try { console.info('[FloatingPanel] minimize -> minimized', { id, after: { minimized: next.isMinimized, x: next.x, y: next.y, w: next.width, h: next.height, z: next.z } }); } catch {}
+        return next;
       }
     });
   };
 
   const handleMaximize = () => {
+    try {
+      console.info('[FloatingPanel] maximize click', { id, before: { minimized: state.isMinimized, maximized: state.isMaximized, x: state.x, y: state.y, w: state.width, h: state.height, z: state.z } });
+    } catch {}
     setState(prev => {
+      const zTop = nextZ();
       if (prev.isMaximized) {
-        return { 
+        const next = { 
           ...prev, 
           isMaximized: false,
-          ...(prev.previousState || { x: defaultX, y: defaultY, width: defaultWidth, height: defaultHeight })
-        };
+          ...(prev.previousState || { x: defaultX, y: defaultY, width: defaultWidth, height: defaultHeight }),
+          z: zTop
+        } as PanelState;
+        try { console.info('[FloatingPanel] maximize -> restore', { id, after: { minimized: next.isMinimized, maximized: next.isMaximized, x: next.x, y: next.y, w: next.width, h: next.height, z: next.z } }); } catch {}
+        return next;
       } else {
-        return { 
+        const next = { 
           ...prev, 
           isMaximized: true,
           isMinimized: false,
+          z: zTop,
           previousState: {
             x: prev.x,
             y: prev.y,
             width: prev.width,
             height: prev.height
           }
-        };
+        } as PanelState;
+        try { console.info('[FloatingPanel] maximize -> maximized', { id, after: { minimized: next.isMinimized, maximized: next.isMaximized, x: next.x, y: next.y, w: next.width, h: next.height, z: next.z } }); } catch {}
+        return next;
       }
     });
   };
@@ -225,10 +282,11 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
   // 关闭
   const handleClose = () => {
     // 可以通过回调通知父组件，或者直接隐藏
-    console.log(`Panel ${id} closed`);
+    // console.log(`Panel ${id} closed`);
   };
 
   const getPanelStyle = (): React.CSSProperties => {
+    const baseZ = state.z || ((FloatingPanel as any).__zTop || 300);
     if (state.isMaximized) {
       return {
         top: 0,
@@ -236,7 +294,8 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
         right: 0,
         bottom: 0,
         width: '100%',
-        height: '100%'
+        height: '100%',
+        zIndex: baseZ
       };
     }
     
@@ -246,7 +305,8 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
         bottom: 0,
         left: state.x,
         width: state.width,
-        height: '40px'
+        height: '40px',
+        zIndex: baseZ
       };
     }
     
@@ -254,7 +314,8 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
       left: state.x,
       top: state.y,
       width: state.width,
-      height: state.height
+      height: state.height,
+      zIndex: baseZ
     };
   };
 
@@ -263,6 +324,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
       ref={panelRef}
       className={`floating-panel ${className} ${state.isMinimized ? 'minimized' : ''} ${state.isMaximized ? 'maximized' : ''}`}
       style={getPanelStyle()}
+      onMouseDown={bringToFront}
     >
       <div 
         ref={headerRef}
@@ -297,7 +359,7 @@ export const FloatingPanel: React.FC<FloatingPanelProps> = ({
       
       {!state.isMinimized && (
         <>
-          <div className="panel-content">
+          <div className="panel-content" style={{ flex: 1, minHeight: 0 }}>
             {children}
           </div>
           

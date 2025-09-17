@@ -7,22 +7,25 @@ export class PixiRendererManager implements IRendererManager {
   private app: any;
   private elements = new Map<string, any>();
   private dropZones = new Map<string, { x: number; y: number; w: number; h: number; accept?: string[] }>();
+  private pixi: any;
 
-  constructor(app: any) {
+  constructor(app: any, pixiRef?: any) {
     this.app = app;
+    this.pixi = pixiRef || (typeof PIXI !== 'undefined' ? PIXI : undefined);
     if (this.app?.stage) this.app.stage.sortableChildren = true;
   }
 
   createElement(config: ElementConfig): RenderElement {
     let node: any;
+    const P = this.pixi;
     if (config.type === 'image') {
-      const texture = PIXI.Texture.from(config.src || '');
-      const sprite = new PIXI.Sprite(texture);
+      const texture = P.Texture.from(config.src || '');
+      const sprite = new P.Sprite(texture);
       node = sprite;
     } else if (config.type === 'nine-slice') {
-      const texture = PIXI.Texture.from(config.src || '');
+      const texture = P.Texture.from(config.src || '');
       const s = (config as any).slice || { left: 12, top: 12, right: 12, bottom: 12 };
-      const plane = new PIXI.NineSlicePlane(texture, Number(s.left||12), Number(s.top||12), Number(s.right||12), Number(s.bottom||12));
+      const plane = new P.NineSlicePlane(texture, Number(s.left||12), Number(s.top||12), Number(s.right||12), Number(s.bottom||12));
       node = plane;
     } else if (config.type === 'text') {
       const rawStyle: any = config.style || {};
@@ -69,11 +72,11 @@ export class PixiRendererManager implements IRendererManager {
         if (rawStyle.dropShadowAngle != null) textStyle.dropShadowAngle = Number(rawStyle.dropShadowAngle);
         if (rawStyle.dropShadowDistance != null) textStyle.dropShadowDistance = Number(rawStyle.dropShadowDistance);
       }
-      const text = new PIXI.Text(config.content || '', textStyle);
+      const text = new P.Text(config.content || '', textStyle);
       node = text;
     } else {
       // fallback container
-      node = new PIXI.Container();
+      node = new P.Container();
     }
 
     node.x = config.position?.x || 0;
@@ -178,6 +181,7 @@ export class PixiRendererManager implements IRendererManager {
   // Expose Pixi app/stage for custom effects
   getApp(): any { return this.app; }
   getStage(): any { return this.app?.stage; }
+  getPixi(): any { return this.pixi; }
 
   addDropZone(id: string, rect: { x: number; y: number; w: number; h: number; accept?: string[] }) {
     this.dropZones.set(id, rect);

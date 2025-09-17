@@ -817,8 +817,8 @@
           ]
         },
         {
-          "id": "signal-wait-10s",
-          "name": "信号触发后等待10秒并胜利",
+          "id": "signal-wait-3s",
+          "name": "信号触发后等待3秒并胜利",
           "triggers": [
             {
               "type": "custom",
@@ -827,10 +827,19 @@
           ],
           "commands": [
             {
-              "id": "wait-10s",
+              "id": "tick-sub",
+              "type": "set_variable",
+              "parameters": {
+                "key": "countdown",
+                "op": "set",
+                "value": 4
+              }
+            },
+            {
+              "id": "wait-3s",
               "type": "WAIT",
               "parameters": {
-                "duration": 10000
+                "duration": 3000
               }
             },
             {
@@ -838,13 +847,24 @@
               "type": "BGM_STOP",
               "parameters": {}
             },
+            
             {
-              "id": "victory-game-over",
-              "type": "GAME_OVER",
+              "id": "return-entry-choice",
+              "type": "CHOICES",
               "parameters": {
-                "reason": "victory",
-                "message": "🎉 你获得了胜利！"
-              }
+                "elementId": "return-entry-choice",
+                "position": { "x": 560, "y": 520 },
+                "ui": { "rowMax": 1, "fontSize": 16, "buttonSkinId": "btn-primary-9slice" }
+              },
+              "options": [
+                {
+                  "id": "back-to-entry",
+                  "text": "返回入口",
+                  "commands": [
+                    { "id": "redirect-back-entry", "type": "SCENE_REDIRECT", "parameters": { "url": "scene/entry.json" } }
+                  ]
+                }
+              ]
             }
           ]
         },

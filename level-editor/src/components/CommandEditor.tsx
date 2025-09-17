@@ -34,7 +34,7 @@ export const CommandEditor: React.FC<CommandEditorProps> = ({
   }
 
   const handleParameterChange = (key: string, value: any) => {
-    setEditedCommand(prev => {
+    setEditedCommand((prev: GameCommand | null) => {
       if (!prev) return null;
       return {
         ...prev,

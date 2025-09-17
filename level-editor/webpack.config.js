@@ -39,9 +39,15 @@ module.exports = {
     })
   ],
   devServer: {
-    static: {
-      directory: path.join(__dirname, 'public')
-    },
+    static: [
+      { directory: path.join(__dirname, 'public'), publicPath: '/' },
+      // Serve project root and key asset folders for runtime compatibility
+      { directory: path.resolve(__dirname, '..'), publicPath: '/' },
+      { directory: path.resolve(__dirname, '../images'), publicPath: '/images' },
+      { directory: path.resolve(__dirname, '../animations'), publicPath: '/animations' },
+      { directory: path.resolve(__dirname, '../audio'), publicPath: '/audio' },
+      { directory: path.resolve(__dirname, '../web'), publicPath: '/web' }
+    ],
     compress: true,
     port: 9885,
     hot: true,

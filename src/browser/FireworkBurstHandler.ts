@@ -75,16 +75,19 @@ export class FireworkBurstHandler extends BaseCommandHandler {
       ? p.resourceIds
       : (p.resourceId ? [p.resourceId] : []);
     const textures: any[] = [];
+    const P = (globalThis as any).PIXI || (rm?.getPixi ? rm.getPixi() : undefined);
     for (const id of ids) {
       const r = resMgr?.getResource?.(id);
       const url = r?.url || r?.src;
-      if (url) {
-        try { textures.push(PIXI.Texture.from(url)); } catch {}
+      if (url && P) {
+        try { textures.push(P.Texture.from(url)); } catch {}
       }
     }
     // Fallback to a simple star vector if no texture provided
     const makeFallback = () => {
-      const g = new PIXI.Graphics();
+      const P2 = P || (globalThis as any).PIXI;
+      if (!P2) return app.renderer.generateTexture({} as any);
+      const g = new P2.Graphics();
       g.beginFill(0xffffff);
       g.drawCircle(0, 0, 6);
       g.endFill();
@@ -104,7 +107,8 @@ export class FireworkBurstHandler extends BaseCommandHandler {
     } : {};
 
     // Container to group particles
-    const container = new PIXI.Container();
+    const P3 = P || (globalThis as any).PIXI;
+    const container = P3 ? new P3.Container() : new (rm.getPixi() || (globalThis as any).PIXI).Container();
     container.zIndex = zIndex;
     container.sortableChildren = false;
     if (attachNode && attachNode.addChild) {
@@ -125,7 +129,7 @@ export class FireworkBurstHandler extends BaseCommandHandler {
     const particles: any[] = [];
     for (let i = 0; i < count; i++) {
       const tex = textures[(i % textures.length) | 0];
-      const s = new PIXI.Sprite(tex);
+      const s = P3 ? new P3.Sprite(tex) : new (rm.getPixi() || (globalThis as any).PIXI).Sprite(tex);
       s.anchor.set(0.5);
       s.x = attachNode ? 0 : x; s.y = attachNode ? 0 : y;
       const sc = scaleMin + Math.random() * (scaleMax - scaleMin);

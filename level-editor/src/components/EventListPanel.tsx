@@ -27,6 +27,7 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
   // 从关卡数据中提取事件信息
   const extractEvents = (levelData: any): Event[] => {
     const events: Event[] = [];
+    const lvl: any = (levelData && typeof levelData === 'object') ? levelData : { commands: [], events: [] };
     
     // 首先添加主流程作为特殊事件
     events.push({
@@ -39,12 +40,12 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
           expression: '游戏主要逻辑流程'
         }
       }],
-      commands: levelData.commands || []
+      commands: Array.isArray(lvl.commands) ? lvl.commands : []
     });
     
     // 然后添加真实的事件
-    if (levelData.events && Array.isArray(levelData.events)) {
-      levelData.events.forEach((event: any) => {
+    if (Array.isArray(lvl.events)) {
+      lvl.events.forEach((event: any) => {
         events.push({
           id: event.id,
           name: event.name || '未命名事件',
@@ -76,36 +77,29 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
     
     // 根据触发器类型显示不同的描述
     switch (trigger.type) {
-      case 'timer':
-        return `⏱️ 时间触发 (${trigger.delay || 0}ms)`;
+      case 'auto':
+        if ((trigger as any).start === 'immediate') return '⚡ 自动：立即';
+        return '⚡ 自动';
       case 'custom':
+        if ((trigger as any).target) return `🧩 自定义: ${(trigger as any).target}`;
         if (trigger.condition?.expression) {
           const expr = trigger.condition.expression;
-          const match = expr.match(/event\.action === '(.+)'/);
-          if (match) {
-            return `🖱️ 按钮事件: ${match[1]}`;
-          }
-          return `📝 自定义条件`;
+          let m = expr.match(/event\.type\s*===\s*'([^']+)'/);
+          if (!m) m = expr.match(/event\.action\s*===\s*'([^']+)'/);
+          if (m) return `🧩 自定义: ${m[1]}`;
+          return '🧩 自定义条件';
         }
-        return '🖱️ 事件触发';
+        return '🧩 自定义';
       default:
-        if (trigger.condition?.expression) {
-          const expr = trigger.condition.expression;
-          const match = expr.match(/event\.action === '(.+)'/);
-          if (match) {
-            return `🖱️ 按钮事件: ${match[1]}`;
-          }
-          return `📝 自定义条件`;
-        }
-        return '未知触发条件';
+        return '触发器';
     }
   };
 
   // 获取按钮事件关联信息
   const getButtonEventInfo = (commands: GameCommand[]): { hasButton: boolean; buttonAction?: string } => {
-    // 查找是否有SHOW_BUTTON指令
+    // 查找是否有 SHOW_BUTTON 指令（兼容大小写）
     for (const cmd of commands) {
-      if (cmd.type === 'SHOW_BUTTON' && cmd.parameters?.onClick) {
+      if (String(cmd.type).toUpperCase() === 'SHOW_BUTTON' && cmd.parameters?.onClick) {
         return { hasButton: true, buttonAction: cmd.parameters.onClick };
       }
     }
@@ -119,9 +113,6 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
 
   return (
     <div className="event-list-panel">
-      <div className="panel-header">
-        <h3>📋 事件列表</h3>
-      </div>
 
       <div className="event-list">
         {events.length === 0 ? (

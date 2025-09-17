@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import './ImprovedEventTriggerEditor.css';
 
+// 轻量调试输出，默认关闭；需在控制台执行 localStorage.setItem('debugUI','1') 开启
+const debug = (...args: any[]) => {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage?.getItem('debugUI') === '1') {
+      // eslint-disable-next-line no-console
+      console.log(...args);
+    }
+  } catch {}
+};
+
 interface ImprovedEventTrigger {
   type: 'timer' | 'custom';
   target?: string;
@@ -69,8 +79,8 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
   // 解析按钮事件表达式，支持多种格式
   // 在parseButtonEvents函数中添加日志输出events数组内容
   const parseButtonEvents = (expression: string): string[] => {
-      console.log('解析按钮事件表达式:', expression);
-      console.log('可用的事件列表:', events);
+      debug('解析按钮事件表达式:', expression);
+      debug('可用的事件列表:', events);
       
       // 匹配完整的按钮事件表达式: event.type === 'button:click' && event.action === 'xxx'
       const fullButtonPattern = /event\.type\s*===\s*['"]button:click['"]\s*&&\s*event\.action\s*===\s*['"]([^'"]+)['"]\//g;
@@ -81,45 +91,45 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
       const fixedFullPattern = /event\.type\s*===\s*['"]button:click['"]\s*&&\s*event\.action\s*===\s*['"]([^'"]+)['"]\//g;
       const fixedSimplePattern = /event\.action\s*===\s*['"]([^'"]+)['"]\//g;
       
-      console.log('正则表达式模式:', fixedFullPattern, fixedSimplePattern);
+      debug('正则表达式模式:', fixedFullPattern, fixedSimplePattern);
       
       const eventIds = [];
       let match;
       
       // 尝试匹配完整格式
       while ((match = fixedFullPattern.exec(expression)) !== null) {
-        console.log('匹配到完整格式按钮事件:', match[1]);
+        debug('匹配到完整格式按钮事件:', match[1]);
         eventIds.push(match[1]);
       }
       
       // 如果没有找到完整格式，尝试匹配简化格式
       if (eventIds.length === 0) {
         while ((match = fixedSimplePattern.exec(expression)) !== null) {
-          console.log('匹配到简化格式按钮事件:', match[1]);
+          debug('匹配到简化格式按钮事件:', match[1]);
           eventIds.push(match[1]);
         }
       }
       
       // 如果仍然没有匹配到，尝试使用字符串方法
       if (eventIds.length === 0) {
-        console.log('使用字符串方法尝试匹配');
+        debug('使用字符串方法尝试匹配');
         const actionMatch = expression.match(/event\.action\s*===\s*['"]([^'"]+)['"]/);
         if (actionMatch) {
-          console.log('使用字符串方法匹配到按钮事件:', actionMatch[1]);
+          debug('使用字符串方法匹配到按钮事件:', actionMatch[1]);
           eventIds.push(actionMatch[1]);
         }
       }
       
-      console.log('解析出的按钮事件IDs:', eventIds);
+      debug('解析出的按钮事件IDs:', eventIds);
       return eventIds;
     };
     
     // 解析变量条件表达式
     const parseVariableConditions = (expression: string) => {
-      console.log('解析变量条件表达式:', expression);
+      debug('解析变量条件表达式:', expression);
       
       const variablePattern = /context\.stateManager\.getVariable\(['"](.+?)['"]\)\s*([=!<>]+)\s*['"]?(.+?)['"]?(?:\s*&&|\s*\|\||$)/g;
-      console.log('变量条件正则表达式:', variablePattern);
+      debug('变量条件正则表达式:', variablePattern);
       
       const conditions = [];
       let match;
@@ -129,7 +139,7 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
         const operatorSymbol = match[2].trim();
         const variableValue = match[3].trim();
         
-        console.log('匹配到变量条件:', { variableKey, operatorSymbol, variableValue });
+        debug('匹配到变量条件:', { variableKey, operatorSymbol, variableValue });
         
         // 将操作符符号转换为操作符代码
         let variableOperator = 'eq';
@@ -147,14 +157,14 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
       
       // 如果没有匹配到，尝试使用字符串方法
       if (conditions.length === 0) {
-        console.log('使用字符串方法尝试匹配变量条件');
+        debug('使用字符串方法尝试匹配变量条件');
         const varMatch = expression.match(/context\.stateManager\.getVariable\(['"](.+?)['"]\)\s*([=!<>]+)\s*['"]?(.+?)['"]?/);
         if (varMatch) {
           const variableKey = varMatch[1];
           const operatorSymbol = varMatch[2].trim();
           const variableValue = varMatch[3].trim();
           
-          console.log('使用字符串方法匹配到变量条件:', { variableKey, operatorSymbol, variableValue });
+          debug('使用字符串方法匹配到变量条件:', { variableKey, operatorSymbol, variableValue });
           
           // 将操作符符号转换为操作符代码
           let variableOperator = 'eq';
@@ -171,16 +181,16 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
         }
       }
       
-      console.log('解析出的变量条件:', conditions);
+      debug('解析出的变量条件:', conditions);
       return conditions;
     };
     
     // 解析开关条件表达式
     const parseSwitchConditions = (expression: string) => {
-      console.log('解析开关条件表达式:', expression);
+      debug('解析开关条件表达式:', expression);
       
       const switchPattern = /context\.stateManager\.getSwitch\(['"](.+?)['"]\)\s*===\s*(true|false)/g;
-      console.log('开关条件正则表达式:', switchPattern);
+      debug('开关条件正则表达式:', switchPattern);
       
       const conditions = [];
       let match;
@@ -188,23 +198,23 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
       while ((match = switchPattern.exec(expression)) !== null) {
         const switchKey = match[1];
         const switchValue = match[2] === 'true';
-        console.log('匹配到开关条件:', { switchKey, switchValue });
+        debug('匹配到开关条件:', { switchKey, switchValue });
         conditions.push({ switchKey, switchValue });
       }
       
       // 如果没有匹配到，尝试使用字符串方法
       if (conditions.length === 0) {
-        console.log('使用字符串方法尝试匹配开关条件');
+        debug('使用字符串方法尝试匹配开关条件');
         const switchMatch = expression.match(/context\.stateManager\.getSwitch\(['"](.+?)['"]\)\s*===\s*(true|false)/);
         if (switchMatch) {
           const switchKey = switchMatch[1];
           const switchValue = switchMatch[2] === 'true';
-          console.log('使用字符串方法匹配到开关条件:', { switchKey, switchValue });
+          debug('使用字符串方法匹配到开关条件:', { switchKey, switchValue });
           conditions.push({ switchKey, switchValue });
         }
       }
       
-      console.log('解析出的开关条件:', conditions);
+      debug('解析出的开关条件:', conditions);
       return conditions;
     };
 

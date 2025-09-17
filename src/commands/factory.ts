@@ -25,7 +25,7 @@ import { BgmPauseHandler } from './audio/BgmPauseHandler';
 import { BgmStopHandler } from './audio/BgmStopHandler';
 import { SePlayHandler } from './audio/SePlayHandler';
 import { SetVolumeHandler } from './audio/SetVolumeHandler';
-import { GameOverHandler } from './GameOverHandler';
+import SceneRedirectHandler from './SceneRedirectHandler';
 import { SetElementStyleHandler } from './SetElementStyleHandler';
 
 /**
@@ -60,7 +60,7 @@ export function createDefaultHandlers(): ICommandHandler[] {
     new BgmStopHandler(),
     new SePlayHandler(),
     new SetVolumeHandler(),
-    new GameOverHandler()
+    new SceneRedirectHandler()
   ];
 }
 
@@ -118,6 +118,7 @@ export function createFlowControlHandlers(): ICommandHandler[] {
     new ContinueHandler(),
     new EmitSignalHandler(),
     new ReturnHandler(),
+    new SceneRedirectHandler(),
   ];
 }
 

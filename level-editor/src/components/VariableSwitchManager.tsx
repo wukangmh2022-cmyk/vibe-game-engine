@@ -21,6 +21,8 @@ interface VariableSwitchManagerProps {
   onSwitchAdd: (key: string, value: boolean) => void;
   onVariableDelete: (key: string) => void;
   onSwitchDelete: (key: string) => void;
+  // 新增：渲染模式，both=显示二级Tab；variables=仅变量；switches=仅开关
+  mode?: 'both' | 'variables' | 'switches';
 }
 
 export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
@@ -30,9 +32,10 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
   onVariableAdd,
   onSwitchAdd,
   onVariableDelete,
-  onSwitchDelete
+  onSwitchDelete,
+  mode = 'both'
 }) => {
-  const [activeTab, setActiveTab] = useState<'variables' | 'switches'>('variables');
+  const [activeTab, setActiveTab] = useState<'variables' | 'switches'>(mode === 'switches' ? 'switches' : 'variables');
   const [editingVariable, setEditingVariable] = useState<Variable | null>(null);
   const [editingSwitch, setEditingSwitch] = useState<Switch | null>(null);
   const [editingIndex, setEditingIndex] = useState<number>(-1);
@@ -189,29 +192,32 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
     }
   };
   
+  const showTabs = mode === 'both';
+
   return (
     <div className="variable-switch-manager">
       <div className="panel-header">
         <h3>变量和开关管理</h3>
       </div>
-      
-      <div className="tabs-container">
-        <button 
-          className={`tab-button ${activeTab === 'variables' ? 'active' : ''}`}
-          onClick={() => setActiveTab('variables')}
-        >
-          📊 变量 ({variables.length})
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'switches' ? 'active' : ''}`}
-          onClick={() => setActiveTab('switches')}
-        >
-          🔘 开关 ({switches.length})
-        </button>
-      </div>
+      {showTabs && (
+        <div className="tabs-container">
+          <button 
+            className={`tab-button ${activeTab === 'variables' ? 'active' : ''}`}
+            onClick={() => setActiveTab('variables')}
+          >
+            📊 变量 ({variables.length})
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'switches' ? 'active' : ''}`}
+            onClick={() => setActiveTab('switches')}
+          >
+            🔘 开关 ({switches.length})
+          </button>
+        </div>
+      )}
       
       <div className="tab-content">
-        {activeTab === 'variables' ? (
+        {(mode === 'variables' || (showTabs && activeTab === 'variables')) ? (
           <div className="variables-tab">
             <div className="content-header">
               <h4>游戏变量</h4>
@@ -295,7 +301,8 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
               )}
             </div>
           </div>
-        ) : (
+        ) : null}
+        {(mode === 'switches' || (showTabs && activeTab === 'switches')) ? (
           <div className="switches-tab">
             <div className="content-header">
               <h4>游戏开关</h4>
@@ -345,7 +352,7 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
               )}
             </div>
           </div>
-        )}
+        ) : null}
       </div>
       
       {/* 变量编辑表单 */}

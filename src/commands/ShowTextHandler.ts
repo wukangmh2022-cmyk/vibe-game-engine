@@ -83,8 +83,15 @@ export class ShowTextHandler extends BaseCommandHandler {
             } catch { return u; }
           };
           if (!url && imageId) {
-            // Fallback: construct from conventional path
-            url = addVer(`/images/${imageId}.svg`);
+            // Fallback: construct from conventional path with optional asset base
+            try {
+              const g2: any = (typeof window !== 'undefined' ? (window as any) : (globalThis as any));
+              const base: string | undefined = g2?.__ASSET_BASE__ || g2?.__PROJECT_BASE__ || '/';
+              const joined = base.endsWith('/') ? `${base}images/${imageId}.svg` : `${base}/images/${imageId}.svg`;
+              url = addVer(joined);
+            } catch {
+              url = addVer(`/images/${imageId}.svg`);
+            }
           } else {
             url = addVer(url);
           }

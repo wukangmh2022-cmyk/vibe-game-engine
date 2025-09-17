@@ -5,13 +5,26 @@ type EasingName = keyof typeof Easings;
 export class Animator {
   private loops = new Map<any, { stop: () => void }>();
 
+  private alive(node: any): boolean {
+    try {
+      if (!node || typeof node !== 'object') return false;
+      // pixi display-object guards
+      if ((node as any).destroyed) return false;
+      const tr = (node as any).transform;
+      if (!tr || !(tr as any).position) return false;
+      return true;
+    } catch { return false; }
+  }
+
   animate(node: any, propsFrom: any, propsTo: any, duration = 800, easing: EasingName = 'easeInOutQuad'): Promise<void> {
     return new Promise(resolve => {
+      if (!this.alive(node)) return resolve();
       const start = performance.now();
       const ease = Easings[easing] || Easings.easeInOutQuad;
       const token = node && typeof node === 'object' ? (node.__animToken || 0) : 0;
       if (propsFrom) this.apply(node, propsFrom);
       const tick = (now: number) => {
+        if (!this.alive(node)) return resolve();
         if (node && typeof node === 'object' && (node.__animToken || 0) !== token) { return resolve(); }
         const t = Math.min(1, (now - start) / duration);
         const k = ease(t);
@@ -24,33 +37,35 @@ export class Animator {
 
   loopHoverY(node: any, amplitude = 6, duration = 1500): void {
     this.stop(node);
-    const startY = node.y;
+    const startY = (node && node.y) || 0;
     let raf = 0; let running = true; const start = performance.now();
     const step = (now: number) => {
       if (!running) return;
+      if (!this.alive(node)) { running = false; cancelAnimationFrame(raf); return; }
       const t = (now - start) / duration;
-      node.y = startY + Math.sin(t * Math.PI * 2) * amplitude;
+      try { node.y = startY + Math.sin(t * Math.PI * 2) * amplitude; } catch { running = false; }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    this.loops.set(node, { stop: () => { running = false; cancelAnimationFrame(raf); node.y = startY; } });
+    this.loops.set(node, { stop: () => { running = false; cancelAnimationFrame(raf); try { if (this.alive(node)) node.y = startY; } catch {} } });
   }
 
   loopPulseScale(node: any, minScale = 0.95, maxScale = 1.05, duration = 1200): void {
     this.stop(node);
-    const sx0 = node.scale?.x ?? 1, sy0 = node.scale?.y ?? 1;
+    const sx0 = node?.scale?.x ?? 1, sy0 = node?.scale?.y ?? 1;
     let raf = 0; let running = true; const start = performance.now();
     const step = (now: number) => {
       if (!running) return;
+      if (!this.alive(node)) { running = false; cancelAnimationFrame(raf); return; }
       const t = (now - start) / duration;
       const k = (Math.sin(t * Math.PI * 2) + 1) / 2;
       const sx = sx0 * (minScale + (maxScale - minScale) * k);
       const sy = sy0 * (minScale + (maxScale - minScale) * k);
-      if (node.scale) { node.scale.x = sx; node.scale.y = sy; }
+      try { if (node.scale) { node.scale.x = sx; node.scale.y = sy; } } catch { running = false; }
       raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
-    this.loops.set(node, { stop: () => { running = false; cancelAnimationFrame(raf); if (node.scale) { node.scale.x = sx0; node.scale.y = sy0; } } });
+    this.loops.set(node, { stop: () => { running = false; cancelAnimationFrame(raf); try { if (this.alive(node) && node.scale) { node.scale.x = sx0; node.scale.y = sy0; } } catch {} } });
   }
 
   stop(node: any) {
@@ -60,6 +75,7 @@ export class Animator {
 
   private apply(node: any, props: any) {
     if (!props) return;
+    if (!this.alive(node)) return;
     if (props.alpha !== undefined) node.alpha = props.alpha;
     if (props.x !== undefined) node.x = props.x;
     if (props.y !== undefined) node.y = props.y;
@@ -71,6 +87,7 @@ export class Animator {
 
   private interpolate(node: any, from: any, to: any, k: number) {
     if (!to) return;
+    if (!this.alive(node)) return;
     if (to.alpha !== undefined) node.alpha = this.lerp(from?.alpha ?? node.alpha ?? 1, to.alpha, k);
     if (to.x !== undefined) node.x = this.lerp(from?.x ?? node.x ?? 0, to.x, k);
     if (to.y !== undefined) node.y = this.lerp(from?.y ?? node.y ?? 0, to.y, k);

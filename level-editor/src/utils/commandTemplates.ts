@@ -93,6 +93,30 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     ]
   },
   {
+    type: CommandType.SCENE_REDIRECT,
+    name: '场景跳转',
+    description: '跳转到指定场景（JSON 路径）',
+    category: CommandCategory.FLOW_CONTROL,
+    icon: '🧭',
+    color: '#9C27B0',
+    parameters: [
+      { name: 'url', label: '目标场景', type: 'text', required: true, placeholder: 'scene/xxx.json', description: '可填绝对URL或相对工程根的 scene/...' }
+    ]
+  },
+  {
+    type: CommandType.SHOW_CHOICES,
+    name: '显示选项',
+    description: '显示用户可选择的多个选项',
+    category: CommandCategory.INTERACTION,
+    icon: '📋',
+    color: '#3F51B5',
+    parameters: [
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '元素ID（可选）' },
+      { name: 'text', label: '标题/提示', type: 'text', required: false, description: '选项上方的标题/提示' },
+      { name: 'optionsCount', label: '选项数量', type: 'number', required: false, defaultValue: 2, description: '用于生成分支的选项数量（保存后生效）' }
+    ]
+  },
+  {
     type: CommandType.FLIP_CARD,
     name: '翻牌（水平翻转）',
     description: '将指定元素做水平翻转并在中点切换图片（卡牌正反面）',
@@ -263,7 +287,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     name: '隐藏元素',
     description: '隐藏指定的元素',
     category: CommandCategory.DISPLAY,
-    icon: '👁️‍🗯t',
+    icon: '👁️',
     color: '#795548',
     parameters: [
       {

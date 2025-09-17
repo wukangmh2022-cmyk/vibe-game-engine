@@ -43,7 +43,7 @@ export enum CommandType {
   // 游戏逻辑
   ADD_SCORE = 'ADD_SCORE',
   NEXT_LEVEL = 'NEXT_LEVEL',
-  GAME_OVER = 'GAME_OVER',
+  SCENE_REDIRECT = 'SCENE_REDIRECT',
   
   // 事件组 (用于组织事件)
   EVENT_GROUP = 'EVENT_GROUP'

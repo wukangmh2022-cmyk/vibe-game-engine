@@ -1,0 +1,13 @@
+{
+  "project_name": "default-project",
+  "scene-tree": {
+    "curnode": "scene/hello-world.json",
+    "child_node": []
+  },
+  "user_data_sheet": {
+    "user_nickname": "default",
+    "level_scores": [0],
+    "level_states": [0]
+  }
+}
+

@@ -6,7 +6,7 @@
   border-right: 1px solid #dee2e6;
 }
 
-.panel-header {
+.event-list-panel .panel-header {
   height: 60px;
   background: #fff;
   border-bottom: 1px solid #dee2e6;
@@ -16,7 +16,7 @@
   padding: 0 16px;
 }
 
-.panel-header h3 {
+.event-list-panel .panel-header h3 {
   margin: 0;
   font-size: 14px; /* 从16px减小到14px */
   font-weight: 600;

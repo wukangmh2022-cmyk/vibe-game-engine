@@ -1,0 +1,81 @@
+{
+  "id": "entry",
+  "name": "入口场景",
+  "version": "1.0.0",
+  "schema": "v2",
+  "resources": {
+    "images": [
+      { "id": "panel-blue", "src": "images/ui-blue.svg" },
+      { "id": "btn-blue", "src": "images/btn-blue.svg" }
+    ]
+  },
+  "levels": [
+    {
+      "id": "entry-level",
+      "name": "入口",
+      "canvasWidth": 800,
+      "canvasHeight": 600,
+      "initialState": {},
+      "commands": [
+        {
+          "id": "bg-panel",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "bg",
+            "resourceId": "panel-blue",
+            "position": { "x": 40, "y": 40 },
+            "size": { "width": 720, "height": 520 },
+            "zIndex": 0
+          }
+        },
+        {
+          "id": "title-text",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "title",
+            "text": "选择要进入的场景",
+            "position": { "x": 70, "y": 70 },
+            "style": {
+              "fontSize": 26,
+              "color": "#ffffff",
+              "stroke": "#000000",
+              "strokeThickness": 3
+            }
+          }
+        },
+        {
+          "id": "scene-choices",
+          "type": "CHOICES",
+          "parameters": {
+            "elementId": "choices",
+            "position": { "x": 100, "y": 140 },
+            "ui": { "rowMax": 1, "gapX": 16, "gapY": 16, "fontSize": 16, "buttonSkinId": "btn-primary-9slice" }
+          },
+          "options": [
+            {
+              "id": "go-adventure",
+              "text": "🗺️ 冒险选择游戏",
+              "commands": [
+                { "id": "redirect-go-adventure", "type": "SCENE_REDIRECT", "parameters": { "url": "scene/adventure-choice-game-v2.json" } }
+              ]
+            },
+            {
+              "id": "go-memory",
+              "text": "🧠 翻牌记忆配对",
+              "commands": [
+                { "id": "redirect-go-memory", "type": "SCENE_REDIRECT", "parameters": { "url": "scene/flip-memory-game-v1.json" } }
+              ]
+            },
+            {
+              "id": "go-select",
+              "text": "✅ 多选卡片 2×2",
+              "commands": [
+                { "id": "redirect-go-select", "type": "SCENE_REDIRECT", "parameters": { "url": "scene/select-cards-2x2.json" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

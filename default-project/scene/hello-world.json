@@ -1,0 +1,53 @@
+{
+  "id": "hello-world",
+  "name": "Hello World",
+  "version": "1.0.0",
+  "schema": "v2",
+  "resources": {
+    "images": [
+      { "id": "panel", "src": "images/panel.svg" },
+      { "id": "btn", "src": "images/btn.svg" }
+    ],
+    "audios": [],
+    "animations": [],
+    "videos": []
+  },
+  "levels": [
+    {
+      "id": "level1",
+      "name": "Level 1",
+      "canvasWidth": 800,
+      "canvasHeight": 600,
+      "initialState": {},
+      "commands": [
+        {
+          "id": "bg",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "bg",
+            "resourceId": "panel",
+            "position": { "x": 40, "y": 40 },
+            "size": { "width": 720, "height": 520 },
+            "zIndex": 0
+          }
+        },
+        {
+          "id": "title",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "title",
+            "text": "Hello, World!",
+            "position": { "x": 80, "y": 80 },
+            "style": {
+              "fontSize": 36,
+              "color": "#ffffff",
+              "stroke": "#000000",
+              "strokeThickness": 4,
+              "zIndex": 10
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

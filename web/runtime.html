@@ -11,7 +11,6 @@
     .choices { position: absolute; left: 100px; top: 270px; display: flex; flex-direction: column; gap: 8px; }
     .choice-btn { padding: 8px 12px; background: #2c3e50; color: #fff; border: none; border-radius: 6px; cursor: pointer; text-align: left; }
   </style>
-  <script src="https://unpkg.com/pixi.js@7/dist/pixi.min.js"></script>
   <style>
     .topbar { width: 800px; margin: 8px auto 0; display: flex; align-items: center; gap: 8px; }
     .topbar label { font-size: 14px; color: #bbb; }
@@ -32,14 +31,20 @@
   </div>
   <script>
     (function() {
+      const params = new URLSearchParams(location.search);
+      const embed = params.get('embed') === '1';
+      if (embed) (window as any).__WAIT_FOR_PARENT = true;
+
       const games = {
-        adventure: '/adventure-choice-game-v2.json',
-        memory: '/flip-memory-game-v1.json',
-        select: '/select-cards-2x2.json'
+        adventure: '/00project/scene/adventure-choice-game-v2.json',
+        memory: '/00project/scene/flip-memory-game-v1.json',
+        select: '/00project/scene/select-cards-2x2.json'
       };
       const storageKey = 'runtime:selectedGame';
       const saved = localStorage.getItem(storageKey) || 'adventure';
       // Expose for main.js before it loads
+      // 资源与关卡统一从 00project 读取
+      window.__ASSET_BASE__ = '/00project/';
       window.__GAME_JSON_URL = games[saved] || games.adventure;
       // After DOM is ready, sync selector and bind change
       document.addEventListener('DOMContentLoaded', () => {
@@ -54,8 +59,43 @@
           });
         }
       });
+      // If embedded, accept game JSON from parent
+      window.addEventListener('message', (e) => {
+        const msg = e?.data || {};
+        if (msg && msg.type === 'LOAD_GAME_JSON') {
+          (window as any).__GAME_JSON = msg.payload;
+          const boot = (window as any).__BOOTSTRAP_RUNTIME;
+          if (typeof boot === 'function') boot();
+        }
+      });
     })();
   </script>
-  <script type="module" src="./dist/browser/main.js?v=4"></script>
+  <script type="module">
+    const PIXI_CDN = [
+      'https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js',
+      'https://unpkg.com/pixi.js@7/dist/pixi.min.js'
+    ];
+
+    async function loadPixi() {
+      for (const url of PIXI_CDN) {
+        try {
+          await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = () => resolve(null);
+            script.onerror = () => reject(new Error('Failed to load ' + url));
+            document.head.appendChild(script);
+          });
+          if (window.PIXI) return;
+        } catch (err) {
+          console.warn(err);
+        }
+      }
+      throw new Error('Pixi.js CDN 加载失败，请检查网络或提供本地文件');
+    }
+
+    await loadPixi();
+    await import('./dist/browser/main.js?v=5');
+  </script>
 </body>
   </html>

@@ -167,7 +167,7 @@
 
     function createDragLines(){
       const mkLine = (dir)=>{
-        const g=new PIXI.Graphics(); g.zIndex=20; g.interactive=true; g.cursor=(dir==='L'||dir==='R')?'ew-resize':'ns-resize';
+        const g=new PIXI.Graphics(); g.zIndex=20; g.eventMode='static'; g.cursor=(dir==='L'||dir==='R')?'ew-resize':'ns-resize';
         let dragging=false;
         const onDown=(e)=>{ dragging=true; };
         const onUp=()=>{ dragging=false; };

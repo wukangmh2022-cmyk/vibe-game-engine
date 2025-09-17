@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { GameCommand, CommandType, GameProject } from '../types';
-import { COMMAND_TEMPLATES, createNewCommand } from '../utils/commandTemplates';
-import { CommandEditor } from './CommandEditor';
+import React, { useMemo, useState } from 'react';
+import { GameCommand, GameProject } from '../types';
+import { COMMAND_TEMPLATES } from '../utils/commandTemplates';
 import { CommandParameterEditor } from './CommandParameterEditor';
+import { CommandLibraryPanel } from './CommandLibraryPanel';
 import './CommandListPanel.css';
 
 interface CommandListPanelProps {
@@ -18,381 +18,143 @@ export const CommandListPanel: React.FC<CommandListPanelProps> = ({
   selectedIndex,
   project,
   onCommandsChange,
-  onCommandSelect
-}: CommandListPanelProps) => {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
-  const [showCommandSelector, setShowCommandSelector] = useState(false);
-  const [editingCommand, setEditingCommand] = useState<GameCommand | null>(null);
-  const [editingIndex, setEditingIndex] = useState<number>(-1);
-  const [showParameterEditor, setShowParameterEditor] = useState(false);
-  const [copiedCommand, setCopiedCommand] = useState<GameCommand | null>(null);
-  
-  const dragCounter = useRef(0);
+  onCommandSelect,
+}) => {
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  // 添加新指令
-  const handleAddCommand = () => {
-    setShowCommandSelector(true);
+  const templateMap = useMemo(() => {
+    const map = new Map<string, any>();
+    COMMAND_TEMPLATES.forEach(t => map.set(String(t.type).toUpperCase(), t));
+    return map;
+  }, []);
+
+  const aliasName: Record<string, string> = {
+    SHOW_CHOICES: '显示选项', SET_CLICKABLE: '设置可点击', SET_SELECTED: '设置选中', CHECK_IN_AREA: '检测区域内',
+    ANIMATE_IN: '入场动画', ANIMATE_LOOP: '循环动画', PLAY_SOUND: '播放音效', BGM_PLAY: '播放BGM', BGM_PAUSE: '暂停BGM', BGM_STOP: '停止BGM', SE_PLAY: '播放SE', SET_VOLUME: '设置音量',
+    FIREWORK_BURST: '烟花特效', IF_CONDITION: '条件分支', EVENT_GROUP: '事件组'
   };
 
-  // 选择指令类型并打开编辑器
-  const handleSelectCommandType = (commandType: CommandType) => {
-    const newCommand = createNewCommand(commandType);
-    setEditingCommand(newCommand);
-    setEditingIndex(-1); // -1 表示新建指令
-    setShowCommandSelector(false);
-    setShowParameterEditor(true);
+  const getName = (type: any) => {
+    const raw = String(type || '');
+    const up = raw.toUpperCase();
+    const tpl = templateMap.get(up);
+    return tpl?.name || aliasName[up] || raw || '(未命名指令)';
   };
 
-  // 删除指令
-  const handleDeleteCommand = (index: number) => {
-    const newCommands = [...commands];
-    newCommands.splice(index, 1);
-    onCommandsChange(newCommands);
+  const getIcon = (type: any) => {
+    const up = String(type || '').toUpperCase();
+    const tpl = templateMap.get(up);
+    return tpl?.icon || '📝';
   };
 
-  // 复制指令
-  const handleCopyCommand = (index: number) => {
-    setCopiedCommand(commands[index]);
+  const summary = (cmd: GameCommand) => {
+    const p = cmd.parameters || {};
+    const pri = p.text || p.elementId || p.resourceId || p.signal || '';
+    return typeof pri === 'string' ? pri.slice(0, 60) : JSON.stringify(p).slice(0, 60);
   };
 
-  // 粘贴指令
-  const handlePasteCommand = (index: number) => {
-    if (!copiedCommand) return;
-    
-    const newCommand = {
-      ...copiedCommand,
-      id: `${copiedCommand.id}_copy_${Date.now()}`
-    };
-    
-    const newCommands = [...commands];
-    newCommands.splice(index + 1, 0, newCommand);
-    onCommandsChange(newCommands);
-  };
-
-  // 编辑指令
-  const handleEditCommand = (index: number) => {
-    const command = commands[index];
-    const template = COMMAND_TEMPLATES.find(t => t.type === command.type);
-    
-    if (template && template.requiresParameterEditor) {
-      setEditingCommand(command);
-      setEditingIndex(index);
-      setShowParameterEditor(true);
-    } else {
-      // 直接编辑简单指令的参数
-      handleDoubleClick(command, index);
+  const add = () => setShowLibrary(true);
+  // 计算以 index 开头的“子树”范围（基于 depth 连续项）
+  const getSubtreeRange = (index: number): [number, number] => {
+    const base = Math.max(0, commands[index]?.depth || 0);
+    let end = index + 1;
+    while (end < commands.length) {
+      const d = Math.max(0, commands[end]?.depth || 0);
+      if (d <= base) break;
+      end++;
     }
+    return [index, end];
+  };
+  const del = () => {
+    if (selectedIndex < 0 || selectedIndex >= commands.length) return;
+    const [start, end] = getSubtreeRange(selectedIndex);
+    const next = commands.slice();
+    next.splice(start, end - start);
+    onCommandsChange(next);
+    onCommandSelect(Math.max(0, start - 1));
+  };
+  const dup = () => {
+    if (selectedIndex < 0) return;
+    const base = commands[selectedIndex];
+    const copy = { ...base, id: base.id + '_copy_' + Date.now() };
+    const next = commands.slice(); next.splice(selectedIndex + 1, 0, copy); onCommandsChange(next);
+  };
+  const move = (dir: -1 | 1) => {
+    const i = selectedIndex; if (i < 0) return; const j = i + dir; if (j < 0 || j >= commands.length) return;
+    const next = commands.slice(); const [m] = next.splice(i, 1); next.splice(j, 0, m); onCommandsChange(next); onCommandSelect(j);
   };
 
-  // 双击编辑
-  const handleDoubleClick = (command: GameCommand, index: number) => {
-    setEditingCommand(command);
-    setEditingIndex(index);
-    setShowParameterEditor(true);
-  };
-
-  // 保存编辑
-  const handleSaveCommand = (command: GameCommand) => {
-    if (editingIndex === -1) {
-      // 新建指令
-      onCommandsChange([...commands, command]);
-    } else {
-      // 编辑现有指令
-      const newCommands = [...commands];
-      newCommands[editingIndex] = command;
-      onCommandsChange(newCommands);
-    }
-    setEditingCommand(null);
-    setShowParameterEditor(false);
-  };
-
-  // 取消编辑
-  const handleCancelEdit = () => {
-    setEditingCommand(null);
-    setShowParameterEditor(false);
-  };
-
-  // 保存参数编辑
-  const handleSaveEdit = (params: any) => {
-    if (editingCommand) {
-      const updatedCommand = {
-        ...editingCommand,
-        parameters: params
-      };
-      
-      if (editingIndex === -1) {
-        onCommandsChange([...commands, updatedCommand]);
-      } else {
-        const newCommands = [...commands];
-        newCommands[editingIndex] = updatedCommand;
-        onCommandsChange(newCommands);
-      }
-    }
-    setEditingCommand(null);
-    setShowParameterEditor(false);
-  };
-
-  // 拖拽开始
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    e.dataTransfer.setData('text/plain', index.toString());
-    setDraggedIndex(index);
-  };
-
-  // 拖拽结束
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDropTargetIndex(null);
-    dragCounter.current = 0;
-  };
-
-  // 拖拽进入
-  const handleDragEnter = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    dragCounter.current++;
-    setDropTargetIndex(index);
-  };
-
-  // 拖拽离开
-  const handleDragLeave = () => {
-    dragCounter.current--;
-    if (dragCounter.current === 0) {
-      setDropTargetIndex(null);
-    }
-  };
-
-  // 拖拽悬停
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  // 放置
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (draggedIndex === null || draggedIndex === dropIndex) return;
-    
-    const newCommands = [...commands];
-    const [movedCommand] = newCommands.splice(draggedIndex, 1);
-    newCommands.splice(dropIndex, 0, movedCommand);
-    
-    onCommandsChange(newCommands);
-    setDraggedIndex(null);
-    setDropTargetIndex(null);
-    dragCounter.current = 0;
-  };
-
-  // 格式化指令参数
-  const formatCommandParams = (command: GameCommand): string => {
-    const params = command.parameters;
-    if (!params || Object.keys(params).length === 0) return '';
-    
-    const entries = Object.entries(params).map(([key, value]) => {
-      const formattedValue = typeof value === 'string' ? `"${value}"` : String(value);
-      return `${key}: ${formattedValue}`;
-    });
-    
-    return entries.join(', ');
-  };
-
-  // 获取指令类型的中文名称
-  const getCommandTypeName = (type: CommandType): string => {
-    const template = COMMAND_TEMPLATES.find(t => t.type === type);
-    return template ? template.name : type;
-  };
-
-  // 简化过滤逻辑 - 由于移除了搜索和分类，直接返回所有指令
-  const filteredCommands = commands;
+  const onDbl = (i: number) => setEditingIndex(i);
+  const tplOf = (cmd: GameCommand) => templateMap.get(String(cmd.type).toUpperCase());
 
   return (
-    <div className="command-list-panel">
-      <div className="panel-header">
-        <h3>指令列表</h3>
-        <button className="add-command-btn" onClick={handleAddCommand}>
-          + 添加指令
-        </button>
+    <div className="clp" data-testid="command-list-panel">
+      <div className="clp-toolbar">
+        <button onClick={add}>＋ 添加</button>
+        <button onClick={dup} disabled={selectedIndex < 0}>复制</button>
+        <button onClick={() => move(-1)} disabled={selectedIndex <= 0}>上移</button>
+        <button onClick={() => move(1)} disabled={selectedIndex < 0 || selectedIndex >= commands.length - 1}>下移</button>
+        <button onClick={del} disabled={selectedIndex < 0}>删除</button>
+        <div className="clp-spacer" />
+        <div className="clp-count">共 {commands.length} 条</div>
       </div>
-      
-      {showCommandSelector && (
-        <div className="command-selector">
-          <div className="selector-backdrop" onClick={() => setShowCommandSelector(false)} />
-          <div className="selector-menu">
-            <div className="selector-header">
-              <h4>选择指令类型</h4>
-              <button 
-                className="close-btn"
-                onClick={() => setShowCommandSelector(false)}
-              >
-                ×
-              </button>
+      <div className="clp-list">
+        {commands.length === 0 && (
+          <div className="clp-empty">暂无指令，点击“添加”创建</div>
+        )}
+        {commands.map((cmd, i) => (
+          <div
+            key={cmd.id}
+            className={`clp-item ${i === selectedIndex ? 'selected' : ''}`}
+            style={{ marginLeft: `${Math.max(0, cmd.depth || 0) * 16}px` }}
+            onClick={() => onCommandSelect(i)}
+            onDoubleClick={() => onDbl(i)}
+          >
+            <div className="clp-icon">{getIcon(cmd.type)}</div>
+            <div className="clp-main">
+              <div className="clp-line" title={String(cmd.type)}>
+                {cmd.groupName && <span className="clp-tag">{cmd.groupName}</span>}
+                <span className="clp-title">{getName(cmd.type)}</span>
+                <span className="clp-sep"> — </span>
+                <span className="clp-summary">{summary(cmd)}</span>
+              </div>
             </div>
-            <div className="command-commands">
-              {COMMAND_TEMPLATES.map((template) => (
-                <button
-                  key={template.type}
-                  className="command-type-btn"
-                  onClick={() => handleSelectCommandType(template.type)}
-                >
-                  <span className="type-name">{template.name}</span>
-                </button>
-              ))}
+            <div className="clp-index">{i + 1}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* 指令库弹层 */}
+      {showLibrary && (
+        <div className="clp-modal" onClick={() => setShowLibrary(false)}>
+          <div className="clp-dialog" onClick={e => e.stopPropagation()}>
+            <div className="clp-dialog-header">
+              <div>选择指令类型</div>
+              <button onClick={() => setShowLibrary(false)}>×</button>
+            </div>
+            <div className="clp-dialog-body">
+              <CommandLibraryPanel
+                project={project}
+                onInsert={(c) => { const next = [...commands, c]; onCommandsChange(next); setShowLibrary(false); }}
+              />
             </div>
           </div>
         </div>
       )}
-      
-      <div className="command-list">
-        {filteredCommands.length === 0 ? (
-          <div className="empty-state">
-            <p>暂无指令</p>
-            <button className="add-command-btn" onClick={handleAddCommand}>
-              添加第一个指令
-            </button>
-          </div>
-        ) : (
-          <div className="commands-grid">
-            {filteredCommands.map((command: GameCommand, originalIndex: number) => {
-              const index = commands.indexOf(command);
-              const template = COMMAND_TEMPLATES.find(t => t.type === command.type);
-              return (
-                <div key={command.id} className="command-wrapper">
-                  {dropTargetIndex === index && (
-                    <div className="drop-placeholder active" />
-                  )}
-                  
-                  <div
-                    className={`command-item compact ${
-                      selectedIndex === index ? 'selected' : ''
-                    } ${
-                      draggedIndex === index ? 'dragging' : ''
-                    } ${
-                      command.eventSource ? 'branch-command' : ''
-                    } ${
-                      command.type === 'EVENT_GROUP' ? 'event-group' : ''
-                    }`}
-                    draggable
-                    onClick={() => onCommandSelect(index)}
-                    onDoubleClick={() => handleDoubleClick(command, index)}
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    onDragEnd={handleDragEnd}
-                    onDragEnter={(e) => handleDragEnter(e, index)}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, index)}
-                    style={{ 
-                      borderLeftColor: template?.color || '#ccc',
-                      marginLeft: `${(command.depth || 0) * 20}px`,
-                      // 添加CSS变量以便响应式布局使用
-                      '--depth': command.depth || 0,
-                    } as React.CSSProperties}
-                  >
-                    <div className="command-main">
-                      <div className="command-icon-wrapper">
-                        <span className="command-icon">{template?.icon || '📝'}</span>
-                        <span className="command-index">{index + 1}</span>
-                      </div>
-                      
-                      <div className="command-content">
-                        <div className="command-title">
-                          {getCommandTypeName(command.type)}
-                        </div>
-                        <div className="command-params-preview">
-                          {formatCommandParams(command)}
-                        </div>
-                      </div>
-                      
-                      <div className="command-actions">
-                        <button 
-                          className="action-btn edit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditCommand(index);
-                          }}
-                          title="编辑参数"
-                        >
-                          ✏️
-                        </button>
-                        <button 
-                          className="action-btn copy"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCopyCommand(index);
-                          }}
-                          title="复制指令"
-                        >
-                          📋
-                        </button>
-                        {copiedCommand && (
-                          <button 
-                            className="action-btn paste"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePasteCommand(index);
-                            }}
-                            title="粘贴指令"
-                          >
-                            📄
-                          </button>
-                        )}
-                        <button 
-                          className="action-btn delete"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteCommand(index);
-                          }}
-                          title="删除指令"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <div className="drag-handle">⋮⋮</div>
-                  </div>
-                  
-                  {dropTargetIndex === commands.length && index === commands.length - 1 && (
-                    <div className="drop-placeholder active" />
-                  )}
-                </div>
-              );
-            })}
-            
-            {/* 在最后一个指令后面添加+按钮 */}
-            {filteredCommands.length > 0 && (
-              <div className="add-button-wrapper">
-                <button 
-                  className="add-button-inline"
-                  onClick={handleAddCommand}
-                  title="添加新指令"
-                  style={{
-                    '--depth': 0, // 内联+按钮默认在最外层
-                    marginLeft: 0
-                  } as React.CSSProperties}
-                >
-                  +
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-      
-      <CommandEditor
-        command={editingCommand}
-        isOpen={editingCommand !== null && !showParameterEditor}
-        onSave={handleSaveCommand}
-        onCancel={handleCancelEdit}
-      />
-      
-      {showParameterEditor && editingCommand && (
+
+      {/* 参数编辑器（仅当模板存在时） */}
+      {editingIndex != null && editingIndex >= 0 && editingIndex < commands.length && tplOf(commands[editingIndex]) && (
         <CommandParameterEditor
-          template={COMMAND_TEMPLATES.find(t => t.type === editingCommand.type)!}
-          initialParams={editingCommand.parameters}
+          template={tplOf(commands[editingIndex])}
+          initialParams={commands[editingIndex].parameters}
           project={project}
-          onSave={handleSaveEdit}
-          onCancel={handleCancelEdit}
+          onSave={(p) => { const next = commands.slice(); next[editingIndex] = { ...next[editingIndex], parameters: p }; onCommandsChange(next); setEditingIndex(null); }}
+          onCancel={() => setEditingIndex(null)}
         />
       )}
     </div>
   );
 };
+
+export default CommandListPanel;
