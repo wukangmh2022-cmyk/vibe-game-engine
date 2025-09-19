@@ -21,6 +21,7 @@ export class PixiRendererManager implements IRendererManager {
     if (config.type === 'image') {
       const texture = P.Texture.from(config.src || '');
       const sprite = new P.Sprite(texture);
+      try { (sprite as any).resourceId = (config as any).resourceId || (sprite as any).resourceId; } catch {}
       node = sprite;
     } else if (config.type === 'nine-slice') {
       const texture = P.Texture.from(config.src || '');
@@ -89,6 +90,14 @@ export class PixiRendererManager implements IRendererManager {
     }
     node.visible = config.visible !== false;
     if (config.style?.zIndex != null) node.zIndex = config.style.zIndex;
+    // anchor support for sprites/planes
+    try {
+      if ((node as any).anchor) {
+        const ax = (config.style as any)?.anchorX; const ay = (config.style as any)?.anchorY;
+        if (ax != null || ay != null) (node as any).anchor.set(ax ?? (node as any).anchor.x ?? 0, ay ?? (node as any).anchor.y ?? 0);
+        if ((config.style as any)?.anchorCenter) (node as any).anchor.set(0.5);
+      }
+    } catch {}
     // optional anchor centering for sprites
     try {
       if ((node as any).anchor && config.style && (config.style as any).anchorCenter) {
@@ -159,6 +168,13 @@ export class PixiRendererManager implements IRendererManager {
       if (st.dropShadowBlur != null) node.style.dropShadowBlur = parseInt(String(st.dropShadowBlur));
       if (st.dropShadowAngle != null) node.style.dropShadowAngle = Number(st.dropShadowAngle);
       if (st.dropShadowDistance != null) node.style.dropShadowDistance = Number(st.dropShadowDistance);
+    }
+    // allow sprite anchor updates via style
+    if (updates.style && (node as any).anchor) {
+      const st: any = updates.style;
+      if (st.anchorCenter) (node as any).anchor.set(0.5);
+      const ax = st.anchorX; const ay = st.anchorY;
+      if (ax != null || ay != null) (node as any).anchor.set(ax ?? (node as any).anchor.x ?? 0, ay ?? (node as any).anchor.y ?? 0);
     }
   }
 

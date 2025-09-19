@@ -1,4 +1,4 @@
-.ph-root { position: relative; height: calc(100vh - 56px); background: #0f172a; color: #e5e7eb; display: flex; flex-direction: column; }
+.ph-root { position: relative; height: 100vh; background: #0f172a; color: #e5e7eb; display: flex; flex-direction: column; }
 .ph-hero { padding: 32px 32px 16px; }
 .ph-hero-title { font-size: 22px; font-weight: 700; color: #e2e8f0; }
 .ph-hero-sub { font-size: 13px; color: #94a3b8; margin-top: 6px; }
@@ -16,3 +16,19 @@
 .ph-scene { background: #0b1220; border: 1px solid #253045; text-align: left; border-radius: 8px; padding: 10px; color: #e5e7eb; }
 .ph-scene-name { font-size: 14px; font-weight: 600; color: #e2e8f0; }
 .ph-scene-path { font-size: 12px; color: #64748b; }
+
+/* 导出按钮：右下角悬浮 */
+.ph-export-floating {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 3000;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.ph-export-floating:hover { opacity: 0.92; }

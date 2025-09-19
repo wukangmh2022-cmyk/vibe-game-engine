@@ -3,9 +3,10 @@ import { GameProject } from '../types';
 
 interface ResourceListPanelProps {
   project?: GameProject | null;
+  onAddToScene?: (rid: string) => void;
 }
 
-export const ResourceListPanel: React.FC<ResourceListPanelProps> = ({ project }) => {
+export const ResourceListPanel: React.FC<ResourceListPanelProps> = ({ project, onAddToScene }) => {
   const [typeFilter, setTypeFilter] = useState<'all'|'image'|'audio'|'video'|'animation'>('all');
   const [query, setQuery] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -62,6 +63,9 @@ export const ResourceListPanel: React.FC<ResourceListPanelProps> = ({ project })
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name || r.id}</div>
                 <div style={{ fontSize: 11, color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.src}</div>
               </div>
+              {onAddToScene && (
+                <button onClick={() => onAddToScene(r.id)} title="添加到当前场景" style={{ fontSize: 11, padding: '3px 6px' }}>→</button>
+              )}
               <button onClick={() => copy(r.id)} title="复制资源ID" style={{ fontSize: 11, padding: '3px 6px' }}>复制ID</button>
             </div>
           );

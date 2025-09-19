@@ -14,13 +14,17 @@ interface EventListPanelProps {
   selectedEventId: string | null;
   onEventSelect: (eventId: string | null) => void;
   onOpenTriggerEditor: (eventId: string, triggerIndex: number, triggerData: any) => void;
+  onAddEvent?: () => void;
+  onDeleteEvent?: (eventId: string) => void;
 }
 
 export const EventListPanel: React.FC<EventListPanelProps> = ({
   level,
   selectedEventId,
   onEventSelect,
-  onOpenTriggerEditor
+  onOpenTriggerEditor,
+  onAddEvent,
+  onDeleteEvent
 }) => {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
 
@@ -113,7 +117,12 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
 
   return (
     <div className="event-list-panel">
-
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 8px', borderBottom: '1px solid #e9ecef', background: '#fff' }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: '#495057' }}>事件</div>
+        {onAddEvent && (
+          <button onClick={onAddEvent} style={{ fontSize: 12, padding: '4px 8px' }}>＋ 新建事件</button>
+        )}
+      </div>
       <div className="event-list">
         {events.length === 0 ? (
           <div className="empty-state">
@@ -177,28 +186,7 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
                     )}
                   </div>
                   
-                  {/* 显示指令概览 */}
-                  {event.id !== 'main-flow' && (
-                    <div className="event-command-summary">
-                      <h4>📋 指令概览:</h4>
-                      <div className="command-summary-content">
-                        {event.commands.length > 0 ? (
-                          <>
-                            <div>指令总数: {event.commands.length}</div>
-                            {(() => {
-                              const buttonInfo = getButtonEventInfo(event.commands);
-                              if (buttonInfo.hasButton) {
-                                return <div>🖱️ 关联按钮事件: {buttonInfo.buttonAction}</div>;
-                              }
-                              return null;
-                            })()}
-                          </>
-                        ) : (
-                          <span>暂无指令</span>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  
                 </div>
               )}
             </div>

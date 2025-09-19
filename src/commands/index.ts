@@ -27,8 +27,7 @@ export { BgmStopHandler } from './audio/BgmStopHandler';
 export { SePlayHandler } from './audio/SePlayHandler';
 export { SetVolumeHandler } from './audio/SetVolumeHandler';
 
-// 游戏结束指令处理器
-export { GameOverHandler } from './GameOverHandler';
+// 游戏结束指令处理器（如需启用请新增 ./GameOverHandler 并导出）
 
 // 基础类
 export { BaseCommandHandler } from '../core/CommandExecutor';

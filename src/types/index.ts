@@ -73,6 +73,7 @@ export enum CommandType {
   SET_DRAGGABLE = 'set_draggable',
   SET_CLICKABLE = 'set_clickable',
   SET_SELECTED = 'set_selected',
+  SET_SELECTABLE = 'set_selectable',
 
   // 拖拽控制
   DRAG_START = 'drag_start',

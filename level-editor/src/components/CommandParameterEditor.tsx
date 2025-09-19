@@ -21,8 +21,42 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    setParams(initialParams);
-  }, [initialParams]);
+    // Merge template defaults into initial parameters (dot-path aware),
+    // so editor controls always show sensible defaults even for older commands.
+    const getByPath = (obj: any, path: string): any => {
+      try { return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); } catch { return undefined; }
+    };
+    const setByPath = (obj: any, path: string, val: any): any => {
+      const segs = path.split('.');
+      const root = Array.isArray(obj) ? obj.slice() : { ...(obj || {}) };
+      let cur: any = root;
+      for (let i = 0; i < segs.length - 1; i++) {
+        const k = segs[i];
+        const next = cur[k];
+        cur[k] = (next && typeof next === 'object') ? { ...next } : {};
+        cur = cur[k];
+      }
+      cur[segs[segs.length - 1]] = val;
+      return root;
+    };
+    const fallbackByType = (t: string | undefined) => {
+      switch (t) {
+        case 'number': return 0;
+        case 'boolean': return false;
+        default: return '';
+      }
+    };
+
+    let merged: any = { ...(initialParams || {}) };
+    (template.parameters || []).forEach(p => {
+      const cur = getByPath(merged, p.name);
+      if (cur === undefined) {
+        const v = (p as any).defaultValue !== undefined ? (p as any).defaultValue : fallbackByType(p.type);
+        merged = setByPath(merged, p.name, v);
+      }
+    });
+    setParams(merged);
+  }, [initialParams, template]);
 
   // 从项目中提取变量和开关列表
   const getVariableOptions = () => {
@@ -49,8 +83,26 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     }));
   };
 
+  // dot-path utils
+  const getByPath = (obj: any, path: string): any => {
+    try { return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj); } catch { return undefined; }
+  };
+  const setByPath = (obj: any, path: string, val: any): any => {
+    const segs = path.split('.');
+    const root = Array.isArray(obj) ? obj.slice() : { ...(obj || {}) };
+    let cur: any = root;
+    for (let i = 0; i < segs.length - 1; i++) {
+      const k = segs[i];
+      const next = cur[k];
+      cur[k] = (next && typeof next === 'object') ? { ...next } : {};
+      cur = cur[k];
+    }
+    cur[segs[segs.length - 1]] = val;
+    return root;
+  };
+
   const handleParamChange = (paramName: string, value: any) => {
-    setParams(prev => ({ ...prev, [paramName]: value }));
+    setParams(prev => setByPath(prev, paramName, value));
     // Clear error when user starts typing
     if (errors[paramName]) {
       setErrors(prev => ({ ...prev, [paramName]: '' }));
@@ -89,13 +141,84 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
   };
 
   const handleSave = () => {
-    if (validateParams()) {
-      onSave(params);
+    if (!validateParams()) return;
+    // Normalize expression-type parameters to engine schema
+    const opTokenMap: Record<string, string> = { '==': 'eq', '!=': 'ne', '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte' };
+    const tokenToSymbol: Record<string, string> = { eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' };
+    let normalized = { ...params };
+    try {
+      const coerce = (val: any) => {
+        if (typeof val !== 'string') return val;
+        const s = val.trim();
+        if (/^(true|false)$/i.test(s)) return /^true$/i.test(s);
+        if (/^null$/i.test(s)) return null;
+        if (/^-?\d+(?:\.\d+)?$/.test(s)) return Number(s);
+        return val;
+      };
+      (template.parameters || []).forEach(p => {
+        if (p.type !== 'expression') return;
+        const v = getByPath(normalized, p.name) || {};
+        let out: any = {};
+        if (v.type === 'variable') {
+          const sym = tokenToSymbol[v.operator] ? tokenToSymbol[v.operator] : (v.operator || '==');
+          const tok = opTokenMap[sym] || v.operator || 'eq';
+          out = { type: 'variable', key: v.variable || v.key, operator: tok, value: coerce(v.value) };
+        } else if (v.type === 'switch') {
+          // unify to variable type (switches now part of variables)
+          const key = v.switch || v.key;
+          const state = typeof v.state === 'boolean' ? v.state : String(v.state) === 'true';
+          out = { type: 'variable', key, operator: 'eq', value: state };
+        } else {
+          // script/expression
+          out = { type: 'expression', expression: v.expression || '' };
+        }
+        normalized = setByPath(normalized, p.name, out);
+      });
+    } catch {}
+    // Coerce common value types for certain commands (e.g., SET_VARIABLE.value)
+    try {
+      const typeUp = String((template as any).type || '').toUpperCase();
+      if (typeUp === 'SET_VARIABLE') {
+        const raw = (normalized as any).value;
+        if (typeof raw === 'string') {
+          const s = raw.trim();
+          let parsed: any = s;
+          if (/^(true|false)$/i.test(s)) parsed = /^true$/i.test(s);
+          else if (/^null$/i.test(s)) parsed = null;
+          else if (/^-?\d+(?:\.\d+)?$/.test(s)) parsed = Number(s);
+          (normalized as any).value = parsed;
+        }
+      }
+    } catch {}
+    onSave(normalized);
+  };
+
+  // Helpers for expression preview/normalization
+  const opTokenMap: Record<string, string> = { '==': 'eq', '!=': 'ne', '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte' };
+  const tokenToSymbol: Record<string, string> = { eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=' , lte: '<=' };
+  const normalizeExpr = (v: any) => {
+    if (!v || typeof v !== 'object') return { type: 'variable', operator: 'eq', value: '' };
+    if (v.type === 'variable') {
+      const sym = tokenToSymbol[v.operator] ? tokenToSymbol[v.operator] : (v.operator || '==');
+      const tok = opTokenMap[sym] || v.operator || 'eq';
+      return { type: 'variable', key: v.variable || v.key || '', operator: tok, value: v.value };
     }
+    if (v.type === 'switch') {
+      const key = v.switch || v.key || '';
+      const state = typeof v.state === 'boolean' ? v.state : String(v.state ?? v.value ?? 'true') === 'true';
+      return { type: 'switch', key, operator: 'eq', value: state };
+    }
+    return { type: 'expression', expression: v.expression || '' };
   };
 
   const renderParameterInput = (param: CommandParameterDef) => {
-    const value = params[param.name] || '';
+    const rawVal = getByPath(params, param.name);
+    const value = rawVal === undefined
+      ? ((param as any).defaultValue !== undefined ? (param as any).defaultValue : (
+          param.type === 'number' ? '' : // keep number blank to avoid NaN in input until focus
+          param.type === 'boolean' ? false : ''
+        ))
+      : rawVal;
     const error = errors[param.name];
     
     const commonProps = {
@@ -132,6 +255,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
             min={param.min}
             max={param.max}
             step={param.type === 'number' ? 1 : undefined}
+            onChange={(e) => handleParamChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
           />
         );
         
@@ -220,8 +344,9 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         
       case 'resource':
         const resourceOptions = getResourceOptions();
+        const selected = (project?.resources || []).find(r => r.id === value);
         return (
-          <div className="resource-selector">
+          <div className="resource-selector" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <select
               {...commonProps}
               className="resource-dropdown"
@@ -233,6 +358,20 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                 </option>
               ))}
             </select>
+            <button
+              type="button"
+              style={{ fontSize: 12, padding: '4px 8px' }}
+              onClick={() => {
+                const res = (project?.resources || []).find(r => r.id === (getByPath(params, param.name) ?? ''));
+                if (res?.src) {
+                  try { window.open(res.src, '_blank'); } catch { alert('无法预览资源'); }
+                } else {
+                  alert('未选择或无法预览该资源');
+                }
+              }}
+            >
+              预览
+            </button>
             {resourceOptions.length === 0 && (
               <div className="no-options-hint">暂无可用资源，请先添加资源文件</div>
             )}
@@ -240,24 +379,42 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         );
         
       case 'expression':
+        // normalize value to object with sane defaults
+        const v: any = (value && typeof value === 'object') ? value : { type: 'variable', operator: 'eq', value: '' };
+        const normalizedPreview = normalizeExpr(v);
+        const humanReadable = (() => {
+          if (v.type === 'variable') {
+            const sym = tokenToSymbol[v.operator] || v.operator || '==';
+            return `${v.variable || v.key || '(变量)'} ${sym} ${v.value ?? ''}`;
+          }
+          if (v.type === 'switch') {
+            return `${v.switch || v.key || '(开关)'} == ${String(v.state ?? v.value ?? 'true')}`;
+          }
+          return v.expression || '';
+        })();
         return (
           <div className="condition-input">
             <select
               className="condition-type"
-              value={value.type || 'variable'}
-              onChange={(e) => handleParamChange(param.name, { ...value, type: e.target.value })}
+              value={(v.type === 'expression') ? 'script' : (v.type || 'variable')}
+              onChange={(e) => {
+                const t = e.target.value;
+                if (t === 'variable') handleParamChange(param.name, { type: 'variable', variable: v.variable || '', operator: v.operator || 'eq', value: v.value ?? '' });
+                else if (t === 'switch') handleParamChange(param.name, { type: 'switch', switch: v.switch || v.key || '', state: String(v.state ?? v.value ?? 'true') });
+                else handleParamChange(param.name, { type: 'script', expression: v.expression || '' });
+              }}
             >
               <option value="variable">变量条件</option>
               <option value="switch">开关条件</option>
               <option value="script">脚本表达式</option>
             </select>
             
-            {value.type === 'variable' && (
+            {v.type === 'variable' && (
               <div className="variable-condition">
                 <select
                   className="variable-name"
-                  value={value.variable || ''}
-                  onChange={(e) => handleParamChange(param.name, { ...value, variable: e.target.value })}
+                  value={v.variable || ''}
+                  onChange={(e) => handleParamChange(param.name, { ...v, variable: e.target.value })}
                 >
                   <option value="">选择变量...</option>
                   {getVariableOptions().map(option => (
@@ -268,8 +425,16 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                 </select>
                 <select
                   className="comparison-operator"
-                  value={value.operator || '=='}
-                  onChange={(e) => handleParamChange(param.name, { ...value, operator: e.target.value })}
+                  value={((): string => {
+                    const token = String(v.operator || 'eq');
+                    const map: Record<string, string> = { eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' };
+                    return map[token] || token || '==';
+                  })()}
+                  onChange={(e) => {
+                    const sym = e.target.value;
+                    const map: Record<string, string> = { '==': 'eq', '!=': 'ne', '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte' };
+                    handleParamChange(param.name, { ...v, operator: map[sym] || sym });
+                  }}
                 >
                   <option value="==">等于</option>
                   <option value="!=">不等于</option>
@@ -281,19 +446,19 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                 <input
                   type="text"
                   className="comparison-value"
-                  value={value.value || ''}
-                  onChange={(e) => handleParamChange(param.name, { ...value, value: e.target.value })}
+                  value={v.value || ''}
+                  onChange={(e) => handleParamChange(param.name, { ...v, value: e.target.value })}
                   placeholder="比较值"
                 />
               </div>
             )}
             
-            {value.type === 'switch' && (
+            {v.type === 'switch' && (
               <div className="switch-condition">
                 <select
                   className="switch-name"
-                  value={value.switch || ''}
-                  onChange={(e) => handleParamChange(param.name, { ...value, switch: e.target.value })}
+                  value={v.switch || v.key || ''}
+                  onChange={(e) => handleParamChange(param.name, { ...v, switch: e.target.value, key: e.target.value })}
                 >
                   <option value="">选择开关...</option>
                   {getSwitchOptions().map(option => (
@@ -304,8 +469,8 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                 </select>
                 <select
                   className="switch-state"
-                  value={value.state || 'true'}
-                  onChange={(e) => handleParamChange(param.name, { ...value, state: e.target.value })}
+                  value={String(v.state ?? v.value ?? 'true')}
+                  onChange={(e) => handleParamChange(param.name, { ...v, state: e.target.value })}
                 >
                   <option value="true">开启时</option>
                   <option value="false">关闭时</option>
@@ -313,15 +478,18 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               </div>
             )}
             
-            {value.type === 'script' && (
+            {(v.type === 'script' || v.type === 'expression') && (
               <textarea
                 className="script-expression"
-                value={value.expression || ''}
-                onChange={(e) => handleParamChange(param.name, { ...value, expression: e.target.value })}
+                value={v.expression || ''}
+                onChange={(e) => handleParamChange(param.name, { ...v, expression: e.target.value, type: 'script' })}
                 placeholder="输入条件表达式，例如: gameState.score > 100"
                 rows={3}
               />
             )}
+            <div style={{ marginTop: 6, fontSize: 12, color: '#6c757d' }}>
+              <div>预览(表达式): <code>{humanReadable}</code></div>
+            </div>
           </div>
         );
         
@@ -349,26 +517,63 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           <button className="close-btn" onClick={onCancel}>×</button>
         </div>
         
-        <div className="editor-content">
+        <div className="cmd-editor-content">
           <div className="parameters-list">
-            {template.parameters.map(param => (
-              <div key={param.name} className="parameter-group">
-                <label htmlFor={param.name} className="parameter-label">
-                  {param.label || param.name}
-                  {param.required && <span className="required">*</span>}
-                </label>
-                
-                {renderParameterInput(param)}
-                
-                {errors[param.name] && (
-                  <div className="parameter-error">{errors[param.name]}</div>
-                )}
-                
-                {param.description && (
-                  <div className="parameter-description">{param.description}</div>
-                )}
-              </div>
-            ))}
+            {(() => {
+              const consumed = new Set<string>();
+              const rows: any[] = [];
+              const hasParam = (n: string) => !!template.parameters.find(p => p.name === n);
+              const getParam = (n: string) => template.parameters.find(p => p.name === n)!;
+              for (const param of template.parameters) {
+                if (consumed.has(param.name)) continue;
+                // position group
+                if (param.name === 'position.x' && hasParam('position.y')) {
+                  consumed.add('position.x'); consumed.add('position.y');
+                  rows.push(
+                    <div key="position.xy" className="parameter-group">
+                      <label className="parameter-label">位置 (X/Y)</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {renderParameterInput(getParam('position.x'))}
+                        {renderParameterInput(getParam('position.y'))}
+                      </div>
+                    </div>
+                  );
+                  continue;
+                }
+                // size group
+                if (param.name === 'size.width' && hasParam('size.height')) {
+                  consumed.add('size.width'); consumed.add('size.height');
+                  rows.push(
+                    <div key="size.wh" className="parameter-group">
+                      <label className="parameter-label">尺寸 (W/H)</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {renderParameterInput(getParam('size.width'))}
+                        {renderParameterInput(getParam('size.height'))}
+                      </div>
+                    </div>
+                  );
+                  continue;
+                }
+                // default single field
+                consumed.add(param.name);
+                rows.push(
+                  <div key={param.name} className="parameter-group">
+                    <label htmlFor={param.name} className="parameter-label">
+                      {param.label || param.name}
+                      {param.required && <span className="required">*</span>}
+                    </label>
+                    {renderParameterInput(param)}
+                    {errors[param.name] && (
+                      <div className="parameter-error">{errors[param.name]}</div>
+                    )}
+                    {param.description && (
+                      <div className="parameter-description">{param.description}</div>
+                    )}
+                  </div>
+                );
+              }
+              return rows;
+            })()}
           </div>
         </div>
         

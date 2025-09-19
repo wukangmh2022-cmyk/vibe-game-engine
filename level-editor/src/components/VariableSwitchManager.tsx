@@ -41,21 +41,86 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
   const [editingIndex, setEditingIndex] = useState<number>(-1);
   const [formData, setFormData] = useState<any>({});
 
-  // 从项目中提取变量和开关
-  const variables: Variable[] = project?.globalVariables 
-    ? Object.entries(project.globalVariables).map(([key, value]) => ({
-        key,
-        value,
-        type: typeof value as any
-      }))
+  // 扫描工程：从原始命令与事件中推导新增变量/开关键；并合并内建键
+  const collectDerivedKeys = (proj: any) => {
+    const varTypes = new Map<string, any>();
+    const switchKeys = new Set<string>();
+    const walkList = (list: any[]) => { (list || []).forEach((cmd) => walkCmd(cmd)); };
+    const walkCmd = (cmd: any) => {
+      if (!cmd || typeof cmd !== 'object') return;
+      const t = String(cmd.type || '').toLowerCase();
+      const p = (cmd.parameters || {}) as any;
+      if (t === 'set_variable') {
+        const k = p?.key; if (k) { varTypes.set(k, inferType(p?.value)); }
+      }
+      if (t === 'set_selectable') {
+        const k = p?.variableKey; if (k) { varTypes.set(k, 'boolean'); }
+        varTypes.set('lastChangingSelectStateID', 'string');
+      }
+      if (t === 'set_switch') {
+        const k = p?.key; if (k) switchKeys.add(k);
+      }
+      // nested branches/arrays
+      if (Array.isArray(p?.trueCommands)) walkList(p.trueCommands);
+      if (Array.isArray(p?.falseCommands)) walkList(p.falseCommands);
+      if (Array.isArray(p?.commands)) walkList(p.commands);
+      const opts = Array.isArray(p?.options) ? p.options : (Array.isArray((cmd as any).options) ? (cmd as any).options : []);
+      (opts || []).forEach((o: any) => { if (Array.isArray(o?.commands)) walkList(o.commands); });
+      const branches = (cmd as any).branches || p?.branches;
+      if (branches) {
+        if (Array.isArray(branches?.yes?.commands)) walkList(branches.yes.commands);
+        if (Array.isArray(branches?.no?.commands)) walkList(branches.no.commands);
+      }
+    };
+    const inferType = (v: any): 'string'|'number'|'boolean'|'object' => {
+      const t = typeof v; if (t === 'number' || t === 'boolean' || t === 'object') return t as any; return 'string';
+    };
+    try {
+      (proj?.levels || []).forEach((lv: any) => {
+        const root = Array.isArray(lv?.rawCommands) ? lv.rawCommands : [];
+        walkList(root);
+        (lv?.events || []).forEach((ev: any) => { if (Array.isArray(ev?.commands)) walkList(ev.commands); });
+      });
+    } catch {}
+    return { varTypes, switchKeys };
+  };
+
+  const BUILTIN_VARIABLES: Array<{ key: string; type: Variable['type']; value: any }> = [
+    { key: 'last_drop_element_ID', type: 'string', value: '' },
+    { key: 'last_drop_resource_ID', type: 'string', value: '' },
+    { key: 'lastChangingSelectStateID', type: 'string', value: '' }
+  ];
+
+  const { varTypes: derivedVarTypes, switchKeys: derivedSwitchKeys } = collectDerivedKeys(project as any);
+
+  // 从项目中提取显式变量和开关
+  const projectVariables: Variable[] = project?.globalVariables 
+    ? Object.entries(project.globalVariables).map(([key, value]) => ({ key, value, type: typeof value as any }))
+    : [];
+  const projectSwitches: Switch[] = project?.globalSwitches
+    ? Object.entries(project.globalSwitches).map(([key, value]) => ({ key, value }))
     : [];
 
-  const switches: Switch[] = project?.globalSwitches
-    ? Object.entries(project.globalSwitches).map(([key, value]) => ({
-        key,
-        value
-      }))
-    : [];
+  // 合并变量：项目显式 + 推导 + 内建（去重，项目优先）
+  const allVariables: Array<Variable & { source: 'project'|'derived'|'builtin' }> = (() => {
+    const used = new Set<string>();
+    const out: Array<Variable & { source: 'project'|'derived'|'builtin' }> = [];
+    projectVariables.forEach(v => { out.push({ ...v, source: 'project' }); used.add(v.key); });
+    derivedVarTypes.forEach((t, k) => {
+      if (!used.has(k)) { out.push({ key: k, value: '', type: t as any, source: 'derived' }); used.add(k); }
+    });
+    BUILTIN_VARIABLES.forEach(b => { if (!used.has(b.key)) { out.push({ key: b.key, value: b.value, type: b.type, source: 'builtin' }); used.add(b.key); } });
+    return out.sort((a, b) => a.key.localeCompare(b.key));
+  })();
+
+  // 合并开关：项目显式 + 推导（无内建开关列表）
+  const allSwitches: Array<(Switch & { source: 'project'|'derived' })> = (() => {
+    const used = new Set<string>();
+    const out: Array<Switch & { source: 'project'|'derived' }> = [];
+    projectSwitches.forEach(s => { out.push({ ...s, source: 'project' }); used.add(s.key); });
+    derivedSwitchKeys.forEach(k => { if (!used.has(k)) { out.push({ key: k, value: false, source: 'derived' }); used.add(k); } });
+    return out.sort((a, b) => a.key.localeCompare(b.key));
+  })();
 
   // 变量操作函数
   const handleAddVariable = () => {
@@ -205,13 +270,13 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
             className={`tab-button ${activeTab === 'variables' ? 'active' : ''}`}
             onClick={() => setActiveTab('variables')}
           >
-            📊 变量 ({variables.length})
+            📊 变量 ({allVariables.length})
           </button>
           <button 
             className={`tab-button ${activeTab === 'switches' ? 'active' : ''}`}
             onClick={() => setActiveTab('switches')}
           >
-            🔘 开关 ({switches.length})
+            🔘 开关 ({allSwitches.length})
           </button>
         </div>
       )}
@@ -222,20 +287,20 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
             <div className="content-header">
               <h4>游戏变量</h4>
               <button className="add-button" onClick={handleAddVariable}>
-                ➕ 添加变量
+                ➕ 添加
               </button>
             </div>
             
             <div className="items-list">
-              {variables.length === 0 ? (
+              {allVariables.length === 0 ? (
                 <div className="empty-state">
                   <div className="icon">📊</div>
                   <div className="message">暂无变量</div>
                   <div className="sub-message">点击上方按钮添加第一个变量</div>
                 </div>
               ) : (
-                variables.map((variable, index) => (
-                  <div key={variable.key} className="item">
+                allVariables.map((variable: any, index: number) => (
+                  <div key={variable.key} className={`item ${variable.source !== 'project' ? 'readonly' : ''}`}>
                     <div className="item-info">
                       <div className="item-name">{variable.key}</div>
                       <div className="item-value">
@@ -248,7 +313,7 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                     >
                       {variable.type}
                     </div>
-                    {variable.type === 'number' && (
+                    {variable.type === 'number' && variable.source === 'project' && (
                       <div className="variable-operations">
                         <button 
                           className="op-button add"
@@ -281,20 +346,24 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                       </div>
                     )}
                     <div className="item-actions">
-                      <button 
-                        className="action-button edit"
-                        onClick={() => handleEditVariable(variable, index)}
-                        title="编辑变量"
-                      >
-                        ✏️
-                      </button>
-                      <button 
-                        className="action-button delete"
-                        onClick={() => handleDeleteVariable(variable.key)}
-                        title="删除变量"
-                      >
-                        🗑️
-                      </button>
+                      {variable.source === 'project' && (
+                        <>
+                          <button 
+                            className="action-button edit"
+                            onClick={() => handleEditVariable(variable, index)}
+                            title="编辑变量"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            className="action-button delete"
+                            onClick={() => handleDeleteVariable(variable.key)}
+                            title="删除变量"
+                          >
+                            🗑️
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))
@@ -312,18 +381,18 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
             </div>
             
             <div className="items-list">
-              {switches.length === 0 ? (
+              {allSwitches.length === 0 ? (
                 <div className="empty-state">
                   <div className="icon">🔘</div>
                   <div className="message">暂无开关</div>
                   <div className="sub-message">点击上方按钮添加第一个开关</div>
                 </div>
               ) : (
-                switches.map((switchItem, index) => (
-                  <div key={switchItem.key} className="item">
+                allSwitches.map((switchItem: any, index: number) => (
+                  <div key={switchItem.key} className={`item ${switchItem.source !== 'project' ? 'readonly' : ''}`}>
                     <div 
                       className={`switch-toggle ${switchItem.value ? 'active' : ''}`}
-                      onClick={() => handleToggleSwitch(switchItem.key, switchItem.value)}
+                      onClick={() => { if (switchItem.source === 'project') handleToggleSwitch(switchItem.key, switchItem.value); }}
                     />
                     <div className="item-info">
                       <div className="item-name">{switchItem.key}</div>
@@ -332,20 +401,24 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                       </div>
                     </div>
                     <div className="item-actions">
-                      <button 
-                        className="action-button edit"
-                        onClick={() => handleEditSwitch(switchItem, index)}
-                        title="编辑开关"
-                      >
-                        ✏️
-                      </button>
-                      <button 
-                        className="action-button delete"
-                        onClick={() => handleDeleteSwitch(switchItem.key)}
-                        title="删除开关"
-                      >
-                        🗑️
-                      </button>
+                      {switchItem.source === 'project' && (
+                        <>
+                          <button 
+                            className="action-button edit"
+                            onClick={() => handleEditSwitch(switchItem, index)}
+                            title="编辑开关"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            className="action-button delete"
+                            onClick={() => handleDeleteSwitch(switchItem.key)}
+                            title="删除开关"
+                          >
+                            🗑️
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))
@@ -386,7 +459,7 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
               >
                 <option value="string">字符串</option>
                 <option value="number">数字</option>
-                <option value="boolean">布尔值</option>
+                <option value="boolean">开关</option>
               </select>
             </div>
             

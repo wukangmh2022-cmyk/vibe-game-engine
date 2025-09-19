@@ -9,7 +9,7 @@ export class ShowChoicesHandler extends BaseCommandHandler {
   readonly type = CommandType.SHOW_CHOICES;
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
-      const { title: rawTitle, timeout, elementId } = command.parameters;
+      const { title: rawTitle, timeout, elementId, blocking } = command.parameters;
       // 位置（供运行时渲染器决定放置处）
       const pos = command.parameters.position || {};
       const px: number | undefined = (command.parameters.x ?? pos.x);
@@ -49,6 +49,8 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       console.log('===============\n');
 
       // 监听一次选择事件并执行被选项的子指令（先挂监听，再发展示事件，避免竞态）
+      let resolveChoice: (() => void) | null = null;
+      const choicePromise = new Promise<void>((res) => { resolveChoice = res; });
       const onSelect = async (payload: any) => {
         if (!payload || (payload.commandId && payload.commandId !== command.id) || (payload.elementId && payload.elementId !== elementId)) {
           return; // 非本次选择
@@ -71,6 +73,8 @@ export class ShowChoicesHandler extends BaseCommandHandler {
         }
         // 通知 UI 该选择组件生命周期结束，应该被移除
         context.eventManager?.emit('choices_dismissed', { commandId: command.id, elementId, selected: selected.id || selected.text });
+        // resolve blocking if needed
+        try { resolveChoice?.(); } catch {}
       };
       // 默认单次选择即结束生命周期
       context.eventManager?.once('choice_selected', onSelect);
@@ -107,6 +111,11 @@ export class ShowChoicesHandler extends BaseCommandHandler {
         timeout,
         ui
       });
+
+      // 若 blocking !== false，则等待选择后再返回（阻塞主流程）
+      if (blocking !== false) {
+        await choicePromise;
+      }
 
       return this.createSuccessResult({
         message: `Displayed ${choices.length} choices`,

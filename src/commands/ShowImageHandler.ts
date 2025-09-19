@@ -13,6 +13,7 @@ export class ShowImageHandler extends BaseCommandHandler {
     let src: string | undefined = params.src;
     const pos = params.position || {};
     const size = params.size || {};
+    // treat provided x/y as offsets; center-align logic will add parent center when needed
     let x = params.x ?? pos.x ?? 0;
     let y = params.y ?? pos.y ?? 0;
     const width = params.width ?? size.width;
@@ -35,13 +36,26 @@ export class ShowImageHandler extends BaseCommandHandler {
     }
 
     try {
-      // If align center with parent specified and element size known, compute centered offset
-      if (parentId && align === 'center' && width && height) {
+      // If align center with parent specified:
+      // - force child anchor to 0.5 for true center positioning
+      // - if parent anchor is 0.5, child's (0,0) already at parent center → use offsets directly
+      // - otherwise, move to (parent.width/2, parent.height/2) and then apply offsets
+      if (parentId && align === 'center') {
         try {
           const parentNode: any = (context.renderManager as any)?.getNode?.(parentId);
           if (parentNode) {
-            const pw = parentNode.width || 0; const ph = parentNode.height || 0;
-            x = (pw - width) / 2; y = (ph - height) / 2;
+            const pw = Number(parentNode.width || 0); const ph = Number(parentNode.height || 0);
+            const pax = (parentNode.anchor && typeof parentNode.anchor.x === 'number') ? Number(parentNode.anchor.x) : 0;
+            const pay = (parentNode.anchor && typeof parentNode.anchor.y === 'number') ? Number(parentNode.anchor.y) : 0;
+            (params.style = params.style || {});
+            (params.style.anchorX = 0.5); (params.style.anchorY = 0.5);
+            if (Math.abs(pax - 0.5) < 1e-3 && Math.abs(pay - 0.5) < 1e-3) {
+              // parent local origin already at its visual center
+              x = x; y = y;
+            } else {
+              // move to center of parent's bounds (top-left origin)
+              x = (pw / 2) + x; y = (ph / 2) + y;
+            }
           }
         } catch {}
       }
@@ -50,6 +64,10 @@ export class ShowImageHandler extends BaseCommandHandler {
       const mergedStyle: any = params.style ? { ...params.style } : {};
       if (params.zIndex != null) {
         mergedStyle.zIndex = params.zIndex;
+      }
+      if (align === 'center') {
+        if (mergedStyle.anchorX == null) mergedStyle.anchorX = 0.5;
+        if (mergedStyle.anchorY == null) mergedStyle.anchorY = 0.5;
       }
 
       const elementConfig: ElementConfig = {
@@ -61,6 +79,8 @@ export class ShowImageHandler extends BaseCommandHandler {
         parentId,
         style: Object.keys(mergedStyle).length ? mergedStyle : undefined
       };
+      // Preserve resourceId for downstream handlers (e.g., CHECK_IN_AREA)
+      (elementConfig as any).resourceId = resourceId || undefined;
 
       if (width && height) {
         elementConfig.size = { width, height };

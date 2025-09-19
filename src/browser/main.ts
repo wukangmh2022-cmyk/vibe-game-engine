@@ -13,7 +13,7 @@ import { AnimateLoopHandler } from './AnimateLoopHandler';
 import { PixiSetElementStyleHandler } from './PixiSetElementStyleHandler';
 import { FlipCardHandler } from '../commands/FlipCardHandler';
 import { SetClickableHandler } from '../commands/SetClickableHandler';
-import { SetSelectedHandler } from '../commands/SetSelectedHandler';
+import SetSelectableHandler from '../commands/SetSelectableHandler';
 import { GameCommand } from '../types';
 import { FireworkBurstHandler } from './FireworkBurstHandler';
 import { attachPixiUi } from './ui/PixiUiLayer';
@@ -77,7 +77,8 @@ async function bootstrap() {
   executor.registerHandler(new PixiSetElementStyleHandler());
   executor.registerHandler(new FlipCardHandler());
   executor.registerHandler(new SetClickableHandler());
-  executor.registerHandler(new SetSelectedHandler());
+  // executor.registerHandler(new SetSelectedHandler()); // removed
+  executor.registerHandler(new SetSelectableHandler());
   // Effects
   executor.registerHandler(new FireworkBurstHandler());
 

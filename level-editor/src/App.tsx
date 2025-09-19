@@ -31,6 +31,8 @@ interface AppState {
   // 初始页/工程选择
   isHome?: boolean;
   projectBase?: string;
+  sessionScenes?: Array<{ path: string; data: any; lastEditedAt?: number }>;
+  currentScenePath?: string | null;
 }
 
 // 添加事件触发条件更新函数的类型定义
@@ -69,10 +71,16 @@ const App: React.FC = () => {
     editingTrigger: null,
     runtimeGameData: null,
     isHome: true,
-    projectBase: '/default-project/'
+    projectBase: '/default-project/',
+    sessionScenes: (() => {
+      try { const s = localStorage.getItem('editor:sessionScenes'); return s ? JSON.parse(s) : []; } catch { return []; }
+    })(),
+    currentScenePath: null
   });
 
   const currentLevel = appState.currentProject?.levels.find(l => l.id === appState.currentLevelId) || appState.currentProject?.levels[0];
+  
+  // 预览缩放：由 PixiCanvas 自适应浮窗大小，无固定 0.7 缩放
 
   // 获取当前关卡的事件列表
   const getCurrentLevelEvents = () => {
@@ -309,8 +317,82 @@ const App: React.FC = () => {
     }));
   };
 
+  // 新增：事件增删
+  const handleAddEvent = () => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const levels = prev.currentProject.levels.map((l: any) => {
+        if (l.id !== prev.currentLevelId) return l;
+        const evs = Array.isArray(l.events) ? l.events.slice() : [];
+        const id = `event_${Date.now().toString(36)}`;
+        evs.push({ id, name: '新事件', triggers: [{ type: 'auto', start: 'immediate' }], commands: [] });
+        return { ...l, events: evs };
+      });
+      return { ...prev, currentProject: { ...prev.currentProject, levels } };
+    });
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const levels = prev.currentProject.levels.map((l: any) => {
+        if (l.id !== prev.currentLevelId) return l;
+        const evs = (Array.isArray(l.events) ? l.events : []).filter((e: any) => e?.id !== eventId);
+        return { ...l, events: evs };
+      });
+      const selectedEventId = prev.selectedEventId === eventId ? null : prev.selectedEventId;
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, selectedEventId };
+    });
+  };
+
   const handleLoadJson = (gameData: any) => {
     if (gameData.levels && Array.isArray(gameData.levels)) {
+      // 规范化：将 if_condition 的开关型与可识别的表达式型条件统一为变量型
+      const normalizeConditionsDeep = (list: any[]): any[] => {
+        const mapOp = (sym: string) => ({ '==': 'eq', '===': 'eq', '!=': 'ne', '!==': 'ne', '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte' }[sym] || 'eq');
+        const parseLiteral = (raw: string) => {
+          const s = String(raw).trim();
+          if (/^true$/i.test(s)) return true; if (/^false$/i.test(s)) return false; if (/^null$/i.test(s)) return null;
+          if (/^-?\d+(?:\.\d+)?$/.test(s)) return Number(s);
+          const m = s.match(/^['\"](.*)['\"]$/); if (m) return m[1];
+          return raw;
+        };
+        const normOne = (cmd: any): any => {
+          const c = Array.isArray(cmd?.parameters?.trueCommands) || Array.isArray(cmd?.parameters?.falseCommands) ? { ...cmd, parameters: { ...cmd.parameters } } : { ...cmd };
+          // unify condition
+          const cond = c?.parameters?.condition;
+          if (cond && typeof cond === 'object') {
+            if (cond.type === 'switch') {
+              const key = cond.key;
+              const val = typeof cond.value === 'boolean' ? cond.value : String(cond.value) === 'true';
+              c.parameters.condition = { type: 'variable', key, operator: 'eq', value: val };
+            } else if (cond.type === 'expression' && typeof cond.expression === 'string') {
+              const re = /context\.stateManager\.getVariable\(['\"](.+?)['\"]\)\s*(===|==|!==|!=|>=|<=|>|<)\s*([^\s].*?)$/;
+              const m = cond.expression.match(re);
+              if (m) {
+                const key = m[1];
+                const op = mapOp(m[2]);
+                const rawVal = m[3];
+                c.parameters.condition = { type: 'variable', key, operator: op, value: parseLiteral(rawVal) };
+              }
+            }
+          }
+          // recurse branches/options
+          const p: any = c.parameters || {};
+          if (Array.isArray(p.trueCommands)) p.trueCommands = normalizeConditionsDeep(p.trueCommands);
+          if (Array.isArray(p.falseCommands)) p.falseCommands = normalizeConditionsDeep(p.falseCommands);
+          if (Array.isArray(p.commands)) p.commands = normalizeConditionsDeep(p.commands);
+          const opts = Array.isArray(p.options) ? p.options : (Array.isArray((c as any).options) ? (c as any).options : []);
+          if (Array.isArray(opts)) opts.forEach((o: any) => { if (Array.isArray(o?.commands)) o.commands = normalizeConditionsDeep(o.commands); });
+          const branches = (c as any).branches || p.branches;
+          if (branches) {
+            if (Array.isArray(branches.yes?.commands)) branches.yes.commands = normalizeConditionsDeep(branches.yes.commands);
+            if (Array.isArray(branches.no?.commands)) branches.no.commands = normalizeConditionsDeep(branches.no.commands);
+          }
+          return c;
+        };
+        return (list || []).map(normOne);
+      };
       // 首先构建资源映射（支持对象格式：images/audios/animations/videos）
       const resourceMap = new Map();
       const base = (window as any).__ASSET_BASE__ || (window as any).__PROJECT_BASE__ || '/00project/';
@@ -489,7 +571,7 @@ const App: React.FC = () => {
           events: level.events || [],
           canvasWidth: level.canvasWidth || 800,
           canvasHeight: level.canvasHeight || 600,
-          rawCommands: Array.isArray(level.commands) ? level.commands : [] // 保留原始JSON命令用于树编辑
+          rawCommands: Array.isArray(level.commands) ? normalizeConditionsDeep(level.commands) : [] // 保留原始JSON命令用于树编辑（并统一条件）
         };
         return levelWithEvents as LevelConfig;
       });
@@ -521,7 +603,7 @@ const App: React.FC = () => {
         isPlaying: false,
         runtimeGameData: gameData,
         isHome: false,
-        projectBase: (window as any).__ASSET_BASE__ || appState.projectBase || '/default-project/'
+        projectBase: (window as any).__ASSET_BASE__ || '/default-project/'
       });
     }
   };
@@ -532,6 +614,32 @@ const App: React.FC = () => {
       if (!prev.currentProject) return prev;
       const nextLevels = prev.currentProject.levels.map(l => l.id === levelId ? ({ ...l, ...updates }) : l);
       return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
+    });
+  };
+
+  // 新增：关卡增删
+  const handleCreateLevel = () => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const id = `level_${Date.now().toString(36)}`;
+      let name = '新关卡';
+      try {
+        const v = prompt('输入新关卡名称', '新关卡');
+        if (v != null && v.trim()) name = v.trim();
+      } catch {}
+      const newLevel: any = { id, name, canvasWidth: 800, canvasHeight: 600, commands: [], resources: [], events: [] };
+      const levels = [...prev.currentProject.levels, newLevel];
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, currentLevelId: id, selectedEventId: null, selectedCommandIndex: -1 };
+    });
+  };
+
+  const handleDeleteLevel = (levelId: string) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const levels = prev.currentProject.levels.filter(l => l.id !== levelId);
+      if (levels.length === 0) return prev; // 至少保留一个
+      const nextLevelId = (levels[0] || {}).id;
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, currentLevelId: nextLevelId, selectedEventId: null, selectedCommandIndex: -1 };
     });
   };
 
@@ -583,26 +691,42 @@ const App: React.FC = () => {
     });
   };
 
+  // 持久化会话场景缓存，避免回初始页后丢失
+  useEffect(() => {
+    try { localStorage.setItem('editor:sessionScenes', JSON.stringify(appState.sessionScenes || [])); } catch {}
+  }, [appState.sessionScenes]);
+
   const handleSaveJson = () => {
     if (!appState.currentProject) return;
     
+    // 1) 组装最新的场景 JSON（优先使用 rawCommands 树结构）
+    const levels = (appState.currentProject.levels || []).map((lv: any) => {
+      const out: any = { ...lv };
+      if (Array.isArray(lv.rawCommands)) out.commands = lv.rawCommands;
+      delete out.rawCommands;
+      return out;
+    });
     const gameData = {
       id: appState.currentProject.id,
       name: appState.currentProject.name,
       version: appState.currentProject.version,
       globalVariables: appState.currentProject.globalVariables,
-      levels: appState.currentProject.levels,
+      levels,
       resources: appState.currentProject.resources
     };
-    
-    const dataStr = JSON.stringify(gameData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'game-data.json';
-    link.click();
-    URL.revokeObjectURL(url);
+
+    // 2) 写入到会话缓存（并由 useEffect 持久化到 localStorage）
+    setAppState(prev => {
+      const scenes = (prev.sessionScenes || []).slice();
+      const path = prev.currentScenePath || 'scene/untitled.json';
+      const idx = scenes.findIndex(s => s.path === path);
+      const entry = { path, data: gameData, lastEditedAt: Date.now() };
+      if (idx >= 0) scenes[idx] = entry; else scenes.push(entry);
+      return { ...prev, sessionScenes: scenes, runtimeGameData: gameData };
+    });
+
+    // 3) 轻提示：返回初始页可下载导出的“整个工程”
+    try { alert('关卡已保存到本地存储。返回初始页可导出整个工程（右下角“导出工程”）。'); } catch {}
   };
 
   // 新增：加载测试数据
@@ -777,9 +901,82 @@ const App: React.FC = () => {
     <div className="app">
       {appState.isHome ? (
         <ProjectHome
+          cachedScenes={(appState.sessionScenes || []).map(s => ({ path: s.path, lastEditedAt: s.lastEditedAt }))}
+          onExportProject={async () => {
+            try {
+              // Build scene list from session cache; if empty, fall back to config.json
+              let scenes = (appState.sessionScenes || []).slice();
+              if (!scenes.length) {
+                // Try local-folder mode first
+                const lf: Map<string, File> | undefined = (window as any).__LOCAL_FILES__;
+                if (lf && lf.has('config.json')) {
+                  const cfgText = await lf.get('config.json')!.text();
+                  const cfg = JSON.parse(cfgText);
+                  const list: string[] = [];
+                  const root = cfg?.['scene-tree']?.curnode; if (root) list.push(root);
+                  const children = Array.isArray(cfg?.['scene-tree']?.child_node) ? cfg['scene-tree'].child_node : [];
+                  children.forEach((c: any) => { if (c?.curnode) list.push(c.curnode); });
+                  for (const p of list) {
+                    const f = lf.get(p); if (!f) continue;
+                    const txt = await f.text();
+                    scenes.push({ path: p, data: JSON.parse(txt), lastEditedAt: null as any });
+                  }
+                } else if (appState.projectBase) {
+                  // Fetch from server base
+                  const base = appState.projectBase.endsWith('/') ? appState.projectBase : (appState.projectBase + '/');
+                  const cfgRes = await fetch(base + 'config.json');
+                  if (cfgRes.ok) {
+                    const cfg = await cfgRes.json();
+                    const list: string[] = [];
+                    const root = cfg?.['scene-tree']?.curnode; if (root) list.push(root);
+                    const children = Array.isArray(cfg?.['scene-tree']?.child_node) ? cfg['scene-tree'].child_node : [];
+                    children.forEach((c: any) => { if (c?.curnode) list.push(c.curnode); });
+                    for (const p of list) {
+                      const url = base + p.replace(/^\.\//, '');
+                      const rs = await fetch(url); if (!rs.ok) continue; const data = await rs.json();
+                      scenes.push({ path: p, data, lastEditedAt: null as any });
+                    }
+                  }
+                }
+              }
+
+              if (!scenes.length) { alert('没有可导出的场景'); return; }
+
+              // Build 00project-like files
+              const files: Record<string, string> = {};
+              scenes.forEach(s => {
+                const path = s.path.startsWith('scene/') ? s.path : ('scene/' + s.path.replace(/^\.\//,''));
+                files[path] = JSON.stringify(s.data, null, 2);
+              });
+              const root = scenes[0].path.startsWith('scene/') ? scenes[0].path : ('scene/' + scenes[0].path.replace(/^\.\//,''));
+              const children = scenes.slice(1).map(s => ({ curnode: (s.path.startsWith('scene/') ? s.path : ('scene/' + s.path.replace(/^\.\//,''))), child_node: [] as any[] }));
+              const cfg = {
+                project_name: appState.currentProject?.name || 'exported-project',
+                'scene-tree': { curnode: root, child_node: children },
+                user_data_sheet: { user_nickname: 'default', scene_data: {} },
+                version: appState.currentProject?.version || '1.0.0'
+              };
+              files['config.json'] = JSON.stringify(cfg, null, 2);
+
+              // Create ZIP
+              const { createZip } = await import('./utils/zip');
+              const zipBlob = createZip(files);
+              const url = URL.createObjectURL(zipBlob);
+              const a = document.createElement('a'); a.href = url; a.download = 'project.zip'; a.click(); URL.revokeObjectURL(url);
+            } catch (e) {
+              console.warn('export failed', e);
+              alert('导出失败');
+            }
+          }}
           onOpenScene={(base, sceneRel, data) => {
             try { (window as any).__ASSET_BASE__ = base; } catch {}
-            setAppState(prev => ({ ...prev, projectBase: base }));
+            setAppState(prev => {
+              const scenes = (prev.sessionScenes || []).slice();
+              const idx = scenes.findIndex(s => s.path === sceneRel);
+              const entry = { path: sceneRel, data, lastEditedAt: Date.now() };
+              if (idx >= 0) scenes[idx] = entry; else scenes.push(entry);
+              return { ...prev, projectBase: base, sessionScenes: scenes, currentScenePath: sceneRel };
+            });
             handleLoadJson(data);
           }}
         />
@@ -790,6 +987,8 @@ const App: React.FC = () => {
         levels={appState.currentProject?.levels || []}
         onLevelChange={handleLevelChange}
         onLevelUpdate={handleLevelUpdate}
+        onCreateLevel={handleCreateLevel}
+        onDeleteLevel={handleDeleteLevel}
         onLoadJson={handleLoadJson}
         onSaveJson={handleSaveJson}
         isPlaying={appState.isPlaying}
@@ -815,6 +1014,7 @@ const App: React.FC = () => {
             canvasWidth={(currentLevel as any).canvasWidth || 800}
             canvasHeight={(currentLevel as any).canvasHeight || 600}
             gameData={appState.runtimeGameData}
+            currentLevelId={(currentLevel as any).id}
           />
         </FloatingPanel>
 
@@ -825,6 +1025,8 @@ const App: React.FC = () => {
             selectedEventId={appState.selectedEventId}
             onEventSelect={handleEventSelect}
             onOpenTriggerEditor={handleOpenTriggerEditor}
+            onAddEvent={handleAddEvent}
+            onDeleteEvent={handleDeleteEvent}
           />
         </FloatingPanel>
 
@@ -849,6 +1051,29 @@ const App: React.FC = () => {
         <FloatingPanel id="panel-library" title="综合库面板" defaultX={16} defaultY={360} defaultWidth={360} defaultHeight={360}>
           <CombinedLibraryPanel
             project={appState.currentProject}
+            currentLevel={currentLevel as any}
+            onAddLevelResource={(rid: string) => {
+              setAppState(prev => {
+                if (!prev.currentProject) return prev;
+                const nextLevels = prev.currentProject.levels.map(l => {
+                  if (l.id !== prev.currentLevelId) return l;
+                  const set = new Set([...(l.resources || [])]); set.add(rid);
+                  return { ...l, resources: Array.from(set) } as any;
+                });
+                return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
+              });
+            }}
+            onRemoveLevelResource={(rid: string) => {
+              setAppState(prev => {
+                if (!prev.currentProject) return prev;
+                const nextLevels = prev.currentProject.levels.map(l => {
+                  if (l.id !== prev.currentLevelId) return l;
+                  const arr = (l.resources || []).filter((x: any) => x !== rid);
+                  return { ...l, resources: arr } as any;
+                });
+                return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
+              });
+            }}
             onVariableChange={handleVariableChange}
             onSwitchChange={handleSwitchChange}
             onVariableAdd={handleVariableAdd}

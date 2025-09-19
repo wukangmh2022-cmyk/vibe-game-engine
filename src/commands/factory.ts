@@ -54,7 +54,7 @@ export function createDefaultHandlers(): ICommandHandler[] {
     new ReturnHandler(),
     new SetPositionHandler(null as any),
     new GetPositionHandler(null as any),
-    new CheckInAreaHandler(null as any),
+    new CheckInAreaHandler(),
     new BgmPlayHandler(),
     new BgmPauseHandler(),
     new BgmStopHandler(),
@@ -129,6 +129,6 @@ export function createPositionHandlers(): ICommandHandler[] {
   return [
     new SetPositionHandler(null as any),
     new GetPositionHandler(null as any),
-    new CheckInAreaHandler(null as any)
+    new CheckInAreaHandler()
   ];
 }

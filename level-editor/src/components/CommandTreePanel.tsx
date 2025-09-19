@@ -75,6 +75,49 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
       case 'WAIT': {
         return p.duration ? `${p.duration}ms` : '';
       }
+      case 'SET_ELEMENT_STYLE': {
+        const eid = p.elementId || '';
+        const disp = p?.style?.display;
+        return eid ? `${eid}${disp ? ` display=${disp}` : ''}` : '';
+      }
+      case 'SET_DRAGGABLE': {
+        const eid = p.elementId || '';
+        const on = p.draggable !== false;
+        return eid ? `${eid} ${on ? '拖拽:开' : '拖拽:关'}` : '';
+      }
+      case 'SET_CLICKABLE': {
+        const eid = p.elementId || '';
+        const on = p.clickable !== false;
+        const act = p.onClick || 'commands';
+        return eid ? `${eid} ${on ? '可点' : '禁用'} → ${act}` : '';
+      }
+      case 'CHECK_IN_AREA': {
+        const eid = p.elementId || '';
+        const a = p.area || {};
+        const ax = a.x != null ? a.x : '?';
+        const ay = a.y != null ? a.y : '?';
+        const aw = a.width != null ? a.width : '?';
+        const ah = a.height != null ? a.height : '?';
+        return eid ? `${eid} ∈ [${ax},${ay},${aw},${ah}]` : `[${ax},${ay},${aw},${ah}]`;
+      }
+      case 'LOOP': {
+        const lt = String(p.loopType || 'for').toLowerCase();
+        const opSym = (tok: string) => ({ eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' }[tok] || tok || '==');
+        if (lt === 'while') {
+          const c = p.condition || {};
+          if (c.type === 'expression' && c.expression) return `while ${c.expression}`;
+          if (c.type === 'variable') return `while ${c.key || ''} ${opSym(String(c.operator||'eq'))} ${c.value ?? ''}`;
+          if (c.type === 'switch') return `while ${c.key || ''} == ${String(c.value ?? true)}`;
+          return 'while (…)';
+        }
+        // for
+        if (p.variable && (p.start != null) && (p.end != null)) {
+          const step = (p.step != null) ? String(p.step) : '1';
+          return `for ${p.variable}=${p.start}..${p.end} step ${step}`;
+        }
+        if (p.count != null) return `for x ${p.count} times`;
+        return 'for (…)';
+      }
       case 'JUMP_TO': {
         return p.target ? String(p.target) : (p.targetIndex != null ? `#${p.targetIndex}` : '');
       }
@@ -196,11 +239,28 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
           { id: `${n.id}_b_no`, type: 'BRANCH', label: '否', kind: 'branch', children: [] }
         ];
       }
-      if (n.type === 'SHOW_CHOICES' || n.type === 'CHOICES') {
+      if (n.type === 'SHOW_CHOICES') {
         if (!n.children.length) n.children = [
           { id: `${n.id}_opt_1`, type: 'BRANCH', label: '选项1', kind: 'branch', children: [] },
           { id: `${n.id}_opt_2`, type: 'BRANCH', label: '选项2', kind: 'branch', children: [] }
         ];
+      }
+      if (n.type === 'CHECK_IN_AREA') {
+        if (!n.children.length) n.children = [
+          { id: `${n.id}_hit`, type: 'BRANCH', label: '命中时', kind: 'branch', children: [] }
+        ];
+      }
+      if (n.type === 'SET_SELECTABLE') {
+        if (!n.children.length) n.children = [
+          { id: `${n.id}_sel_on`, type: 'BRANCH', label: '选中时', kind: 'branch', children: [] },
+          { id: `${n.id}_sel_off`, type: 'BRANCH', label: '取消选中时', kind: 'branch', children: [] }
+        ];
+      }
+      if (n.type === 'SET_CLICKABLE') {
+        const onClick = String((n as any).parameters?.onClick || '').toLowerCase();
+        if (onClick === 'commands' && !n.children.length) {
+          n.children = [ { id: `${n.id}_on_click`, type: 'BRANCH', label: '点击时', kind: 'branch', children: [] } ];
+        }
       }
     }
     return n;
@@ -245,7 +305,9 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
               <CommandLibraryPanel
                 project={project}
                 onInsert={(cmd) => {
-                  const node: CommandNode = { id: cmd.id, type: String(cmd.type).toUpperCase(), kind: 'action', parameters: cmd.parameters || {}, children: [] };
+                  let node: CommandNode = { id: cmd.id, type: String(cmd.type).toUpperCase(), kind: 'action', parameters: cmd.parameters || {}, children: [] };
+                  // materialize default branches for branchable types (including CHECK_IN_AREA)
+                  node = withDefaultBranches(node);
                   // compute new path after insert
                   const targetPath = insertTarget.path.slice();
                   let newPath: number[] = [];
@@ -327,7 +389,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                     });
                     updated = { ...base, children: ch };
                   }
-                  if (updated.type === 'SHOW_CHOICES' || updated.type === 'CHOICES') {
+                  if (updated.type === 'SHOW_CHOICES') {
                     const countFromArray = Array.isArray(p?.options) ? p.options.length : Array.isArray(p?.choices) ? p.choices.length : 0;
                     const count = Math.max(0, Number(countFromArray || p.optionsCount || p.count || 2));
                     // only (re)generate if当前没有 children，占位目的；若已有 children 则保留
@@ -338,6 +400,32 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                         ch.push({ id: `${updated.id}_opt_${i+1}`, type: 'BRANCH', label, kind: 'branch', children: [] });
                       }
                       updated = { ...updated, children: ch };
+                    }
+                  }
+                  if (updated.type === 'CHECK_IN_AREA') {
+                    if (!(updated.children && updated.children.length)) {
+                      updated = { ...updated, children: [ { id: `${updated.id}_hit`, type: 'BRANCH', label: '命中时', kind: 'branch', children: [] } ] };
+                    }
+                  }
+                  if (updated.type === 'SET_SELECTABLE') {
+                    if (!(updated.children && updated.children.length)) {
+                      updated = { ...updated, children: [
+                        { id: `${updated.id}_sel_on`, type: 'BRANCH', label: '选中时', kind: 'branch', children: [] },
+                        { id: `${updated.id}_sel_off`, type: 'BRANCH', label: '取消选中时', kind: 'branch', children: [] }
+                      ] };
+                    }
+                  }
+                  if (updated.type === 'SET_CLICKABLE') {
+                    const onClick = String(p?.onClick || '').toLowerCase();
+                    if (onClick === 'commands') {
+                      if (!updated.children || updated.children.length === 0) {
+                        updated = { ...updated, children: [ { id: `${updated.id}_on_click`, type: 'BRANCH', label: '点击时', kind: 'branch', children: [] } ] };
+                      }
+                    } else {
+                      // 非 commands 时去掉子分支，避免混淆
+                      if (updated.children && updated.children.length) {
+                        updated = { ...updated, children: [] };
+                      }
                     }
                   }
                   return updated;

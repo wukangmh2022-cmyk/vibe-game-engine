@@ -8,22 +8,44 @@ interface CommandLibraryPanelProps {
 }
 
 const EXTRA_ALIASES: Array<{ type: any; name: string; category: string; icon: string; color: string; desc: string }> = [
-  { type: 'SHOW_CHOICES', name: '显示选项', category: 'interaction', icon: '📋', color: '#3F51B5', desc: '显示多个可选项并等待用户选择' },
-  { type: 'SET_CLICKABLE', name: '设置可点击', category: 'interaction', icon: '🖱️', color: '#3F51B5', desc: '设置元素的点击行为（翻牌/执行命令等）' },
-  { type: 'SET_SELECTED', name: '设置选中', category: 'interaction', icon: '✅', color: '#3F51B5', desc: '设置元素的选中状态（含特效）' },
-  { type: 'CHECK_IN_AREA', name: '检测区域内', category: 'interaction', icon: '📐', color: '#3F51B5', desc: '检测元素是否进入指定区域' },
-  { type: 'ANIMATE_IN', name: '入场动画', category: 'animation', icon: '✨', color: '#FF9800', desc: '常见入场动画（淡入/弹跳/位移）' },
-  { type: 'ANIMATE_LOOP', name: '循环动画', category: 'animation', icon: '🔁', color: '#FF9800', desc: '循环动画（悬浮/呼吸等）' },
-  { type: 'PLAY_SOUND', name: '播放音效', category: 'audio', icon: '🔊', color: '#9C27B0', desc: '播放一次性音效' },
-  { type: 'BGM_PLAY', name: '播放BGM', category: 'audio', icon: '🎵', color: '#9C27B0', desc: '播放背景音乐' },
-  { type: 'BGM_PAUSE', name: '暂停BGM', category: 'audio', icon: '⏸️', color: '#9C27B0', desc: '暂停背景音乐' },
-  { type: 'BGM_STOP', name: '停止BGM', category: 'audio', icon: '⏹️', color: '#9C27B0', desc: '停止背景音乐' },
-  { type: 'SE_PLAY', name: '播放SE', category: 'audio', icon: '🔈', color: '#9C27B0', desc: '播放系统音效' },
-  { type: 'SET_VOLUME', name: '设置音量', category: 'audio', icon: '🔉', color: '#9C27B0', desc: '设置全局/分类音量' },
-  { type: 'FIREWORK_BURST', name: '烟花特效', category: 'animation', icon: '🧨', color: '#FF9800', desc: '绚丽的烟花粒子效果' },
+
 ];
 
 export const CommandLibraryPanel: React.FC<CommandLibraryPanelProps> = ({ project, onInsert }) => {
+  const usedTypes = useMemo(() => {
+    const set = new Set<string>();
+    const pushType = (t: any) => { if (t) set.add(String(t).toUpperCase()); };
+    const walkList = (arr: any[]) => {
+      (arr || []).forEach((cmd) => {
+        if (!cmd) return;
+        const t = (typeof cmd.type === 'string') ? cmd.type : (cmd.type && String(cmd.type)) || '';
+        pushType(t);
+        const p = (cmd.parameters || {}) as any;
+        // if_condition
+        if (Array.isArray(p.trueCommands)) walkList(p.trueCommands);
+        if (Array.isArray(p.falseCommands)) walkList(p.falseCommands);
+        // loop/clickable body
+        if (Array.isArray(p.commands)) walkList(p.commands);
+        // choices/options
+        const opts = Array.isArray(p.options) ? p.options : (Array.isArray((cmd as any).options) ? (cmd as any).options : []);
+        (opts || []).forEach((o: any) => { if (Array.isArray(o?.commands)) walkList(o.commands); });
+        // button branches
+        const branches = (cmd as any).branches || p.branches;
+        if (branches) {
+          if (Array.isArray(branches.yes?.commands)) walkList(branches.yes.commands);
+          if (Array.isArray(branches.no?.commands)) walkList(branches.no.commands);
+        }
+      });
+    };
+    try {
+      (project?.levels || []).forEach((lv: any) => {
+        if (Array.isArray(lv?.rawCommands)) walkList(lv.rawCommands);
+        (lv?.events || []).forEach((ev: any) => { if (Array.isArray(ev?.commands)) walkList(ev.commands); });
+      });
+    } catch {}
+    return set;
+  }, [project]);
+
   const merged = useMemo(() => {
     const base = COMMAND_TEMPLATES.map(t => ({
       type: String(t.type),
@@ -35,8 +57,14 @@ export const CommandLibraryPanel: React.FC<CommandLibraryPanelProps> = ({ projec
     }));
     const extra = EXTRA_ALIASES.filter(e => !base.find(b => b.type.toUpperCase() === String(e.type).toUpperCase()))
       .map(e => ({ type: String(e.type), name: e.name, description: e.desc, category: e.category, icon: e.icon, color: e.color }));
-    return [...base, ...extra];
-  }, []);
+    const all = [...base, ...extra];
+    // Hide HIDE_ELEMENTS if not used in project JSON
+    return all.filter(item => {
+      const up = String(item.type).toUpperCase();
+      if (up === 'HIDE_ELEMENTS' && !usedTypes.has('HIDE_ELEMENTS')) return false;
+      return true;
+    });
+  }, [usedTypes]);
   const cats = useMemo(() => {
     const set = new Set<string>();
     merged.forEach(m => set.add(m.category || 'misc'));

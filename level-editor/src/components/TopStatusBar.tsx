@@ -7,6 +7,9 @@ interface TopStatusBarProps {
   levels: LevelConfig[];
   onLevelChange: (levelId: string) => void;
   onLevelUpdate: (levelId: string, updates: Partial<LevelConfig>) => void; // 新增：关卡更新
+  onCreateLevel?: () => void; // 新增：创建关卡
+  onDeleteLevel?: (levelId: string) => void; // 新增：删除关卡
+  onLoadTestData?: () => void; // 可选：加载测试数据
   onLoadJson: (gameData: any) => void;
   onSaveJson: () => void;
   isPlaying: boolean;
@@ -20,11 +23,13 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
   levels,
   onLevelChange,
   onLevelUpdate, // 新增参数
+  onCreateLevel,
+  onDeleteLevel,
   onLoadJson,
   onSaveJson,
   isPlaying,
   onPlayToggle,
-  onLoadTestData, // 新增参数
+  onLoadTestData,
   onShowBlueprint, // 新增参数
   onExitToHome
 }) => {
@@ -106,6 +111,24 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
               </option>
             ))}
           </select>
+          <button
+            title="重命名关卡"
+            style={{ marginLeft: 6 }}
+            onClick={() => {
+              const next = prompt('输入关卡名称', currentLevel.name || '');
+              if (next == null) return;
+              const name = next.trim();
+              onLevelUpdate(currentLevel.id, { name: name || currentLevel.id });
+            }}
+          >
+            ⚙️
+          </button>
+          {onCreateLevel && (
+            <button style={{ marginLeft: 6 }} onClick={onCreateLevel}>＋ 新建关卡</button>
+          )}
+          {onDeleteLevel && (
+            <button style={{ marginLeft: 6 }} onClick={() => onDeleteLevel(currentLevel.id)}>🗑️ 删除关卡</button>
+          )}
         </div>
         
         
@@ -154,7 +177,11 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
         >
           {isPlaying ? '⏸️ 终止' : '▶️ 播放'}
         </button>
-        
+        {onLoadTestData && (
+          <button className="test-button" onClick={onLoadTestData}>
+            🧪 测试数据
+          </button>
+        )}
         
         {onShowBlueprint && (
           <button className="blueprint-button" onClick={onShowBlueprint}>

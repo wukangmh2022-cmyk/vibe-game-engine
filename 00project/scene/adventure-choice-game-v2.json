@@ -226,29 +226,25 @@
         },
         {
           "id": "enter-forest-question",
-          "type": "BUTTON",
+          "type": "SHOW_CHOICES",
           "parameters": {
             "elementId": "btn-enter-forest",
-            "position": {
-              "x": 50,
-              "y": 200
-            },
+            "position": { "x": 50, "y": 200 },
             "ui": {
               "rowMax": 2,
               "fontSize": 16,
-              
-              "paddingX" : 20,
-              "paddingY" : 10,
-              "gapX" : 40,
-              "gapY" : 20,
-
+              "paddingX": 20,
+              "paddingY": 10,
+              "gapX": 40,
+              "gapY": 20,
               "minWidth": 80,
               "buttonSkinId": "btn-primary-9slice"
             }
           },
-          "branches": {
-            "yes": {
-              "label": "是",
+          "options": [
+            {
+              "id": "yes-enter",
+              "text": "是",
               "commands": [
                 {
                   "id": "update-story-forest",
@@ -307,8 +303,9 @@
                 }
               ]
             },
-            "no": {
-              "label": "否",
+            {
+              "id": "no-enter",
+              "text": "否",
               "commands": [
                 {
                   "id": "update-story-stay",
@@ -320,11 +317,11 @@
                 }
               ]
             }
-          }
+          ]
         },
         {
           "id": "path-choices",
-          "type": "CHOICES",
+          "type": "SHOW_CHOICES",
           "parameters": {
             "elementId": "choices-path",
             "position": {
@@ -436,31 +433,6 @@
                         }
                       },
                       {
-                        "id": "create-backpack-dropzone",
-                        "type": "CREATE_DROP_ZONE",
-                        "parameters": {
-                          "dropZoneId": "bag-drop-zone",
-                          "position": {
-                            "x": 620,
-                            "y": 420
-                          },
-                          "size": {
-                            "width": 120,
-                            "height": 120
-                          },
-                          "acceptTypes": [
-                            "legendary-sword"
-                          ],
-                          "label": "背包",
-                          "style": {
-                            "backgroundColor": "rgba(0,0,0,0.05)",
-                            "borderColor": "#34495e",
-                            "color": "#34495e",
-                            "fontWeight": "bold"
-                          }
-                        }
-                      },
-                      {
                         "id": "show-sword",
                         "type": "SHOW_IMAGE",
                         "parameters": {
@@ -491,6 +463,63 @@
                           "elementId": "sword",
                           "draggable": true,
                           "dragType": "legendary-sword"
+                        }
+                      },
+                      {
+                        "id": "check-sword-in-bag",
+                        "type": "CHECK_IN_AREA",
+                        "parameters": {
+                          "elementId": "sword",
+                          "area": { "x": 620, "y": 420, "width": 120, "height": 120 },
+                          "commands": [
+                            {
+                              "id": "set-has-sword",
+                              "type": "set_variable",
+                              "parameters": { "key": "hasSword", "op": "set", "value": true }
+                            },
+                            {
+                              "id": "switch-to-outer",
+                              "type": "SHOW_IMAGE",
+                              "parameters": {
+                                "elementId": "background",
+                                "resourceId": "forest-bg",
+                                "position": { "x": 0, "y": 0 },
+                                "size": { "width": 800, "height": 600 },
+                                "zIndex": 0
+                              }
+                            },
+                            {
+                              "id": "hide-sword",
+                              "type": "SET_ELEMENT_STYLE",
+                              "parameters": { "elementId": "sword", "style": { "display": "none" } }
+                            },
+                            {
+                              "id": "hide-stats",
+                              "type": "SET_ELEMENT_STYLE",
+                              "parameters": { "elementId": "stats-display", "style": { "display": "none" } }
+                            },
+                            {
+                              "id": "hide-enter-cave",
+                              "type": "SET_ELEMENT_STYLE",
+                              "parameters": { "elementId": "story-text", "style": { "display": "none" } }
+                            },
+                            {
+                              "id": "hide-show-cave-tip",
+                              "type": "SET_ELEMENT_STYLE",
+                              "parameters": { "elementId": "cave-tip", "style": { "display": "none" } }
+                            },
+                            {
+                              "id": "show-congrats",
+                              "type": "SHOW_TEXT",
+                              "parameters": {
+                                "elementId": "story-text",
+                                "text": "🎉 恭喜你获得传说之剑！冒险胜利",
+                                "position": { "x": 60, "y": 480 },
+                                "style": { "fontSize": 22.0, "color": "#ffffff", "maxWidth": 680 }
+                              }
+                            },
+                            { "id": "emit-treasure-collected", "type": "EMIT_SIGNAL", "parameters": { "signal": "treasure_collected" } }
+                          ]
                         }
                       }
                     ],
@@ -865,108 +894,6 @@
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "id": "sword-dropped",
-          "name": "宝剑投放事件（按投放区ID触发）",
-          "triggers": [
-            {
-              "type": "custom",
-              "target": "bag-drop-zone"
-            }
-          ],
-          "commands": [
-            {
-              "id": "set-has-sword",
-              "type": "set_variable",
-              "parameters": {
-                "key": "hasSword",
-                "op": "set",
-                "value": true
-              }
-            },
-            {
-              "id": "switch-to-outer",
-              "type": "SHOW_IMAGE",
-              "parameters": {
-                "elementId": "background",
-                "resourceId": "forest-bg",
-                "position": {
-                  "x": 0,
-                  "y": 0
-                },
-                "size": {
-                  "width": 800,
-                  "height": 600
-                },
-                "zIndex": 0
-              }
-            },
-            {
-              "id": "hide-sword",
-              "type": "SET_ELEMENT_STYLE",
-              "parameters": {
-                "elementId": "sword",
-                "style": {
-                  "display": "none"
-                }
-              }
-            },
-            {
-              "id": "hide-stats",
-              "type": "SET_ELEMENT_STYLE",
-              "parameters": {
-                "elementId": "stats-display",
-                "style": {
-                  "display": "none"
-                }
-              }
-            },
-            {
-              "id": "hide-enter-cave",
-              "type": "SET_ELEMENT_STYLE",
-              "parameters": {
-                "elementId": "story-text",
-                "style": {
-                  "display": "none"
-                }
-              }
-            },
-            {
-              "id": "hide-show-cave-tip",
-              "type": "SET_ELEMENT_STYLE",
-              "parameters": {
-                "elementId": "cave-tip",
-                "style": {
-                  "display": "none"
-                }
-              }
-            },
-            {
-              "id": "show-congrats",
-              "type": "SHOW_TEXT",
-              "parameters": {
-                "elementId": "story-text",
-                "text": "🎉 恭喜你获得传说之剑！冒险胜利",
-                "position": {
-                  "x": 60,
-                  "y": 480
-                },
-                "style": {
-                  "fontSize": 22.0,
-                  "color": "#ffffff",
-                  "maxWidth": 680
-                }
-              }
-            },
-            {
-              "id": "emit-treasure-collected",
-              "type": "EMIT_SIGNAL",
-              "parameters": {
-                "signal": "treasure_collected"
-              }
             }
           ]
         }

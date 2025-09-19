@@ -6,6 +6,9 @@ import { ResourceListPanel } from './ResourceListPanel';
 
 interface CombinedLibraryPanelProps {
   project?: GameProject | null;
+  currentLevel?: any;
+  onAddLevelResource?: (rid: string) => void;
+  onRemoveLevelResource?: (rid: string) => void;
   onVariableChange: (key: string, value: any) => void;
   onSwitchChange: (key: string, value: boolean) => void;
   onVariableAdd: (key: string, value: any) => void;
@@ -16,6 +19,10 @@ interface CombinedLibraryPanelProps {
 
 export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
   project,
+  // reverted UI: keep API but unused for now
+  currentLevel,
+  onAddLevelResource,
+  onRemoveLevelResource,
   onVariableChange,
   onSwitchChange,
   onVariableAdd,
@@ -29,8 +36,8 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
     <div className="combined-lib">
       <div className="lib-tabs">
         <button className={`lib-tab ${tab === 'resources' ? 'active' : ''}`} onClick={() => setTab('resources')}>🗂️ 资源</button>
-        <button className={`lib-tab ${tab === 'variables' ? 'active' : ''}`} onClick={() => setTab('variables')}>📊 变量</button>
-        <button className={`lib-tab ${tab === 'switches' ? 'active' : ''}`} onClick={() => setTab('switches')}>🔘 开关</button>
+        <button className={`lib-tab ${tab === 'variables' ? 'active' : ''}`} onClick={() => setTab('variables')}>📊 变量和开关</button>
+        {/* <button className={`lib-tab ${tab === 'switches' ? 'active' : ''}`} onClick={() => setTab('switches')}>🔘 开关</button> */}
       </div>
       <div className="lib-body">
         <div className="lib-scroll">

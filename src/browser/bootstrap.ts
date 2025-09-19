@@ -15,7 +15,7 @@ import { AnimateLoopHandler } from './AnimateLoopHandler';
 import { PixiSetElementStyleHandler } from './PixiSetElementStyleHandler';
 import { FlipCardHandler } from '../commands/FlipCardHandler';
 import { SetClickableHandler } from '../commands/SetClickableHandler';
-import { SetSelectedHandler } from '../commands/SetSelectedHandler';
+import SetSelectableHandler from '../commands/SetSelectableHandler';
 import { FireworkBurstHandler } from './FireworkBurstHandler';
 import { GameCommand } from '../types';
 import { attachPixiUi } from './ui/PixiUiLayer';
@@ -34,6 +34,7 @@ export interface MountedRuntime {
   dispose(): void;
   executor: CommandExecutor;
   app: any;
+  setViewScale(scale: number): void;
 }
 
 export async function mountRuntime(
@@ -84,7 +85,9 @@ export async function mountRuntime(
   executor.registerHandler(new PixiSetElementStyleHandler());
   executor.registerHandler(new FlipCardHandler());
   executor.registerHandler(new SetClickableHandler());
-  executor.registerHandler(new SetSelectedHandler());
+  executor.registerHandler(new SetSelectableHandler());
+  // Allow external toggling of selected state (used by SET_CLICKABLE toggle_selected)
+  try { const { SetSelectedHandler } = await import('../commands/SetSelectedHandler'); executor.registerHandler(new (SetSelectedHandler as any)()); } catch {}
   executor.registerHandler(new FireworkBurstHandler());
 
   // Swallow editor-only grouping commands to avoid noisy errors
@@ -217,14 +220,32 @@ export async function mountRuntime(
     }
   });
 
-  // Execute top-level commands
-  for (const cmd of (level?.commands || []) as GameCommand[]) {
-    await executor.executeCommand(cmd);
-  }
+  const setViewScale = (s: number) => {
+    try {
+      const view = app?.view as HTMLCanvasElement;
+      if (!view) return;
+      (view.style as any).transformOrigin = '0 0';
+      (view.style as any).transform = `scale(${Number(s) || 1})`;
+      (view.style as any).display = 'block';
+    } catch {}
+  };
+
+  // Execute top-level commands asynchronously to avoid blocking mount/scale
+  (async () => {
+    try {
+      for (const cmd of (level?.commands || []) as GameCommand[]) {
+        // eslint-disable-next-line no-await-in-loop
+        await executor.executeCommand(cmd);
+      }
+    } catch (e) {
+      (logger || console).warn('[runtime] top-level commands run failed', e);
+    }
+  })();
 
   return {
     dispose() { try { app.destroy(true, true); } catch {} },
     executor,
-    app
+    app,
+    setViewScale
   };
 }

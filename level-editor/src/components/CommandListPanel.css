@@ -123,6 +123,12 @@
   border-left-color: #2196f3;
 }
 
+/* 选择指令类型弹层（支持滚动） */
+.clp-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 2147483000; }
+.clp-dialog { background: #fff; width: 560px; max-width: 90vw; max-height: 80vh; display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; border: 1px solid #e9ecef; }
+.clp-dialog-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #f8f9fa; border-bottom: 1px solid #e9ecef; }
+.clp-dialog-body { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+
 .command-item.branch-command::before {
   content: '';
   position: absolute;

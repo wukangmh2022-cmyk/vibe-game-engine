@@ -73,6 +73,9 @@ export class ShowTextHandler extends BaseCommandHandler {
           const addVer = (u?: string): string | undefined => {
             if (!u) return u;
             try {
+              // Do NOT append query to blob:/data:/file: URLs — it breaks loading
+              const low = String(u).toLowerCase();
+              if (low.startsWith('blob:') || low.startsWith('data:') || low.startsWith('file:')) return u;
               const g: any = globalThis as any;
               const ver = g.__ASSET_VERSION || g.__BUILD_VERSION || g.__GAME_ASSET_VERSION || 'dev';
               const hashIdx = u.indexOf('#');
@@ -86,7 +89,7 @@ export class ShowTextHandler extends BaseCommandHandler {
             // Fallback: construct from conventional path with optional asset base
             try {
               const g2: any = (typeof window !== 'undefined' ? (window as any) : (globalThis as any));
-              const base: string | undefined = g2?.__ASSET_BASE__ || g2?.__PROJECT_BASE__ || '/';
+              const base: string = String(g2?.__ASSET_BASE__ || g2?.__PROJECT_BASE__ || '/');
               const joined = base.endsWith('/') ? `${base}images/${imageId}.svg` : `${base}/images/${imageId}.svg`;
               url = addVer(joined);
             } catch {

@@ -7,19 +7,9 @@ import { CommandType, GameCommand, CommandContext, CommandResult, IRendererManag
 export class CheckInAreaHandler extends BaseCommandHandler {
   readonly type = CommandType.CHECK_IN_AREA;
 
-  constructor(private renderManager: IRendererManager) {
-    super();
-  }
-
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
-      const { 
-        elementId, 
-        area, 
-        checkMode = 'center', 
-        variableName,
-        switchName 
-      } = command.parameters;
+      const { elementId, area, commands, checkMode = 'center' } = command.parameters || {};
 
       if (!elementId) {
         return {
@@ -56,69 +46,21 @@ export class CheckInAreaHandler extends BaseCommandHandler {
       // 获取元素的位置和尺寸
       const rect = element.getBoundingClientRect();
       
-      // 根据检测模式确定检测点
-      let checkPoints: { x: number; y: number }[];
-      
-      switch (checkMode) {
-        case 'center':
-          checkPoints = [{
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-          }];
-          break;
-        case 'corners':
-          checkPoints = [
-            { x: rect.left, y: rect.top },
-            { x: rect.right, y: rect.top },
-            { x: rect.left, y: rect.bottom },
-            { x: rect.right, y: rect.bottom }
-          ];
-          break;
-        case 'edges':
-          checkPoints = [
-            { x: rect.left + rect.width / 2, y: rect.top },
-            { x: rect.right, y: rect.top + rect.height / 2 },
-            { x: rect.left + rect.width / 2, y: rect.bottom },
-            { x: rect.left, y: rect.top + rect.height / 2 }
-          ];
-          break;
-        case 'full':
-          // 检查整个元素是否完全在区域内
-          checkPoints = [
-            { x: rect.left, y: rect.top },
-            { x: rect.right, y: rect.bottom }
-          ];
-          break;
-        default:
-          checkPoints = [{
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-          }];
-      }
+      // 以元素中心点检测是否在区域内
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const isInArea = (cx >= area.x && cx <= area.x + area.width && cy >= area.y && cy <= area.y + area.height);
 
-      // 执行区域检测
-      let isInArea: boolean;
-      
-      if (checkMode === 'full') {
-        // 检查整个元素是否完全在区域内
-        isInArea = this.isRectInArea(rect, area);
-      } else if (checkMode === 'corners' || checkMode === 'edges') {
-        // 检查所有点是否都在区域内
-        isInArea = checkPoints.every(point => this.isPointInArea(point, area));
-      } else {
-        // 检查任意一个点是否在区域内
-        isInArea = checkPoints.some(point => this.isPointInArea(point, area));
-      }
-
-      // 存储结果到变量或开关
-      if (variableName && context.stateManager) {
-        context.stateManager.setVariable(variableName, isInArea);
-        context.logger?.info(`Area check result stored in variable: ${variableName} = ${isInArea}`);
-      }
-
-      if (switchName && context.stateManager) {
-        context.stateManager.setSwitch(switchName, isInArea);
-        context.logger?.info(`Area check result stored in switch: ${switchName} = ${isInArea}`);
+      // 命中时设置系统变量，并执行子命令
+      if (isInArea) {
+        try {
+          context.stateManager.setVariable('last_drop_element_ID', elementId);
+          context.stateManager.setVariable('last_drop_resource_ID', '');
+        } catch {}
+        const exec: any = (context as any).executor;
+        if (Array.isArray(commands) && commands.length) {
+          await exec.executeCommands(commands);
+        }
       }
 
       const resultData = {
@@ -126,13 +68,7 @@ export class CheckInAreaHandler extends BaseCommandHandler {
         isInArea,
         checkMode,
         area,
-        elementRect: {
-          x: rect.left,
-          y: rect.top,
-          width: rect.width,
-          height: rect.height
-        },
-        checkPoints
+        center: { x: cx, y: cy }
       };
 
       context.logger?.info(`Area check for element ${elementId}: ${isInArea}`, resultData);
@@ -147,26 +83,6 @@ export class CheckInAreaHandler extends BaseCommandHandler {
         error: `Failed to check area: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
-  }
-
-  /**
-   * 检查点是否在区域内
-   */
-  private isPointInArea(point: { x: number; y: number }, area: any): boolean {
-    return point.x >= area.x && 
-           point.x <= area.x + area.width &&
-           point.y >= area.y && 
-           point.y <= area.y + area.height;
-  }
-
-  /**
-   * 检查矩形是否完全在区域内
-   */
-  private isRectInArea(rect: DOMRect, area: any): boolean {
-    return rect.left >= area.x &&
-           rect.top >= area.y &&
-           rect.right <= area.x + area.width &&
-           rect.bottom <= area.y + area.height;
   }
 
   /**

@@ -40,13 +40,13 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
     const down = (e: any) => {
       // 任何进行中的补间/时间轴应在拖拽开始时被取消
       try { if (typeof (node as any).__animToken !== 'number') (node as any).__animToken = 0; (node as any).__animToken++; } catch {}
-      dragging = true; node.cursor = 'grabbing';
+      dragging = true; node.cursor = 'grabbing'; (node as any).__dragging = true;
       const pos = e.data.getLocalPosition(node.parent);
       offset.x = pos.x - node.x; offset.y = pos.y - node.y;
       context.eventManager.emit('drag_start', { elementId: id, startPosition: { x: node.x, y: node.y }, timestamp: Date.now() });
     };
     const up = () => {
-      if (!dragging) return; dragging = false; node.cursor = 'grab';
+      if (!dragging) return; dragging = false; node.cursor = 'grab'; (node as any).__dragging = false;
       context.eventManager.emit('drag_end', { elementId: id, endPosition: { x: node.x, y: node.y }, timestamp: Date.now() });
       // Robust hit test: use global bounds rectangle intersection
       const zones = rm.getDropZones ? rm.getDropZones() : [];
@@ -70,7 +70,7 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
         }
       }
     };
-    const upOutside = () => { dragging = false; node.cursor = 'grab'; };
+    const upOutside = () => { dragging = false; node.cursor = 'grab'; (node as any).__dragging = false; };
     const move = (e: any) => { if (!dragging) return; const pos = e.data.getLocalPosition(node.parent); node.x = pos.x - offset.x; node.y = pos.y - offset.y; };
 
     node.on('pointerdown', down);

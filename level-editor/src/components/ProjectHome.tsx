@@ -3,11 +3,13 @@ import './ProjectHome.css';
 
 interface ProjectHomeProps {
   onOpenScene: (projectBase: string, scenePath: string, gameData: any) => void;
+  cachedScenes?: Array<{ path: string; lastEditedAt?: number }>; // 来自 App 的会话缓存
+  onExportProject?: () => void; // 导出整个工程
 }
 
 type SceneEntry = { path: string };
 
-export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
+export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, cachedScenes = [], onExportProject }) => {
   const [projectBase, setProjectBase] = useState<string>(() => {
     try { return localStorage.getItem('editor:projectBase') || '/default-project/'; } catch { return '/default-project/'; }
   });
@@ -46,6 +48,38 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
 
   useEffect(() => { loadProject(projectBase); }, []);
 
+  // 若存在先前选择的本地工程（保存在 window.__LOCAL_FILES__），则自动恢复场景列表
+  useEffect(() => {
+    try {
+      const globalFiles: Map<string, File> | undefined = (window as any).__LOCAL_FILES__;
+      if (!globalFiles) return;
+      if (localFiles) return; // 已有则不覆盖
+      // 复用本地模式读取 config.json / scene 列表
+      (async () => {
+        setLocalFiles(globalFiles);
+        setLocalFolderName('local');
+        let list: SceneEntry[] = [];
+        const cfg = globalFiles.get('config.json');
+        if (cfg) {
+          try {
+            const text = await cfg.text();
+            const json = JSON.parse(text);
+            const root = json?.['scene-tree']?.curnode;
+            const children = Array.isArray(json?.['scene-tree']?.child_node) ? json['scene-tree'].child_node : [];
+            if (root) list.push({ path: root });
+            children.forEach((c: any) => { if (c?.curnode) list.push({ path: c.curnode }); });
+          } catch {}
+        }
+        if (!list.length) {
+          for (const k of globalFiles.keys()) if (k.startsWith('scene/') && k.endsWith('.json')) list.push({ path: k });
+        }
+        if (!list.length) list.push({ path: 'scene/hello-world.json' });
+        setScenes(list);
+        setError(null);
+      })();
+    } catch {}
+  }, []);
+
   // 本地文件夹模式：选择并解析
   const chooseLocalFolder = () => dirInputRef.current?.click();
   const onLocalFolderPicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,6 +95,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
     });
     setLocalFolderName(rootName);
     setLocalFiles(m);
+    try { (window as any).__LOCAL_FILES__ = m; } catch {}
     // 构建场景列表
     let list: SceneEntry[] = [];
     const cfg = m.get('config.json');
@@ -83,9 +118,12 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
   };
 
   const openScene = async (relPath: string) => {
-    if (localFiles) {
+    const files = localFiles || ((window as any).__LOCAL_FILES__ as Map<string, File> | undefined) || null;
+    if (files) {
       try {
-        const f = localFiles.get(relPath);
+        const rel = relPath.replace(/^\.\//, '');
+        const key = files.has(rel) ? rel : (files.has(`scene/${rel}`) ? `scene/${rel}` : rel);
+        const f = files.get(key);
         if (!f) throw new Error('场景文件不存在: ' + relPath);
         const text = await f.text();
         const data = JSON.parse(text);
@@ -98,7 +136,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
             const src: string = item.src || item.url;
             if (typeof src === 'string') {
               const key = src.replace(/^\.\//,'');
-              const file = localFiles.get(key);
+              const file = files.get(key) || files.get(`/${key}`) || files.get(key.replace(/^\/+/, ''));
               if (file) item.src = URL.createObjectURL(file);
             }
           }
@@ -122,6 +160,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
       <div className="ph-hero">
         <div className="ph-hero-title">开发·编辑平台</div>
         <div className="ph-hero-sub">选择工程开始编辑</div>
+        {/* 导出按钮改为右下角悬浮，不在此处渲染 */}
       </div>
       <div className="ph-body">
         <div className="ph-col">
@@ -153,6 +192,20 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
             </div>
             {error && <div className="ph-error">{error}</div>}
           </div>
+
+          {Array.isArray(cachedScenes) && cachedScenes.length > 0 && (
+            <div className="ph-card">
+              <div className="ph-card-title">已缓存场景（本次会话）</div>
+              <div className="ph-scenes">
+                {cachedScenes.map(s => (
+                  <button key={'cached:'+s.path} className="ph-scene" onClick={() => openScene(s.path)}>
+                    <div className="ph-scene-name">{s.path.replace(/^scene\//,'')}</div>
+                    <div className="ph-scene-path">{s.path} {s.lastEditedAt ? `· 最后编辑：${new Date(s.lastEditedAt).toLocaleString()}` : ''}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="ph-col">
@@ -171,6 +224,11 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene }) => {
           </div>
         </div>
       </div>
+      {onExportProject && (
+        <button className="ph-export-floating" onClick={onExportProject} title="导出整个工程">
+          📦 导出工程
+        </button>
+      )}
     </div>
   );
 };

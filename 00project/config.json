@@ -19,11 +19,12 @@
     },
     "user_data_sheet": {
         "user_nickname": "default",
-        "level_scores": [
-            0,
-            0,
-            0
-        ],
-        "level_states":[0,0,0]
-    }
+        "scene_data": {
+            "game_001_xxx" : {
+                "finished" : 0,
+                "score" : 0
+            }
+        }
+    },
+    "version": "1.20"
 }
