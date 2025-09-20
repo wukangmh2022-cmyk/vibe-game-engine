@@ -185,6 +185,8 @@ export class GameRuntime {
     // 清空指令队列
     this.commandExecutor.clearQueue();
     
+    // Ensure all audio is stopped at runtime stop (framework-level)
+    try { (this.audioManager as any)?.stopAll?.(); } catch {}
     this.eventManager.emit('game_stopped');
     this.logger.info('Game stopped');
   }
@@ -436,6 +438,8 @@ export class GameRuntime {
    */
   destroy(): void {
     this.stop();
+    // Extra safety: dispose audio context/resources
+    try { (this.audioManager as any)?.dispose?.(); } catch {}
     this.eventManager.removeAllListeners();
     this.isInitialized = false;
     this.config = null;

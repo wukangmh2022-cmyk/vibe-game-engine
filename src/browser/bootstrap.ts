@@ -243,7 +243,11 @@ export async function mountRuntime(
   })();
 
   return {
-    dispose() { try { app.destroy(true, true); } catch {} },
+    dispose() {
+      try { (audioManager as any)?.stopAll?.(); } catch {}
+      try { (audioManager as any)?.dispose?.(); } catch {}
+      try { app.destroy(true, true); } catch {}
+    },
     executor,
     app,
     setViewScale

@@ -70,12 +70,13 @@ export class ShowImageHandler extends BaseCommandHandler {
         if (mergedStyle.anchorY == null) mergedStyle.anchorY = 0.5;
       }
 
+      const visibleParam = (params.hidden === true) ? false : (params.visible != null ? !!params.visible : true);
       const elementConfig: ElementConfig = {
         id: elementId,
         type: 'image',
         position: { x, y },
         src,
-        visible: true,
+        visible: visibleParam,
         parentId,
         style: Object.keys(mergedStyle).length ? mergedStyle : undefined
       };
@@ -156,33 +157,51 @@ export class ShowImageHandler extends BaseCommandHandler {
       }
     };
 
-    if (anim.entry?.animId) {
-      await playTimeline(anim.entry.animId);
-    }
-    if (anim.loop?.animId) {
+    // 非阻塞：入场动画不再 await，让后续指令继续执行
+    const hasEntry = !!anim.entry?.animId;
+    const hasLoop = !!anim.loop?.animId;
+
+    // helper: start loop (reused for immediate or after entry finishes)
+    const startLoop = (animId: string) => {
+      let stopped = false;
+      const run = async () => { while (!stopped) { await playTimeline(animId); } };
+      run();
+      return () => { stopped = true; };
+    };
+
+    if (hasEntry) {
+      const entryId = anim.entry.animId;
+      // 播放入场动画但不阻塞处理流程
+      const entryPromise = playTimeline(entryId);
+      // 如存在循环动画：确保循环在入场结束后再开始，避免相互打架
+      if (hasLoop) {
+        entryPromise.then(() => {
+          try {
+            (node as any).__loopAnimId = anim.loop.animId;
+            if ((node as any).__loopCancel) { try { (node as any).__loopCancel(); } catch {} (node as any).__loopCancel = null; }
+            (node as any).__loopCancel = startLoop((node as any).__loopAnimId);
+          } catch {}
+        });
+      }
+    } else if (hasLoop) {
       (node as any).__loopAnimId = anim.loop.animId;
-      const startLoop = (animId: string) => {
-        let stopped = false;
-        const run = async () => { while (!stopped) { await playTimeline(animId); } };
-        run();
-        return () => { stopped = true; };
-      };
       if ((node as any).__loopCancel) { try { (node as any).__loopCancel(); } catch {} (node as any).__loopCancel = null; }
       (node as any).__loopCancel = startLoop((node as any).__loopAnimId);
-      // 拖拽时暂停，释放时恢复（依赖 Pixi 事件，Node 环境无影响）
-      if (!(node as any).__loopPauseHandlers && (node as any).on) {
-        const onDown = () => {
-          // 取消循环并使任何进行中的补间立即结束
-          if (typeof (node as any).__animToken !== 'number') (node as any).__animToken = 0;
-          (node as any).__animToken++;
-          if ((node as any).__loopCancel) { try { (node as any).__loopCancel(); } catch {} (node as any).__loopCancel = null; }
-        };
-        const onUp = () => { if (!(node as any).__loopCancel && (node as any).__loopAnimId) { (node as any).__loopCancel = startLoop((node as any).__loopAnimId); } };
-        (node as any).on('pointerdown', onDown);
-        (node as any).on('pointerup', onUp);
-        (node as any).on('pointerupoutside', onUp);
-        (node as any).__loopPauseHandlers = { onDown, onUp };
-      }
+    }
+
+    // 拖拽时暂停循环动画，释放时恢复（依赖 Pixi 事件，Node 环境无影响）
+    if (hasLoop && !(node as any).__loopPauseHandlers && (node as any).on) {
+      const onDown = () => {
+        // 取消循环并使任何进行中的补间立即结束
+        if (typeof (node as any).__animToken !== 'number') (node as any).__animToken = 0;
+        (node as any).__animToken++;
+        if ((node as any).__loopCancel) { try { (node as any).__loopCancel(); } catch {} (node as any).__loopCancel = null; }
+      };
+      const onUp = () => { if (!(node as any).__loopCancel && (node as any).__loopAnimId) { (node as any).__loopCancel = startLoop((node as any).__loopAnimId); } };
+      (node as any).on('pointerdown', onDown);
+      (node as any).on('pointerup', onUp);
+      (node as any).on('pointerupoutside', onUp);
+      (node as any).__loopPauseHandlers = { onDown, onUp };
     }
   }
 

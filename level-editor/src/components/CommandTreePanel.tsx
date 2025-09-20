@@ -24,6 +24,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
   const [insertTarget, setInsertTarget] = useState<{ path: number[]; mode: 'child' | 'sibling' } | null>(null);
   const [selectedPath, setSelectedPath] = useState<number[] | null>(null);
   const [editing, setEditing] = useState<{ path: number[] } | null>(null);
+  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     try { setTree(jsonToTree(initialCommandsJson || [])); } catch { setTree([]); }
@@ -53,9 +54,28 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     switch (node.type) {
       case 'SET_VARIABLE': {
         const key = p.key || '';
-        const op = p.op || (p.expression ? '=' : 'set');
-        const val = p.expression ? String(p.value || '') : String(p.value ?? '');
-        return key ? `${key} ${op} ${val}` : '';
+        const opToken = p.op || (p.expression ? 'set' : 'set');
+        const opLabel = (() => {
+          switch (opToken) {
+            case 'set': return '设为';
+            case 'add': return '加';
+            case 'sub': return '减';
+            case 'mul': return '乘';
+            case 'div': return '除以';
+            default: return String(opToken || '设为');
+          }
+        })();
+        const val = (() => {
+          if (p && typeof p.value === 'object' && p.value) {
+            if ((p.value as any).type === 'expression' && (p.value as any).expression) {
+              return String((p.value as any).expression);
+            }
+            try { return JSON.stringify(p.value); } catch { return String(p.value); }
+          }
+          if (p && p.expression) return String(p.value || '');
+          return String(p.value ?? '');
+        })();
+        return key ? `${key} ${opLabel} ${val}` : '';
       }
       case 'SET_SWITCH': {
         const key = p.key || '';
@@ -68,17 +88,31 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
       case 'IF_CONDITION': {
         const c = p.condition || {};
         if (c.type === 'expression') return c.expression ? String(c.expression) : '';
-        if (c.type === 'variable') return `${c.key || ''} ${c.operator || '=='} ${String(c.value ?? '')}`;
-        if (c.type === 'switch') return `${c.key || ''} == ${c.value === true ? '开' : '关'}`;
+        if (c.type === 'variable') {
+          const op = String(c.operator || 'eq');
+          const label = ({ eq: '等于', ne: '不等于', gt: '大于', lt: '小于', gte: '大于等于', lte: '小于等于' } as any)[op] || op;
+          return `${c.key || ''} ${label} ${String(c.value ?? '')}`;
+        }
+        if (c.type === 'switch') return `${c.key || ''} 等于 ${c.value === true ? '开' : '关'}`;
         return '';
       }
       case 'WAIT': {
         return p.duration ? `${p.duration}ms` : '';
       }
+      case 'UPDATE_TEXT': {
+        const eid = p.elementId || p.id || '';
+        let preview = '';
+        if (typeof p.text === 'string') preview = p.text;
+        else if (p.text && typeof p.text === 'object') {
+          if (p.text.type === 'expression' && p.text.expression) preview = String(p.text.expression);
+          else try { preview = JSON.stringify(p.text); } catch { preview = '[object]'; }
+        }
+        return eid ? `${eid}${preview ? ` ← ${preview}` : ''}` : preview;
+      }
       case 'SET_ELEMENT_STYLE': {
         const eid = p.elementId || '';
         const disp = p?.style?.display;
-        return eid ? `${eid}${disp ? ` display=${disp}` : ''}` : '';
+        return eid ? `${eid}${disp ? ` 显示状态设为${disp}` : ''}` : '';
       }
       case 'SET_DRAGGABLE': {
         const eid = p.elementId || '';
@@ -140,6 +174,9 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     return out;
   };
   const lines = materialize(tree, 0, []);
+  const rawJson = React.useMemo(() => {
+    try { return JSON.stringify(treeToJson(tree), null, 2); } catch { return '[]'; }
+  }, [tree]);
 
   // Debug: 渲染前的最终数据（线性化的行）
   try {
@@ -273,10 +310,16 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         <button onClick={() => { if (selectedPath) moveSibling(selectedPath, -1); }} disabled={!selectedPath}>↑ 上移</button>
         <button onClick={() => { if (selectedPath) moveSibling(selectedPath, 1); }} disabled={!selectedPath}>↓ 下移</button>
         <button onClick={() => { if (selectedPath) { delSubtree(selectedPath); setSelectedPath(null); } }} disabled={!selectedPath}>删除</button>
+        <button onClick={() => setShowRaw(s => !s)} style={{ marginLeft: 8 }}>{showRaw ? '显示树' : '显示源数据'}</button>
       </div>
       <div className="ctp-list">
-        {lines.length === 0 && <div className="clp-empty">暂无指令，点击“添加命令”</div>}
-        {lines.map(li => (
+        {showRaw && (
+          <div style={{ padding: 8 }}>
+            <pre style={{ background: '#0b1020', color: '#e6edf3', padding: 12, borderRadius: 6, overflow: 'auto', maxHeight: 400 }}>{rawJson}</pre>
+          </div>
+        )}
+        {!showRaw && lines.length === 0 && <div className="clp-empty">暂无指令，点击“添加命令”</div>}
+        {!showRaw && lines.map(li => (
           <div key={li.node.id + '|' + li.path.join('-')} className={`ctp-row ${li.node.kind === 'branch' ? 'branch' : ''} ${selectedPath && JSON.stringify(selectedPath)===JSON.stringify(li.path) ? 'selected' : ''}`} style={{ marginLeft: li.depth * 16 }} onClick={() => setSelectedPath(li.path)}>
             <div className="ctp-toggle" onClick={(e) => { e.stopPropagation(); toggle(li.node.id); }}>{li.node.children?.length ? (folded.has(li.node.id) ? '▶' : '▼') : ''}</div>
             <div className="ctp-icon">{iconOf(li.node)}</div>
@@ -289,8 +332,49 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
               {li.node.kind === 'action' && tplForType(li.node.type) && (
                 <button onClick={() => setEditing({ path: li.path })}>参数</button>
               )}
+              {li.node.kind === 'action' && li.node.type === 'SHOW_CHOICES' && (
+                <button onClick={(e) => {
+                  e.stopPropagation();
+                  withTree(nodes => {
+                    const { list, index } = getAtPath(nodes, li.path);
+                    const me = list[index];
+                    const ch = (me.children || []).slice();
+                    const nextIdx = ch.length + 1;
+                    ch.push({ id: `${me.id}_opt_${nextIdx}`, type: 'BRANCH', label: `选项${nextIdx}`, kind: 'branch', children: [] });
+                    const updated = { ...me, children: ch };
+                    const nl = list.slice(); nl[index] = updated; return replaceAt(nodes, li.path.slice(0, -1), nl);
+                  });
+                }}>添加选项</button>
+              )}
               {li.node.kind === 'branch' && (
-                <button onClick={() => setInsertTarget({ path: li.path, mode: 'child' })}>添加</button>
+                <>
+                  <button onClick={() => setInsertTarget({ path: li.path, mode: 'child' })}>添加</button>
+                  {(() => {
+                    try {
+                      const parentPath = li.path.slice(0, -1);
+                      const { list: plist, index: pidx } = getAtPath(tree as any, parentPath);
+                      const parentNode = plist?.[pidx];
+                      const isChoiceOpt = parentNode && parentNode.type === 'SHOW_CHOICES';
+                      const count = isChoiceOpt ? ((parentNode.children || []).length) : 0;
+                      if (!isChoiceOpt || count <= 1) return null; // 仅在>1个选项时允许删除
+                      return (
+                        <button onClick={(e) => {
+                          e.stopPropagation();
+                          withTree(nodes => {
+                            const childIndex = li.path[li.path.length - 1];
+                            const parentPath2 = li.path.slice(0, -1);
+                            const { list: parentList2, index: parentIndex2 } = getAtPath(nodes, parentPath2);
+                            const parentNode2 = parentList2[parentIndex2];
+                            const children2 = (parentNode2.children || []).slice();
+                            if (children2.length <= 1) return nodes; // 再保险
+                            children2.splice(childIndex, 1);
+                            return replaceAt(nodes, parentPath2, children2);
+                          });
+                        }}>删除选项</button>
+                      );
+                    } catch { return null; }
+                  })()}
+                </>
               )}
             </div>
           </div>
@@ -390,14 +474,21 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                     updated = { ...base, children: ch };
                   }
                   if (updated.type === 'SHOW_CHOICES') {
-                    const countFromArray = Array.isArray(p?.options) ? p.options.length : Array.isArray(p?.choices) ? p.choices.length : 0;
-                    const count = Math.max(0, Number(countFromArray || p.optionsCount || p.count || 2));
-                    // only (re)generate if当前没有 children，占位目的；若已有 children 则保留
-                    if (!(updated.children && updated.children.length)) {
-                      const ch: CommandNode[] = [];
-                      for (let i = 0; i < count; i++) {
-                        const label = (Array.isArray(p.options) && p.options[i]?.text) || (Array.isArray(p.choices) && p.choices[i]?.text) || `选项${i+1}`;
-                        ch.push({ id: `${updated.id}_opt_${i+1}`, type: 'BRANCH', label, kind: 'branch', children: [] });
+                    // 仅当参数中提供 options/choices 时，才根据其长度/文本同步分支；否则不改动分支数量
+                    const arr = Array.isArray(p?.options) ? p.options : (Array.isArray(p?.choices) ? p.choices : null);
+                    if (arr) {
+                      const desired = Math.max(0, Number(arr.length));
+                      const labels = (idx: number) => (arr[idx]?.text) || (arr[idx]?.label) || `选项${idx+1}`;
+                      const ch: CommandNode[] = (updated.children || []).slice();
+                      if (ch.length < desired) {
+                        for (let i = ch.length; i < desired; i++) {
+                          ch.push({ id: `${updated.id}_opt_${i+1}`, type: 'BRANCH', label: labels(i), kind: 'branch', children: [] });
+                        }
+                      } else if (ch.length > desired) {
+                        ch.splice(desired);
+                      }
+                      for (let i = 0; i < ch.length; i++) {
+                        ch[i] = { ...ch[i], label: labels(i) };
                       }
                       updated = { ...updated, children: ch };
                     }

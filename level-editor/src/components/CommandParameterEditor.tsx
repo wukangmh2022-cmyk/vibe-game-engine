@@ -75,12 +75,12 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     }));
   };
 
-  const getResourceOptions = () => {
+  const getResourceOptions = (kind?: string | string[]) => {
     if (!project?.resources) return [];
-    return project.resources.map(resource => ({
-      value: resource.id,
-      label: `${resource.name || resource.id} (${resource.type})`
-    }));
+    const kinds = Array.isArray(kind) ? kind : kind ? [kind] : null;
+    return project.resources
+      .filter(resource => !kinds || kinds.includes(resource.type as any))
+      .map(resource => ({ value: resource.id, label: `${resource.name || resource.id} (${resource.type})` }));
   };
 
   // dot-path utils
@@ -109,11 +109,32 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     }
   };
 
+  const valueByPath = (path: string) => getByPath(params, path);
+  const shouldShow = (param: CommandParameterDef): boolean => {
+    const cond = (param as any).showIf;
+    if (!cond) return true;
+    const v = valueByPath(cond.path);
+    if (cond.equals !== undefined) return v === cond.equals;
+    if (cond.notEquals !== undefined) return v !== cond.notEquals;
+    if (Array.isArray(cond.in)) return cond.in.includes(v);
+    if (cond.truthy) return !!v;
+    if (cond.notEmpty) {
+      if (v == null) return false;
+      if (typeof v === 'string') return v.trim().length > 0;
+      if (Array.isArray(v)) return v.length > 0;
+      if (typeof v === 'object') return Object.keys(v).length > 0;
+      return true;
+    }
+    return true;
+  };
+
   const validateParams = (): boolean => {
     const newErrors: Record<string, string> = {};
     
     template.parameters.forEach(param => {
-      const value = params[param.name];
+      const value = getByPath(params, param.name);
+      const visible = shouldShow(param);
+      if (!visible) return; // 隐藏字段不参与必填/范围校验
       
       // Check required parameters
       if (param.required && (value === undefined || value === null || value === '')) {
@@ -135,6 +156,8 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         }
       }
     });
+
+    // 模版驱动校验：避免在此处添加非模版声明的强制校验，减少意外阻塞保存
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -343,7 +366,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         );
         
       case 'resource':
-        const resourceOptions = getResourceOptions();
+        const resourceOptions = getResourceOptions((param as any).resourceKind);
         const selected = (project?.resources || []).find(r => r.id === value);
         return (
           <div className="resource-selector" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -526,32 +549,70 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               const getParam = (n: string) => template.parameters.find(p => p.name === n)!;
               for (const param of template.parameters) {
                 if (consumed.has(param.name)) continue;
+                const visible = shouldShow(param);
+                if (!visible) { consumed.add(param.name); continue; }
                 // position group
                 if (param.name === 'position.x' && hasParam('position.y')) {
+                  const vx = shouldShow(getParam('position.x') as any);
+                  const vy = shouldShow(getParam('position.y') as any);
                   consumed.add('position.x'); consumed.add('position.y');
-                  rows.push(
-                    <div key="position.xy" className="parameter-group">
-                      <label className="parameter-label">位置 (X/Y)</label>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                  if (vx && vy) {
+                    rows.push(
+                      <div key="position.xy" className="parameter-group">
+                        <label className="parameter-label">位置 (X/Y)</label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          {renderParameterInput(getParam('position.x'))}
+                          {renderParameterInput(getParam('position.y'))}
+                        </div>
+                      </div>
+                    );
+                  } else if (vx) {
+                    rows.push(
+                      <div key="position.x" className="parameter-group">
+                        <label className="parameter-label">X坐标</label>
                         {renderParameterInput(getParam('position.x'))}
+                      </div>
+                    );
+                  } else if (vy) {
+                    rows.push(
+                      <div key="position.y" className="parameter-group">
+                        <label className="parameter-label">Y坐标</label>
                         {renderParameterInput(getParam('position.y'))}
                       </div>
-                    </div>
-                  );
+                    );
+                  }
                   continue;
                 }
                 // size group
                 if (param.name === 'size.width' && hasParam('size.height')) {
+                  const vw = shouldShow(getParam('size.width') as any);
+                  const vh = shouldShow(getParam('size.height') as any);
                   consumed.add('size.width'); consumed.add('size.height');
-                  rows.push(
-                    <div key="size.wh" className="parameter-group">
-                      <label className="parameter-label">尺寸 (W/H)</label>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                  if (vw && vh) {
+                    rows.push(
+                      <div key="size.wh" className="parameter-group">
+                        <label className="parameter-label">尺寸 (W/H)</label>
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          {renderParameterInput(getParam('size.width'))}
+                          {renderParameterInput(getParam('size.height'))}
+                        </div>
+                      </div>
+                    );
+                  } else if (vw) {
+                    rows.push(
+                      <div key="size.width" className="parameter-group">
+                        <label className="parameter-label">宽度</label>
                         {renderParameterInput(getParam('size.width'))}
+                      </div>
+                    );
+                  } else if (vh) {
+                    rows.push(
+                      <div key="size.height" className="parameter-group">
+                        <label className="parameter-label">高度</label>
                         {renderParameterInput(getParam('size.height'))}
                       </div>
-                    </div>
-                  );
+                    );
+                  }
                   continue;
                 }
                 // default single field

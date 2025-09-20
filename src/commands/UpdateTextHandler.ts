@@ -13,7 +13,13 @@ export class UpdateTextHandler extends BaseCommandHandler {
     const x: number | undefined = p.x ?? pos.x;
     const y: number | undefined = p.y ?? pos.y;
     const style = p.style || undefined;
-    const text: string | undefined = typeof p.text === 'string' ? this.interpolate(p.text, context) : undefined;
+    let text: string | undefined = undefined;
+    if (typeof p.text === 'string') {
+      text = this.interpolate(p.text, context);
+    } else if (p.text !== undefined) {
+      // 不兼容对象形式的 text，保持模板规范
+      return this.createErrorResult('Invalid text parameter: must be a string.');
+    }
 
     if (text !== undefined) {
       (context.renderManager as any).updateElement(elementId, { type: 'text', content: text } as Partial<ElementConfig>);

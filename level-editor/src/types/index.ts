@@ -134,6 +134,17 @@ export interface CommandParameterDef {
   max?: number;
   description?: string;
   placeholder?: string;
+  // 可选：根据其他参数值决定是否显示该字段
+  showIf?: {
+    path: string;            // 依赖的参数路径，如 'condition.type' 或 'onClick'
+    equals?: any;            // 等于时显示
+    notEquals?: any;         // 不等于时显示
+    in?: any[];              // 值包含于集合时显示
+    truthy?: boolean;        // 值为 truthy 时显示（非空字符串/非 0/true）
+    notEmpty?: boolean;      // 字符串非空、数组长度>0 或对象键数>0 时显示
+  };
+  // 资源类型过滤（仅当 type === 'resource' 有效）：'image' | 'audio' | 'video' | 'animation'
+  resourceKind?: string | string[];
 }
 
 // 指令模板定义

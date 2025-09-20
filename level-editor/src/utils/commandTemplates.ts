@@ -38,7 +38,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'elementIdVar', label: '元素ID变量', type: 'variable', required: false },
       { name: 'attachToId', label: '挂载到元素', type: 'text', required: false },
       { name: 'attachToIdVar', label: '挂载元素变量', type: 'variable', required: false },
-      { name: 'resourceId', label: '粒子资源', type: 'resource', required: false },
+      { name: 'resourceId', label: '粒子资源', type: 'resource', required: false, resourceKind: 'image' },
       { name: 'count', label: '粒子数量', type: 'number', required: false, defaultValue: 24 },
       { name: 'life', label: '寿命(ms)', type: 'number', required: false, defaultValue: 900 },
       { name: 'gravity', label: '重力', type: 'number', required: false, defaultValue: 0.35 },
@@ -53,7 +53,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🎵',
     color: '#9C27B0',
     parameters: [
-      { name: 'musicId', label: '音乐ID', type: 'text', required: true },
+      { name: 'musicId', label: '音乐ID', type: 'resource', required: true, resourceKind: 'audio' },
       { name: 'volume', label: '音量(0-1)', type: 'number', required: false, defaultValue: 0.8, min: 0, max: 1 },
       { name: 'loop', label: '循环', type: 'boolean', required: false, defaultValue: true },
       { name: 'fadeIn', label: '淡入(ms)', type: 'number', required: false, defaultValue: 0, min: 0 }
@@ -78,7 +78,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🔈',
     color: '#9C27B0',
     parameters: [
-      { name: 'soundId', label: '音效ID', type: 'text', required: true },
+      { name: 'soundId', label: '音效ID', type: 'resource', required: true, resourceKind: 'audio' },
       { name: 'volume', label: '音量(0-1)', type: 'number', required: false, defaultValue: 1.0, min: 0, max: 1 },
       { name: 'loop', label: '循环', type: 'boolean', required: false, defaultValue: false },
       { name: 'fadeIn', label: '淡入(ms)', type: 'number', required: false, defaultValue: 0, min: 0 },
@@ -95,13 +95,25 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#FF9800',
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'mode', label: '动画来源', type: 'select', required: false, defaultValue: 'preset', options: [
+        { value: 'preset', label: '预设动画' },
+        { value: 'resource', label: '资源动画' }
+      ] },
+      { name: 'animId', label: '动画资源ID', type: 'resource', required: false, resourceKind: 'animation', showIf: { path: 'mode', equals: 'resource' } },
       { name: 'preset', label: '动画预设', type: 'select', required: false, defaultValue: 'fade', options: [
         { value: 'fade', label: '淡入' },
         { value: 'scaleIn', label: '缩放进入' },
         { value: 'bounce', label: '弹跳' },
         { value: 'moveIn', label: '位移进入' }
-      ] },
-      { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600 }
+      ], showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600, showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'direction', label: '方向', type: 'select', required: false, defaultValue: 'up', options: [
+        { value: 'up', label: '自下向上' },
+        { value: 'down', label: '自上向下' },
+        { value: 'left', label: '自右向左' },
+        { value: 'right', label: '自左向右' }
+      ], showIf: { path: 'preset', equals: 'moveIn' } },
+      { name: 'offset', label: '位移距离(px)', type: 'number', required: false, defaultValue: 60, showIf: { path: 'preset', equals: 'moveIn' } }
     ]
   },
   {
@@ -131,7 +143,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'elementId', label: '元素ID', type: 'text', required: true },
       { name: 'selectable', label: '启用可选中', type: 'boolean', required: false, defaultValue: true },
       { name: 'variableKey', label: '绑定变量名', type: 'text', required: false, description: '自动把选中状态写入此变量(true/false)' },
-      { name: 'overlayResourceId', label: '选中覆盖图', type: 'resource', required: false },
+      { name: 'overlayResourceId', label: '选中覆盖图', type: 'resource', required: false, resourceKind: 'image' },
       { name: 'effect', label: '选中特效', type: 'select', required: false, defaultValue: '', options: [
         { value: '', label: '无' },
         { value: 'pulse', label: '呼吸' }
@@ -172,10 +184,10 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'flip', label: '翻牌 (flip)' },
         { value: 'toggle_selected', label: '切换选中状态' }
       ], description: '点击后的行为' },
-      { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选' },
-      { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选' },
-      { name: 'showBack', label: '翻到背面', type: 'boolean', required: false, defaultValue: true, description: 'onClick=flip 时有效' },
-      { name: 'effect', label: '选中特效', type: 'text', required: false, description: 'onClick=toggle_selected 时可选，如 pulse' }
+      { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选', showIf: { path: 'onClick', equals: 'flip' }, resourceKind: 'image' },
+      { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选', showIf: { path: 'onClick', equals: 'flip' }, resourceKind: 'image' },
+      { name: 'showBack', label: '翻到背面', type: 'boolean', required: false, defaultValue: true, description: 'onClick=flip 时有效', showIf: { path: 'onClick', equals: 'flip' } },
+      { name: 'effect', label: '选中特效', type: 'text', required: false, description: 'onClick=toggle_selected 时可选，如 pulse', showIf: { path: 'onClick', equals: 'toggle_selected' } }
       // 注意：子命令 commands[] 在指令树中编辑，不在此面板
     ]
   },
@@ -189,7 +201,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
       { name: 'draggable', label: '启用拖拽', type: 'boolean', required: false, defaultValue: true, description: '是否可拖拽' },
-      { name: 'dragType', label: '拖拽类型', type: 'text', required: false, description: '用于与掉落区匹配（可选）' }
+      { name: 'dragType', label: '拖拽类型', type: 'text', required: false, description: '用于与掉落区匹配（可选）', showIf: { path: 'draggable', equals: true } }
     ]
   },
   {
@@ -207,13 +219,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         required: true,
         description: '元素ID'
       },
-      {
-        name: 'resourceId',
-        label: '资源ID',
-        type: 'resource',
-        required: true,
-        description: '图片资源ID'
-      },
+      { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '图片资源ID', resourceKind: 'image' },
       {
         name: 'position.x',
         label: 'X坐标',
@@ -246,7 +252,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
           { value: '', label: '左上' },
           { value: 'center', label: '居中' }
         ],
-        description: '与父元素的对齐方式（需设置父元素）'
+        description: '与父元素的对齐方式（需设置父元素）',
+        showIf: { path: 'parentId', notEmpty: true }
       },
       {
         name: 'size.width',
@@ -263,13 +270,23 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         description: '图片高度'
       },
       {
+        name: 'visible',
+        label: '初始可见',
+        type: 'boolean',
+        required: false,
+        defaultValue: true,
+        description: '取消勾选则初始隐藏（可后续通过显隐或样式指令显示）'
+      },
+      {
         name: 'zIndex',
         label: 'Z索引',
         type: 'number',
         required: false,
         defaultValue: 0,
         description: '层级'
-      }
+      },
+      { name: 'animation.entry.animId', label: '入场动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '动画资源ID或URL。默认非阻塞，如需等待请在后续添加 WAIT 指令。' },
+      { name: 'animation.loop.animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '循环动画资源ID或URL。若同时设置入场动画，将在入场结束后自动开始循环。' }
     ]
   },
   {
@@ -302,12 +319,11 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '元素ID（可选）' },
       { name: 'blocking', label: '阻塞后续', type: 'boolean', required: false, defaultValue: true },
-      { name: 'optionsCount', label: '选项数量', type: 'number', required: false, defaultValue: 2, description: '用于生成分支的选项数量（保存后生效）' },
       { name: 'position.x', label: 'X坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'position.y', label: 'Y坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'ui.rowMax', label: '每行最大按钮数', type: 'number', required: false, defaultValue: 1 },
       { name: 'ui.minWidth', label: '最小按钮宽', type: 'number', required: false },
-      { name: 'ui.buttonResourceId', label: '按钮资源', type: 'resource', required: false },
+      { name: 'ui.buttonResourceId', label: '按钮资源', type: 'resource', required: false, resourceKind: 'image' },
       { name: 'ui.buttonSkinId', label: '按钮样式ID', type: 'text', required: false }
     ]
   },
@@ -320,8 +336,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#795548',
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '要翻转的元素ID' },
-      { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: true, description: '翻转后显示的背面图片' },
-      { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: '可选：明确正面图片（默认取当前）' },
+      { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: true, description: '翻转后显示的背面图片', resourceKind: 'image' },
+      { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: '可选：明确正面图片（默认取当前）', resourceKind: 'image' },
       { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600, description: '总时长，默认600ms' },
       { name: 'easing', label: '缓动', type: 'text', required: false, defaultValue: 'easeInOutQuad', description: '缓动函数' },
       { name: 'showBack', label: '翻到背面', type: 'boolean', required: false, defaultValue: true, description: '是否翻到背面（否则翻回正面）' }
@@ -339,15 +355,15 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'mediaType', label: '媒体类型', type: 'select', required: true, defaultValue: 'video', options: [
         { value: 'video', label: '视频' }
       ], description: '媒体类型' },
-      { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '媒体资源ID' },
+      { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '媒体资源ID', resourceKind: 'video' },
       { name: 'position.x', label: 'X坐标', type: 'number', required: false, defaultValue: 0, description: 'X 坐标' },
       { name: 'position.y', label: 'Y坐标', type: 'number', required: false, defaultValue: 0, description: 'Y 坐标' },
       { name: 'size.width', label: '宽度', type: 'number', required: false, description: '宽度' },
       { name: 'size.height', label: '高度', type: 'number', required: false, description: '高度' },
-      { name: 'autoplay', label: '自动播放', type: 'boolean', required: false, defaultValue: true, description: '是否自动播放' },
-      { name: 'loop', label: '循环', type: 'boolean', required: false, defaultValue: false, description: '是否循环' },
-      { name: 'muted', label: '静音', type: 'boolean', required: false, defaultValue: false, description: '是否静音' },
-      { name: 'controls', label: '显示控件', type: 'boolean', required: false, defaultValue: true, description: '是否显示控件（预留）' }
+      { name: 'autoplay', label: '自动播放', type: 'boolean', required: false, defaultValue: true, description: '是否自动播放', showIf: { path: 'mediaType', equals: 'video' } },
+      { name: 'loop', label: '循环', type: 'boolean', required: false, defaultValue: false, description: '是否循环', showIf: { path: 'mediaType', equals: 'video' } },
+      { name: 'muted', label: '静音', type: 'boolean', required: false, defaultValue: false, description: '是否静音', showIf: { path: 'mediaType', equals: 'video' } },
+      { name: 'controls', label: '显示控件', type: 'boolean', required: false, defaultValue: true, description: '是否显示控件（预留）', showIf: { path: 'mediaType', equals: 'video' } }
     ]
   },
   
@@ -407,7 +423,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       },
       { name: 'skinId', label: '背景框样式', type: 'text', required: false, description: '九宫格背景皮肤ID（如 dialog-default-9slice）' },
       { name: 'padding', label: '内边距', type: 'number', required: false, description: '皮肤背景内边距' },
-      { name: 'backgroundResourceId', label: '背景资源ID', type: 'resource', required: false, description: '兼容：图片背景资源ID' },
+      { name: 'backgroundResourceId', label: '背景资源ID', type: 'resource', required: false, description: '兼容：图片背景资源ID', resourceKind: 'image' },
       { name: 'backgroundPadding', label: '背景内边距', type: 'number', required: false, description: '兼容：图片背景的内边距' },
       { name: 'blocking', label: '阻塞继续', type: 'boolean', required: false, defaultValue: false, description: '是否阻塞流程直到用户继续' },
       { name: 'dismissOnContinue', label: '继续时关闭', type: 'boolean', required: false, defaultValue: true, description: '继续后自动移除该文本' }
@@ -548,7 +564,9 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'op', label: '操作', type: 'select', required: false, defaultValue: 'set', options: [
         { value: 'set', label: '设为 (set)' },
         { value: 'add', label: '加 (add)' },
-        { value: 'sub', label: '减 (sub)' }
+        { value: 'sub', label: '减 (sub)' },
+        { value: 'mul', label: '乘 (mul)' },
+        { value: 'div', label: '除以 (div)' }
       ] },
       { name: 'value', label: '值', type: 'text', required: true, description: '支持数字/布尔/字符串/null' }
     ]
@@ -586,13 +604,22 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🔀',
     color: '#9C27B0',
     parameters: [
-      {
-        name: 'condition',
-        label: '条件',
-        type: 'expression',
-        required: true,
-        description: '选择变量/开关或编写表达式'
-      }
+      { name: 'condition.type', label: '条件类型', type: 'select', required: true, defaultValue: 'variable', options: [
+        { value: 'variable', label: '变量' },
+        { value: 'switch', label: '开关' },
+        { value: 'expression', label: '表达式' }
+      ], description: '默认按“变量”比较，可切换为开关/表达式' },
+      { name: 'condition.key', label: '变量/开关名', type: 'text', required: false, placeholder: '例如: score 或 switchName', showIf: { path: 'condition.type', in: ['variable','switch'] } },
+      { name: 'condition.operator', label: '比较运算', type: 'select', required: false, defaultValue: 'eq', options: [
+        { value: 'eq', label: '等于 (==)' },
+        { value: 'ne', label: '不等于 (!=)' },
+        { value: 'gt', label: '大于 (>)' },
+        { value: 'lt', label: '小于 (<)' },
+        { value: 'gte', label: '大于等于 (>=)' },
+        { value: 'lte', label: '小于等于 (<=)' }
+      ], description: '当类型为变量/开关时生效', showIf: { path: 'condition.type', in: ['variable','switch'] } },
+      { name: 'condition.value', label: '比较值', type: 'text', required: false, placeholder: '例如: 10 / true / text', showIf: { path: 'condition.type', in: ['variable','switch'] } },
+      { name: 'condition.expression', label: '表达式', type: 'textarea', required: false, placeholder: '如需表达式，请在此编写：例如 gameState.score > 100', showIf: { path: 'condition.type', equals: 'expression' } }
     ]
   },
   {
@@ -763,8 +790,14 @@ export function createNewCommand(type: CommandType): any {
     parameters = setByPath(parameters, (param as any).name, v);
   }
 
+  // Generate predictable unique id: <type>_<counter>
+  const typeKey = String(type).toLowerCase();
+  const counters: any = (createNewCommand as any).__counters || ((createNewCommand as any).__counters = {});
+  const next = (counters[typeKey] = (counters[typeKey] || 0) + 1);
+  const genId = `${typeKey}_${next}`;
+
   return {
-    id: `cmd_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    id: genId,
     type,
     parameters,
     enabled: true,

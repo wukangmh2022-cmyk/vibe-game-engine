@@ -29,7 +29,10 @@ export class SetVariableHandler extends BaseCommandHandler {
       if (op) {
         let next: any;
         if (op === 'set') {
-          // 直接按原值设置，支持 boolean/number/string
+          // 直接按原值设置，仅支持 boolean/number/string
+          if (value && typeof value === 'object') {
+            return this.createErrorResult('Invalid value: object is not allowed. Use numeric/string/boolean or expression string.');
+          }
           next = value;
         } else {
           const current = Number(stateManager.getVariable(variableKey) ?? 0);
@@ -54,6 +57,10 @@ export class SetVariableHandler extends BaseCommandHandler {
       if (expression && typeof value === 'string') {
         const parser = new ExpressionParser(stateManager);
         value = parser.parse(value);
+      }
+      // 若传入对象但未声明 expression=true，则判为无效（避免兼容错误 JSON）
+      if (!expression && value && typeof value === 'object') {
+        return this.createErrorResult('Invalid value: object not supported. Set expression=true and provide an expression string, or use op+value.');
       }
 
       stateManager.setVariable(variableKey, value);

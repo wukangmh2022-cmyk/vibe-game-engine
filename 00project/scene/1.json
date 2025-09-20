@@ -1,0 +1,413 @@
+{
+  "id": "interactive_card_game",
+  "name": "Interactive Card Game",
+  "version": "1.0.0",
+  "schema": "v2",
+  "resources": {
+    "images": [
+      {
+        "id": "bg_main",
+        "src": "images/cave.png"
+      },
+      {
+        "id": "card_front",
+        "src": "images/card-front.svg"
+      },
+      {
+        "id": "card_back",
+        "src": "images/card-back.svg"
+      },
+      {
+        "id": "firework_particle",
+        "src": "images/star.svg"
+      }
+    ],
+    "audios": [
+      {
+        "id": "bgm_main",
+        "src": "audio/bgm/063-Slow06.mp3"
+      },
+      {
+        "id": "se_flip",
+        "src": "audio/se/001-System01.ogg"
+      },
+      {
+        "id": "se_success",
+        "src": "audio/se/001-System01.ogg"
+      }
+    ]
+  },
+  "levels": [
+    {
+      "id": "level_1",
+      "name": "Card Matching Challenge",
+      "canvasWidth": 1280,
+      "canvasHeight": 720,
+      "initialState": {
+        "score": 0,
+        "cards_flipped": 0
+      },
+      "commands": [
+        {
+          "id": "show_background",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "background",
+            "resourceId": "bg_main",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 1280,
+              "height": 720
+            },
+            "zIndex": 0
+          }
+        },
+        {
+          "id": "play_bgm",
+          "type": "BGM_PLAY",
+          "parameters": {
+            "musicId": "bgm_main",
+            "volume": 0.7,
+            "loop": true,
+            "fadeIn": 2000
+          }
+        },
+        {
+          "id": "show_intro_text",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "intro_text",
+            "text": "Find the matching pairs! Flip two cards with the same symbol to score points.",
+            "position": {
+              "x": 640,
+              "y": 100
+            },
+            "style": {
+              "fontSize": "24px",
+              "color": "#FFFFFF",
+              "textAlign": "center"
+            },
+            "blocking": true,
+            "dismissOnContinue": true
+          }
+        },
+        {
+          "id": "show_card_1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card_1",
+            "resourceId": "card_front",
+            "position": {
+              "x": 400,
+              "y": 300
+            },
+            "size": {
+              "width": 120,
+              "height": 180
+            },
+            "zIndex": 10
+          }
+        },
+        {
+          "id": "show_card_2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card_2",
+            "resourceId": "card_front",
+            "position": {
+              "x": 600,
+              "y": 300
+            },
+            "size": {
+              "width": 120,
+              "height": 180
+            },
+            "zIndex": 10
+          }
+        },
+        {
+          "id": "show_card_3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card_3",
+            "resourceId": "card_front",
+            "position": {
+              "x": 800,
+              "y": 300
+            },
+            "size": {
+              "width": 120,
+              "height": 180
+            },
+            "zIndex": 10
+          }
+        },
+        {
+          "id": "animate_card_1_in",
+          "type": "ANIMATE_IN",
+          "parameters": {
+            "elementId": "card_1",
+            "preset": "scaleIn",
+            "duration": 800
+          }
+        },
+        {
+          "id": "animate_card_2_in",
+          "type": "ANIMATE_IN",
+          "parameters": {
+            "elementId": "card_2",
+            "preset": "scaleIn",
+            "duration": 800
+          }
+        },
+        {
+          "id": "animate_card_3_in",
+          "type": "ANIMATE_IN",
+          "parameters": {
+            "elementId": "card_3",
+            "preset": "scaleIn",
+            "duration": 800
+          }
+        },
+        {
+          "id": "wait_after_animations",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 500
+          }
+        },
+        {
+          "id": "animate_card_1_loop",
+          "type": "ANIMATE_LOOP",
+          "parameters": {
+            "elementId": "card_1",
+            "loopType": "hoverY",
+            "duration": 1200
+          }
+        },
+        {
+          "id": "animate_card_2_loop",
+          "type": "ANIMATE_LOOP",
+          "parameters": {
+            "elementId": "card_2",
+            "loopType": "hoverY",
+            "duration": 1200
+          }
+        },
+        {
+          "id": "animate_card_3_loop",
+          "type": "ANIMATE_LOOP",
+          "parameters": {
+            "elementId": "card_3",
+            "loopType": "hoverY",
+            "duration": 1200
+          }
+        },
+        {
+          "id": "make_card_1_clickable",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card_1",
+            "clickable": true,
+            "onClick": "commands",
+            "commands": [
+              {
+                "id": "flip_card_1",
+                "type": "FLIP_CARD",
+                "parameters": {
+                  "elementId": "card_1",
+                  "backResourceId": "card_back",
+                  "showBack": true,
+                  "duration": 600
+                }
+              },
+              {
+                "id": "emit_card_flip_signal_1",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "card_flipped",
+                  "data": {
+                    "cardId": "card_1"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "make_card_2_clickable",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card_2",
+            "clickable": true,
+            "onClick": "commands",
+            "commands": [
+              {
+                "id": "flip_card_2",
+                "type": "FLIP_CARD",
+                "parameters": {
+                  "elementId": "card_2",
+                  "backResourceId": "card_back",
+                  "showBack": true,
+                  "duration": 600
+                }
+              },
+              {
+                "id": "emit_card_flip_signal_2",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "card_flipped",
+                  "data": {
+                    "cardId": "card_2"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "make_card_3_clickable",
+          "type": "set_clickable",
+          "parameters": {
+            "elementId": "card_3",
+            "clickable": true,
+            "onClick": "commands",
+            "commands": [
+              {
+                "id": "flip_card_3",
+                "type": "FLIP_CARD",
+                "parameters": {
+                  "elementId": "card_3",
+                  "backResourceId": "card_back",
+                  "showBack": true,
+                  "duration": 600
+                }
+              },
+              {
+                "id": "emit_card_flip_signal_3",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "card_flipped",
+                  "data": {
+                    "cardId": "card_3"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "show_score_text",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "score_text",
+            "text": "Score: 0",
+            "position": {
+              "x": 640,
+              "y": 50
+            },
+            "style": {
+              "fontSize": "28px",
+              "color": "#FFFFFF",
+              "textAlign": "center"
+            },
+            "zIndex": 20
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "event_card_flip",
+          "name": "Card Flip Handler",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "card_flipped"
+            }
+          ],
+          "commands": [
+            {
+              "id": "play_flip_sound",
+              "type": "SE_PLAY",
+              "parameters": {
+                "soundId": "se_flip",
+                "volume": 1.0
+              }
+            },
+        {
+          "id": "increment_flipped_count",
+          "type": "set_variable",
+          "parameters": {
+            "key": "cards_flipped",
+            "op": "add",
+            "value": 1
+          }
+        },
+        {
+          "id": "check_if_two_cards_flipped",
+          "type": "if_condition",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "context.stateManager.getVariable('cards_flipped') >= 2"
+                },
+                "trueCommands": [
+                  {
+                    "id": "increase_score",
+                    "type": "set_variable",
+                    "parameters": {
+                      "key": "score",
+                      "op": "add",
+                      "value": 100
+                    }
+                  },
+                  {
+                    "id": "update_score_text",
+                    "type": "UPDATE_TEXT",
+                    "parameters": {
+                      "elementId": "score_text",
+                      "text": "Score: ${score}"
+                    }
+                  },
+                  {
+                    "id": "play_success_sound",
+                    "type": "SE_PLAY",
+                    "parameters": {
+                      "soundId": "se_success",
+                      "volume": 1.0
+                    }
+                  },
+                  {
+                    "id": "show_fireworks",
+                    "type": "firework_burst",
+                    "parameters": {
+                      "attachToId": "score_text",
+                      "resourceId": "firework_particle",
+                      "count": 30,
+                      "life": 900,
+                      "gravity": 0.35,
+                      "zIndex": 50
+                    }
+                  },
+                  {
+                    "id": "reset_flipped_count",
+                    "type": "set_variable",
+                    "parameters": {
+                      "key": "cards_flipped",
+                      "value": 0,
+                      "op": "set"
+                    }
+                  }
+                ],
+                "falseCommands": []
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

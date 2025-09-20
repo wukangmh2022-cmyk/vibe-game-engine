@@ -830,15 +830,6 @@
                     "id": "bgm-stop-on-timeout",
                     "type": "BGM_STOP",
                     "parameters": {}
-                  },
-                  {
-                    "id": "timeout-over",
-                    "type": "GAME_OVER",
-                    "parameters": {
-                      "reason": "timeout",
-                      "message": "超时结束",
-                      "resetGame": true
-                    }
                   }
                 ]
               }

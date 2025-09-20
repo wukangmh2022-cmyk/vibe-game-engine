@@ -5,112 +5,36 @@
   "schema": "v2",
   "resources": {
     "images": [
-      { "id": "success-ms-01-1", "src": "images/old/async_game_0004_01_success_ms~01.png" },
-      { "id": "success-ms-01-2", "src": "images/old/async_game_0004_01_success_ms~02.png" },
-      { "id": "success-ms-02-1", "src": "images/old/async_game_0004_02_success_ms~01.png" },
-      { "id": "success-ms-02-2", "src": "images/old/async_game_0004_02_success_ms~02.png" },
-      { "id": "success-ms-02-3", "src": "images/old/async_game_0004_02_success_ms~03.png" },
-      { "id": "success-ms-03-1", "src": "images/old/async_game_0004_03_success_ms~01.png" },
-      { "id": "success-ms-03-2", "src": "images/old/async_game_0004_03_success_ms~02.png" },
-      { "id": "success-ms-03-3", "src": "images/old/async_game_0004_03_success_ms~03.png" },
-      { "id": "success-ms-03-4", "src": "images/old/async_game_0004_03_success_ms~04.png" },
-      { "id": "comp-avatar-1", "src": "images/old/async_game_0004_comp_avatar~01.png" },
-      { "id": "comp-avatar-2", "src": "images/old/async_game_0004_comp_avatar~02.png" },
-      { "id": "comp-avatar-3", "src": "images/old/async_game_0004_comp_avatar~03.png" },
-      { "id": "comp-bottle", "src": "images/old/async_game_0004_comp_bottle.png" },
-      { "id": "comp-note-bg", "src": "images/old/async_game_0004_comp_note_bg.png" },
-      { "id": "comp-success-bg", "src": "images/old/async_game_0004_comp_success_bg.png" },
-      { "id": "consultation-01-cabinet", "src": "images/old/async_game_0004_consultation_01_cabinet.png" },
-      { "id": "consultation-01", "src": "images/old/async_game_0004_consultation_01.png" },
-      { "id": "consultation-02-cabinet", "src": "images/old/async_game_0004_consultation_02_cabinet.png" },
-      { "id": "consultation-02", "src": "images/old/async_game_0004_consultation_02.png" },
-      { "id": "consultation-03-cabinet", "src": "images/old/async_game_0004_consultation_03_cabinet.png" },
-      { "id": "consultation-03", "src": "images/old/async_game_0004_consultation_03.png" },
-      { "id": "medicine-blue", "src": "images/old/async_game_0005_01__medicine--blue.png" },
-      { "id": "medicine-brown", "src": "images/old/async_game_0005_01__medicine--brown.png" },
-      { "id": "medicine-capsules", "src": "images/old/async_game_0005_01__medicine--orange-white-capsules.png" },
-      { "id": "medicine-red", "src": "images/old/async_game_0005_01__medicine--red.png" },
-      { "id": "consultation-new-01-cabinet", "src": "images/old/async_game_0005_consultation_01_cabinet.png" },
-      { "id": "consultation-new-01", "src": "images/old/async_game_0005_consultation_01.png" },
-      { "id": "consultation-new-02-cabinet", "src": "images/old/async_game_0005_consultation_02_cabinet.png" },
       { "id": "panel-blue", "src": "images/ui-blue.svg" },
-      { "id": "btn-blue", "src": "images/btn-blue.svg" },
-      { "id": "clothes-tshirt-white", "src": "images/记忆衣橱/短袖:基础款/白.png" },
-      { "id": "clothes-tshirt-orange", "src": "images/记忆衣橱/短袖:基础款/橙.png" },
-      { "id": "clothes-tshirt-pink", "src": "images/记忆衣橱/短袖:基础款/粉.png" },
-      { "id": "clothes-tshirt-black", "src": "images/记忆衣橱/短袖:基础款/黑.png" },
-      { "id": "clothes-tshirt-red", "src": "images/记忆衣橱/短袖:基础款/红.png" },
-      { "id": "clothes-tshirt-yellow", "src": "images/记忆衣橱/短袖:基础款/黄.png" },
-      { "id": "clothes-tshirt-gray", "src": "images/记忆衣橱/短袖:基础款/灰.png" },
-      { "id": "clothes-tshirt-blue", "src": "images/记忆衣橱/短袖:基础款/蓝.png" },
-      { "id": "clothes-tshirt-green", "src": "images/记忆衣橱/短袖:基础款/绿.png" },
-      { "id": "clothes-tshirt-lightred", "src": "images/记忆衣橱/短袖:基础款/浅红.png" },
-      { "id": "clothes-tshirt-cyan", "src": "images/记忆衣橱/短袖:基础款/青.png" },
-      { "id": "clothes-tshirt-purple", "src": "images/记忆衣橱/短袖:基础款/紫.png" },
-      { "id": "clothes-tshirt-brown", "src": "images/记忆衣橱/短袖:基础款/棕.png" },
-
-      { "id": "clothes-down-1", "src": "images/记忆衣橱/羽绒服/IMG_6813.jpeg" },
-      { "id": "clothes-down-2", "src": "images/记忆衣橱/羽绒服/IMG_6814.png" },
-      { "id": "clothes-down-3", "src": "images/记忆衣橱/羽绒服/IMG_6815.png" },
-
-      { "id": "hotpot-cabbage", "src": "images/老火锅忆食记/白菜.heic" },
-      { "id": "hotpot-spinach", "src": "images/老火锅忆食记/菠菜.heic" },
-      { "id": "hotpot-melon", "src": "images/老火锅忆食记/冬瓜.heic" },
-      { "id": "hotpot-tofu", "src": "images/老火锅忆食记/豆腐.heic" },
-      { "id": "hotpot-sprouts", "src": "images/老火锅忆食记/豆芽.heic" },
-      { "id": "hotpot-noodles", "src": "images/老火锅忆食记/粉丝.heic" },
-      { "id": "hotpot-mushroom", "src": "images/老火锅忆食记/金针菇.heic" },
-      { "id": "hotpot-radish", "src": "images/老火锅忆食记/萝卜.heic" },
-      { "id": "hotpot-fungus", "src": "images/老火锅忆食记/木耳.heic" },
-      { "id": "hotpot-beef", "src": "images/老火锅忆食记/牛肉卷.heic" },
-      { "id": "hotpot-potato", "src": "images/老火锅忆食记/土豆.heic" },
-      { "id": "hotpot-greens", "src": "images/老火锅忆食记/油菜.heic" },
-
-      { "id": "food-garlic", "src": "images/谁知盘中餐/大蒜.png" },
-      { "id": "food-sweet-potato", "src": "images/谁知盘中餐/红薯.png" },
-      { "id": "food-lettuce", "src": "images/谁知盘中餐/莴笋.png" },
-
-      { "id": "memory-cup-1", "src": "images/速记消除战/杯子.png" },
-      { "id": "memory-cup-2", "src": "images/速记消除战/杯子(1).png" },
-      { "id": "memory-sugarcane", "src": "images/速记消除战/甘蔗.png" },
-      { "id": "memory-melon-1", "src": "images/速记消除战/哈密瓜.png" },
-      { "id": "memory-melon-2", "src": "images/速记消除战/哈密瓜(1).png" },
-      { "id": "memory-pants", "src": "images/速记消除战/裤子.png" },
-      { "id": "memory-chopsticks", "src": "images/速记消除战/筷子.png" },
-      { "id": "memory-grape", "src": "images/速记消除战/葡萄.png" },
-      { "id": "memory-radio", "src": "images/速记消除战/收音机.png" },
-      { "id": "memory-coconut", "src": "images/速记消除战/椰子.png" },
-      { "id": "memory-chair", "src": "images/速记消除战/椅子.png" },
-
-      { "id": "memory-cloud", "src": "images/速记消除战/第7-9关图片/白云.png" },
-      { "id": "memory-monkey", "src": "images/速记消除战/第7-9关图片/猴子.png" },
-      { "id": "memory-flower", "src": "images/速记消除战/第7-9关图片/花朵.png" },
-      { "id": "memory-tiger", "src": "images/速记消除战/第7-9关图片/老虎.png" },
-      { "id": "memory-mouse", "src": "images/速记消除战/第7-9关图片/老鼠.png" },
-      { "id": "memory-cow", "src": "images/速记消除战/第7-9关图片/牛.png" },
-      { "id": "memory-tree", "src": "images/速记消除战/第7-9关图片/树.png" },
-      { "id": "memory-rabbit", "src": "images/速记消除战/第7-9关图片/兔子.png" },
-      { "id": "memory-dog", "src": "images/速记消除战/第7-9关图片/小狗.png" },
-      { "id": "memory-chick", "src": "images/速记消除战/第7-9关图片/小鸡.png" },
-      { "id": "memory-horse", "src": "images/速记消除战/第7-9关图片/小马.png" },
-      { "id": "memory-cat", "src": "images/速记消除战/第7-9关图片/小猫.png" },
-      { "id": "memory-bird", "src": "images/速记消除战/第7-9关图片/小鸟.png" },
-      { "id": "memory-pig", "src": "images/速记消除战/第7-9关图片/小猪.png" },
-      { "id": "memory-sheep", "src": "images/速记消除战/第7-9关图片/羊.png" },
-
-      { "id": "med-blue", "src": "images/小小药剂师/模板1难度二4-6关新增蓝色药.png" },
-      { "id": "med-black", "src": "images/小小药剂师/模块1 难度二4-6关新增的黑色药.png" },
-      { "id": "med-white", "src": "images/小小药剂师/模块1难度二4-6关新增的白色药.png" },
-      { "id": "med-pink", "src": "images/小小药剂师/模块1难度三7-9关新增的粉色药.png" },
-      { "id": "med-purple", "src": "images/小小药剂师/模块1难度三7-9关新增的紫色药.png" },
-      { "id": "med-redwhite", "src": "images/小小药剂师/模块1难度三7-9关新增红白药.png" },
-
-      { "id": "pill-black", "src": "images/药片领航员/模板4 难度二4-6关新增黑色圆形药.png" },
-      { "id": "pill-yellow", "src": "images/药片领航员/模板4难度二4-6关新增黄色胶囊.png" },
-      { "id": "pill-grandpa-alt", "src": "images/药片领航员/模块4 难度三新增的人物：爷爷（备选）.png" },
-      { "id": "pill-grandpa", "src": "images/药片领航员/模块4 爷爷.png" }
+      { "id": "btn-primary-9slice", "src": "images/btn-blue.svg" }
     ],
-    "audios": []
+    "audios": [],
+    "animations": [
+      {
+        "id": "淡入",
+        "src": "animations/entry/fade-in.json"
+      },
+      {
+        "id": "弹入",
+        "src": "animations/entry/bounce-in.json"
+      },
+      {
+        "id": "缩放弹入",
+        "src": "animations/entry/scale-pop-in.json"
+      },
+      {
+        "id": "向右滑入",
+        "src": "animations/entry/slide-in-right.json"
+      },
+      {
+        "id": "缩放",
+        "src": "animations/entry/scale-0-1.json"
+      },
+      {
+        "id": "上下浮动",
+        "src": "animations/loop/hover-slow.json"
+      }
+    ]
   },
   "levels": [
     {
@@ -148,7 +72,7 @@
         },
         {
           "id": "scene-choices",
-          "type": "CHOICES",
+          "type": "SHOW_CHOICES",
           "parameters": {
             "elementId": "choices",
             "position": { "x": 100, "y": 140 },

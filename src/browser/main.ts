@@ -85,6 +85,17 @@ async function bootstrap() {
   // Store skins in resourceManager for handlers & UI
   const setSkins = (skins: any) => (resourceManager as any).setSkins?.(skins);
 
+  // Cleanup on page unload/visibility hidden to stop audio and release PIXI
+  try {
+    const cleanup = () => {
+      try { (audioManager as any)?.stopAll?.(); } catch {}
+      try { (audioManager as any)?.dispose?.(); } catch {}
+      try { app.destroy(true, true); } catch {}
+    };
+    window.addEventListener('beforeunload', cleanup);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cleanup(); });
+  } catch {}
+
   attachPixiUi(eventManager, resourceManager, renderManager, PIXI);
 
   // Load game config (support parent injection or external URL)

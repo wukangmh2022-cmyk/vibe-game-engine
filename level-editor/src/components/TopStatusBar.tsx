@@ -112,16 +112,13 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
             ))}
           </select>
           <button
-            title="重命名关卡"
+            title="AI生成"
             style={{ marginLeft: 6 }}
             onClick={() => {
-              const next = prompt('输入关卡名称', currentLevel.name || '');
-              if (next == null) return;
-              const name = next.trim();
-              onLevelUpdate(currentLevel.id, { name: name || currentLevel.id });
+              // DJXTODO: 触发 AI 生成逻辑
             }}
           >
-            ⚙️
+            AI生成🌟
           </button>
           {onCreateLevel && (
             <button style={{ marginLeft: 6 }} onClick={onCreateLevel}>＋ 新建关卡</button>
@@ -177,11 +174,6 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
         >
           {isPlaying ? '⏸️ 终止' : '▶️ 播放'}
         </button>
-        {onLoadTestData && (
-          <button className="test-button" onClick={onLoadTestData}>
-            🧪 测试数据
-          </button>
-        )}
         
         {onShowBlueprint && (
           <button className="blueprint-button" onClick={onShowBlueprint}>

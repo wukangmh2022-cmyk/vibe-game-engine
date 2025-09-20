@@ -16,7 +16,7 @@ export function jsonToTree(list: any[]): CommandNode[] {
   const build = (cmd: any): CommandNode => {
     const typeRaw: string = typeof cmd?.type === 'string' ? cmd.type : '';
     const up = typeRaw.toUpperCase();
-    const upNorm = (up === 'CHOICES') ? 'SHOW_CHOICES' : up;
+    const upNorm = up; // 取消对 CHOICES 的兼容映射，仅支持 SHOW_CHOICES
     // Avoid mutating source JSON: clone parameters shallowly
     const rawParams: any = (cmd && typeof cmd === 'object' && cmd.parameters && typeof cmd.parameters === 'object') ? cmd.parameters : {};
     const paramsClone: any = { ...rawParams };
@@ -76,22 +76,17 @@ export function jsonToTree(list: any[]): CommandNode[] {
       node.children.push({ id: `${node.id}_body`, type: 'BRANCH', label: '循环体', kind: 'branch', children: (body || []).map(build) });
       if ('commands' in p) delete (p as any).commands;
     }
-    // SHOW_CHOICES → options: always show option branches
+    // SHOW_CHOICES → options: render branches;
     if (upNorm === 'SHOW_CHOICES') {
       const opts: any[] = (rawParams?.options || rawParams?.choices || node.parameters?.options || node.parameters?.choices || (cmd as any).options || []) as any[];
-      if (Array.isArray(opts) && opts.length > 0) {
-        opts.forEach((opt: any, idx: number) => {
-          const label = opt?.text || opt?.label || `选项${idx + 1}`;
-          const children = Array.isArray(opt?.commands) ? opt.commands.map(build) : [];
-          node.children.push({ id: `${node.id}_opt_${idx + 1}`, type: 'BRANCH', label, kind: 'branch', children });
-        });
-      } else {
-        // create placeholder branches based on optionsCount (default 2)
-        const cntRaw = (node.parameters as any)?.optionsCount;
-        const count = Math.max(1, Number(cntRaw != null ? cntRaw : 2));
-        for (let i = 0; i < count; i++) {
-          node.children.push({ id: `${node.id}_opt_${i + 1}`, type: 'BRANCH', label: `选项${i + 1}`, kind: 'branch', children: [] });
-        }
+      const cntRaw = (node.parameters as any)?.optionsCount;
+      const desired = Math.max(1, Number((cntRaw != null ? cntRaw : (Array.isArray(opts) ? opts.length : 0)) || 2));
+      const length = Math.max(Array.isArray(opts) ? opts.length : 0, desired);
+      for (let i = 0; i < length; i++) {
+        const opt = Array.isArray(opts) ? opts[i] : undefined;
+        const label = opt?.text || opt?.label || `选项${i + 1}`;
+        const children = Array.isArray(opt?.commands) ? opt.commands.map(build) : [];
+        node.children.push({ id: `${node.id}_opt_${i + 1}`, type: 'BRANCH', label, kind: 'branch', children });
       }
     }
     // SET_CLICKABLE → onClick=commands: show a single branch for click body
@@ -126,36 +121,37 @@ export function treeToJson(nodes: CommandNode[]): any[] {
     if (n.type === 'SHOW_BUTTON') {
       const yesNode = n.children.find(c => c.kind === 'branch' && (c.label === '是'));
       const noNode = n.children.find(c => c.kind === 'branch' && (c.label === '否'));
-      if (yesNode || noNode) {
-        out.branches = {};
-        if (yesNode) out.branches.yes = { label: yesNode.label, commands: yesNode.children.map(c => toCmd(c)).filter(Boolean) };
-        if (noNode) out.branches.no = { label: noNode.label, commands: noNode.children.map(c => toCmd(c)).filter(Boolean) };
-      }
+      out.branches = out.branches || {};
+      out.branches.yes = { label: yesNode?.label || '是', commands: yesNode ? yesNode.children.map(c => toCmd(c)).filter(Boolean) : [] };
+      out.branches.no = { label: noNode?.label || '否', commands: noNode ? noNode.children.map(c => toCmd(c)).filter(Boolean) : [] };
       // options from branches with other labels (选项N)
       const opts = n.children.filter(c => c.kind === 'branch' && c.label && c.label !== '是' && c.label !== '否').map(c => ({ text: c.label, commands: c.children.map(cc => toCmd(cc)).filter(Boolean) }));
-      if (opts.length) out.parameters.options = opts;
+      (out.parameters as any).options = opts; // 始终生成 options 数组（可为空）
     }
     if (n.type === 'SET_SELECTABLE') {
       const onNode = n.children.find(c => c.kind === 'branch' && (c.label === '选中时'));
       const offNode = n.children.find(c => c.kind === 'branch' && (c.label === '取消选中时'));
-      if (onNode) (out.parameters as any).onSelectedCommands = onNode.children.map(c => toCmd(c)).filter(Boolean);
-      if (offNode) (out.parameters as any).onCancelSelectedCommands = offNode.children.map(c => toCmd(c)).filter(Boolean);
+      (out.parameters as any).onSelectedCommands = onNode ? onNode.children.map(c => toCmd(c)).filter(Boolean) : [];
+      (out.parameters as any).onCancelSelectedCommands = offNode ? offNode.children.map(c => toCmd(c)).filter(Boolean) : [];
     }
     if (n.type === 'SHOW_CHOICES') {
       const opts = n.children.filter(c => c.kind === 'branch').map(c => ({ text: c.label, commands: c.children.map(cc => toCmd(cc)).filter(Boolean) }));
-      if (opts.length) out.parameters.options = opts;
+      (out.parameters as any).options = opts;
     }
     if (n.type === 'SET_CLICKABLE') {
       const clickNode = n.children.find(c => c.kind === 'branch' && (c.label === '点击时'));
-      if (clickNode) (out.parameters as any).commands = clickNode.children.map(c => toCmd(c)).filter(Boolean);
+      const onClick = String((out.parameters as any)?.onClick || '').toLowerCase();
+      if (onClick === 'commands') {
+        (out.parameters as any).commands = clickNode ? clickNode.children.map(c => toCmd(c)).filter(Boolean) : [];
+      }
     }
     if (n.type === 'LOOP') {
       const body = n.children.find(c => c.kind === 'branch' && (c.label === '循环体'));
-      if (body) (out.parameters as any).commands = body.children.map(c => toCmd(c)).filter(Boolean);
+      (out.parameters as any).commands = body ? body.children.map(c => toCmd(c)).filter(Boolean) : [];
     }
     if (n.type === 'CHECK_IN_AREA') {
       const hit = n.children.find(c => c.kind === 'branch' && (c.label === '命中时'));
-      if (hit) (out.parameters as any).commands = hit.children.map(c => toCmd(c)).filter(Boolean);
+      (out.parameters as any).commands = hit ? hit.children.map(c => toCmd(c)).filter(Boolean) : [];
     }
     return out;
   };

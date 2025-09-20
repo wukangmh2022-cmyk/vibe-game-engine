@@ -94,4 +94,26 @@ export class BrowserAudioManager implements IAudioManager {
     } catch {}
     this.playing.delete(key);
   }
+
+  // Not in IAudioManager interface; used for cleanup on dispose
+  stopAll(): void {
+    try {
+      for (const [key, it] of Array.from(this.playing.entries())) {
+        try {
+          if (it.source instanceof OscillatorNode) it.source.stop();
+          if (it.source instanceof HTMLAudioElement) {
+            it.source.pause();
+            try { (it.source as any).currentTime = 0; } catch {}
+          }
+        } catch {}
+        this.playing.delete(key);
+      }
+    } catch {}
+  }
+
+  dispose(): void {
+    try { this.stopAll(); } catch {}
+    try { this.ctx?.close?.(); } catch {}
+    this.ctx = null;
+  }
 }

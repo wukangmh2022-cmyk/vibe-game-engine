@@ -195,7 +195,20 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
 
   // cleanup redirect hook when unmounting/cancelling
   useEffect(() => {
-    return () => { try { delete (window as any).__PIXICANVAS_REDIRECT__; } catch {} };
+    return () => {
+      try { delete (window as any).__PIXICANVAS_REDIRECT__; } catch {}
+      // Dispose mounted runtime on unmount to stop audio and free GPU
+      try { runtimeRef.current?.dispose?.(); } catch {}
+      runtimeRef.current = null;
+      // Detach resize observers if any
+      try {
+        const container = canvasRef.current as any;
+        const ro = container?.__scaleRO; if (ro && ro.disconnect) ro.disconnect();
+        if (container) { delete container.__scaleRO; }
+        const onWin = container?.__onWin; if (onWin) window.removeEventListener('resize', onWin);
+        if (container) { delete container.__onWin; }
+      } catch {}
+    };
   }, []);
 
   // Legacy resources/skins effects are no-ops for mountRuntime path (handled internally)
