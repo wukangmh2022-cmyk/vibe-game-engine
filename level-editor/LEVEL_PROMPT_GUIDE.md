@@ -59,15 +59,13 @@
 {
   "id": "cmd-unique-id",
   "type": "SHOW_IMAGE",
-  "parameters": { ... 对应指令参数 ... },
-  "options": [ ... ] // 仅对 CHOICES 类指令存在
+  "parameters": { ... 对应指令参数 ... }
 }
 ```
 
 - `id`：建议使用 `snake-case`，须在本关内唯一。
 - `type`：大小写固定，需与引擎支持的名称一致（如下表）。
-- `parameters`：即使没有参数，也写成空对象 `{}`。
-- 某些指令（如 `CHOICES`、`set_clickable`）还会带有 `options`、`commands`、`trueCommands` 等子数组，写法与演示场景保持一致。
+- `parameters`：即使没有参数，也写成空对象 `{}`。某些指令（如 `if_condition`、`set_clickable`）`parameters`还会带有 `falseCommands`、`commands`、`trueCommands` 等子数组参数，是可以多次嵌套组成复杂逻辑的，但建议不超过4层。
 
 ### 3.2 资源展示类
 
