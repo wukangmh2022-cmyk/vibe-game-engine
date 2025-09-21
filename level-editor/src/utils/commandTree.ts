@@ -69,6 +69,16 @@ export function jsonToTree(list: any[]): CommandNode[] {
       if ('onSelectedCommands' in p) delete (p as any).onSelectedCommands;
       if ('onCancelSelectedCommands' in p) delete (p as any).onCancelSelectedCommands;
     }
+    // SET_CLICKABLE → commands branch when onClick=commands
+    if (up === 'SET_CLICKABLE') {
+      const p = node.parameters || {} as any;
+      const onClick = String((rawParams as any)?.onClick ?? (p as any)?.onClick ?? '').toLowerCase();
+      if (onClick === 'commands') {
+        const arr = Array.isArray((rawParams as any)?.commands) ? (rawParams as any).commands : Array.isArray((p as any)?.commands) ? (p as any).commands : [];
+        node.children.push({ id: `${node.id}_on_click`, type: 'BRANCH', label: '点击时', kind: 'branch', children: (arr || []).map(build) });
+        if ('commands' in p) delete (p as any).commands;
+      }
+    }
     // LOOP → commands as a single branch (循环体): always show branch (empty when missing)
     if (up === 'LOOP') {
       const p = node.parameters || {};
@@ -137,6 +147,8 @@ export function treeToJson(nodes: CommandNode[]): any[] {
     if (n.type === 'SHOW_CHOICES') {
       const opts = n.children.filter(c => c.kind === 'branch').map(c => ({ text: c.label, commands: c.children.map(cc => toCmd(cc)).filter(Boolean) }));
       (out.parameters as any).options = opts;
+      // 清理编辑器中可能遗留的 choices 简写，统一输出 options
+      if ((out.parameters as any).choices) delete (out.parameters as any).choices;
     }
     if (n.type === 'SET_CLICKABLE') {
       const clickNode = n.children.find(c => c.kind === 'branch' && (c.label === '点击时'));

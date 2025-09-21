@@ -369,10 +369,16 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         const resourceOptions = getResourceOptions((param as any).resourceKind);
         const selected = (project?.resources || []).find(r => r.id === value);
         return (
-          <div className="resource-selector" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div
+            className="resource-selector"
+            style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+            onDragOver={(e) => { try { if (e.dataTransfer?.types?.includes('text/resource-id') || e.dataTransfer?.types?.includes('text/plain')) { e.preventDefault(); } } catch {} }}
+            onDrop={(e) => { try { e.preventDefault(); const rid = e.dataTransfer.getData('text/resource-id') || e.dataTransfer.getData('text/plain'); if (rid) handleParamChange(param.name, rid); } catch {} }}
+          >
             <select
               {...commonProps}
               className="resource-dropdown"
+              title="可从项目资源面板拖拽资源到此处"
             >
               <option value="">请选择资源...</option>
               {resourceOptions.map(option => (
@@ -396,7 +402,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               预览
             </button>
             {resourceOptions.length === 0 && (
-              <div className="no-options-hint">暂无可用资源，请先添加资源文件</div>
+              <div className="no-options-hint">暂无可用资源，请先添加资源文件（支持拖拽）</div>
             )}
           </div>
         );

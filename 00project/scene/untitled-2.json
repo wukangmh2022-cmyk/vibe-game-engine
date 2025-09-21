@@ -1,0 +1,324 @@
+{
+  "id": "new-scene",
+  "name": "新场景",
+  "version": "1.0.0",
+  "globalVariables": {},
+  "globalSwitches": {},
+  "levels": [
+    {
+      "id": "level1",
+      "name": "关卡1",
+      "commands": [
+        {
+          "id": "show_image_1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "0",
+            "resourceId": "tt2",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": ""
+              }
+            }
+          }
+        },
+        {
+          "id": "show_image_1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "1",
+            "resourceId": "__",
+            "position": {
+              "x": 2,
+              "y": 0
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 0,
+              "height": 0
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": ""
+              },
+              "loop": {
+                "animId": ""
+              }
+            }
+          }
+        },
+        {
+          "id": "set_clickable_1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "1",
+            "clickable": true,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": []
+          }
+        },
+        {
+          "id": "animate_in_1",
+          "type": "ANIMATE_IN",
+          "parameters": {
+            "elementId": "1",
+            "mode": "resource",
+            "animId": "____",
+            "preset": "bounce",
+            "duration": 600,
+            "direction": "up",
+            "offset": 60
+          }
+        },
+        {
+          "id": "set_draggable_1",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "1",
+            "draggable": true,
+            "dragType": ""
+          }
+        },
+        {
+          "id": "show_choices_1",
+          "type": "SHOW_CHOICES",
+          "parameters": {
+            "elementId": "",
+            "blocking": true,
+            "position": {
+              "x": 355,
+              "y": 300
+            },
+            "ui": {
+              "rowMax": 1,
+              "minWidth": 0,
+              "buttonResourceId": "btn-org",
+              "buttonSkinId": ""
+            },
+            "options": [
+              {
+                "text": "选项1",
+                "commands": []
+              },
+              {
+                "text": "选项2",
+                "commands": []
+              },
+              {
+                "text": "选项3",
+                "commands": []
+              }
+            ]
+          }
+        }
+      ],
+      "resources": [
+        "___1",
+        "___2",
+        "___3",
+        "tt2",
+        "tt1",
+        "btn-org",
+        "btn-orange",
+        "btn-blue",
+        "____",
+        "___4",
+        "_____1",
+        "___5",
+        "_____2",
+        "_____3",
+        "_____4",
+        "_____5",
+        "_____6"
+      ],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level1_copy_1",
+      "name": "关卡2",
+      "commands": [
+        {
+          "id": "show_image_1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "1",
+            "resourceId": "__",
+            "position": {
+              "x": 2,
+              "y": 0
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 0,
+              "height": 0
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": ""
+              },
+              "loop": {
+                "animId": ""
+              }
+            }
+          }
+        },
+        {
+          "id": "set_clickable_1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "1",
+            "clickable": true,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": []
+          }
+        },
+        {
+          "id": "set_draggable_1",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "1",
+            "draggable": true,
+            "dragType": ""
+          }
+        }
+      ],
+      "resources": [
+        "___1",
+        "___2",
+        "___3"
+      ],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    }
+  ],
+  "resources": {
+    "images": [
+      {
+        "id": "__",
+        "src": "images/谁知盘中餐/大蒜.png",
+        "name": "大蒜"
+      },
+      {
+        "id": "___1",
+        "src": "images/谁知盘中餐/红薯.png",
+        "name": "红薯"
+      },
+      {
+        "id": "___2",
+        "src": "images/谁知盘中餐/莴笋.png",
+        "name": "莴笋"
+      },
+      {
+        "id": "tt2",
+        "src": "images/tt2.png",
+        "name": "tt2"
+      },
+      {
+        "id": "tt1",
+        "src": "images/tt1.png",
+        "name": "tt1"
+      },
+      {
+        "id": "btn-org",
+        "src": "images/btn-org.png",
+        "name": "btn-org"
+      },
+      {
+        "id": "btn-orange",
+        "src": "images/btn-orange.svg",
+        "name": "btn-orange"
+      },
+      {
+        "id": "btn-blue",
+        "src": "images/btn-blue.svg",
+        "name": "btn-blue"
+      }
+    ],
+    "audios": [],
+    "animations": [
+      {
+        "id": "____",
+        "src": "animations/基础效果/从零放大.json",
+        "name": "从零放大"
+      },
+      {
+        "id": "___3",
+        "src": "animations/基础效果/弹入.json",
+        "name": "弹入"
+      },
+      {
+        "id": "___4",
+        "src": "animations/基础效果/淡入.json",
+        "name": "淡入"
+      },
+      {
+        "id": "_____1",
+        "src": "animations/基础效果/放大入场.json",
+        "name": "放大入场"
+      },
+      {
+        "id": "___5",
+        "src": "animations/基础效果/呼吸.json",
+        "name": "呼吸"
+      },
+      {
+        "id": "_____2",
+        "src": "animations/基础效果/上下悬浮.json",
+        "name": "上下悬浮"
+      },
+      {
+        "id": "_____3",
+        "src": "animations/基础效果/向上滑入.json",
+        "name": "向上滑入"
+      },
+      {
+        "id": "_____4",
+        "src": "animations/基础效果/向下滑入.json",
+        "name": "向下滑入"
+      },
+      {
+        "id": "_____5",
+        "src": "animations/基础效果/向右滑入.json",
+        "name": "向右滑入"
+      },
+      {
+        "id": "_____6",
+        "src": "animations/基础效果/向左滑入.json",
+        "name": "向左滑入"
+      }
+    ],
+    "videos": []
+  }
+}

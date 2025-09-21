@@ -277,10 +277,15 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         ];
       }
       if (n.type === 'SHOW_CHOICES') {
-        if (!n.children.length) n.children = [
-          { id: `${n.id}_opt_1`, type: 'BRANCH', label: '选项1', kind: 'branch', children: [] },
-          { id: `${n.id}_opt_2`, type: 'BRANCH', label: '选项2', kind: 'branch', children: [] }
-        ];
+        const p: any = n.parameters || {};
+        let choices: string[] = [];
+        if (Array.isArray(p.choices)) choices = p.choices.map((x: any) => String(x));
+        else if (typeof p.choices === 'string') choices = String(p.choices).split(',').map(s => s.trim()).filter(Boolean);
+        if (!n.children.length) {
+          if (choices.length === 0) choices = ['选项1', '选项2'];
+          n.children = choices.map((label, i) => ({ id: `${n.id}_opt_${i+1}`, type: 'BRANCH', label, kind: 'branch', children: [] }));
+        }
+        // 不再把 choices 写回 parameters，仅用于首次生成分支
       }
       if (n.type === 'CHECK_IN_AREA') {
         if (!n.children.length) n.children = [
@@ -371,6 +376,31 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                             return replaceAt(nodes, parentPath2, children2);
                           });
                         }}>删除选项</button>
+                      );
+                    } catch { return null; }
+                  })()}
+                  {(() => {
+                    try {
+                      const parentPath = li.path.slice(0, -1);
+                      const { list: plist, index: pidx } = getAtPath(tree as any, parentPath);
+                      const parentNode = plist?.[pidx];
+                      const isChoiceOpt = parentNode && parentNode.type === 'SHOW_CHOICES';
+                      if (!isChoiceOpt) return null;
+                      return (
+                        <button onClick={(e) => {
+                          e.stopPropagation();
+                          const oldLabel = String(li.node.label || '');
+                          let name = oldLabel;
+                          try { const v = window.prompt('重命名选项', oldLabel); if (v && v.trim()) name = v.trim(); else return; } catch { return; }
+                          withTree(nodes => {
+                            const childIndex = li.path[li.path.length - 1];
+                            const { list: parentList2, index: parentIndex2 } = getAtPath(nodes, parentPath);
+                            const parentNode2 = parentList2[parentIndex2];
+                            const children2 = (parentNode2.children || []).map(cloneNode);
+                            if (children2[childIndex]) children2[childIndex].label = name;
+                            return replaceAt(nodes, parentPath, children2);
+                          });
+                        }}>重命名</button>
                       );
                     } catch { return null; }
                   })()}

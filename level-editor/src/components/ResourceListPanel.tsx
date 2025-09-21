@@ -1,5 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GameProject } from '../types';
+import vfs from '../utils/vfs';
 
 interface ResourceListPanelProps {
   project?: GameProject | null;
@@ -26,6 +27,26 @@ export const ResourceListPanel: React.FC<ResourceListPanelProps> = ({ project, o
     try { await navigator.clipboard.writeText(text); } catch {}
   };
 
+  const ResourceThumb: React.FC<{ src?: string; alt?: string }> = ({ src, alt }) => {
+    const [view, setView] = useState<string | null>(null);
+    useEffect(() => {
+      let cancelled = false;
+      const run = async () => {
+        const s = String(src || '');
+        if (/^(https?:|blob:|data:)/.test(s)) { setView(s); return; }
+        const u = (await vfs.getURL(s)) || s;
+        if (!cancelled) setView(u);
+      };
+      run();
+      return () => { cancelled = true; };
+    }, [src]);
+    return (
+      <div style={{ width: 40, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f7f9', borderRadius: 4, overflow: 'hidden', flexShrink: 0 }}>
+        {view ? <img src={view} alt={alt} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : <span>📦</span>}
+      </div>
+    );
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 0, height: '100%' }}>
       <div style={{ display: 'flex', gap: 8, padding: '8px 8px 0 8px' }}>
@@ -50,15 +71,16 @@ export const ResourceListPanel: React.FC<ResourceListPanelProps> = ({ project, o
             <div
               key={r.id}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid #e9ecef', borderRadius: 6, marginBottom: 6, background: '#fff', cursor: isImg ? 'zoom-in' : 'default' }}
-              onDoubleClick={() => { if (isImg && r.src) setPreviewUrl(r.src); }}
+              draggable
+              onDragStart={(e) => { try { e.dataTransfer.setData('text/resource-id', r.id); e.dataTransfer.setData('text/plain', r.id); } catch {} }}
+              onDoubleClick={async () => {
+                if (isImg && r.src) {
+                  const u = (await vfs.getURL(r.src)) || r.src;
+                  setPreviewUrl(u);
+                }
+              }}
             >
-              <div style={{ width: 40, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f6f7f9', borderRadius: 4, overflow: 'hidden', flexShrink: 0 }}>
-                {isImg ? (
-                  <img src={r.src} alt={r.id} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
-                ) : (
-                  <span>{r.type === 'audio' ? '🔊' : r.type === 'video' ? '🎬' : '📦'}</span>
-                )}
-              </div>
+              {isImg ? <ResourceThumb src={r.src} alt={r.id} /> : <div style={{ width: 40, textAlign: 'center' }}>{r.type === 'audio' ? '🔊' : r.type === 'video' ? '🎬' : '📦'}</div>}
               <div style={{ flex: 1, overflow: 'hidden' }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name || r.id}</div>
                 <div style={{ fontSize: 11, color: '#666', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.src}</div>

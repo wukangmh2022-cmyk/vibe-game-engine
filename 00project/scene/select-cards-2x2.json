@@ -2,42 +2,264 @@
   "id": "select-cards-2x2",
   "name": "多选卡片 2×2 (无翻牌)",
   "version": "1.0.0",
-  "schema": "v2",
-  "resources": {
-    "images": [
-      { "id": "card-a", "src": "images/card-a.svg" },
-      { "id": "card-b", "src": "images/card-b.svg" },
-      { "id": "check", "src": "images/check-circle.svg" }
-    ],
-    "audios": []
-  },
+  "globalVariables": {},
+  "globalSwitches": {},
   "levels": [
     {
       "id": "select-2x2",
       "name": "多选 2×2",
-      "canvasWidth": 800,
-      "canvasHeight": 600,
-      "initialState": {
-        "card1_selected": false,
-        "card2_selected": false,
-        "card3_selected": false,
-        "card4_selected": false
-      },
       "commands": [
-        { "id": "title", "type": "SHOW_TEXT", "parameters": { "elementId": "title", "text": "✅ 点选卡片可多选 (0-4)", "position": { "x": 20, "y": 20 }, "style": { "fontSize": "24px", "color": "#ffffff" } } },
-
-        { "id": "show-c1", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-1", "resourceId": "card-a", "position": { "x": 300, "y": 160 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
-        { "id": "selable-c1", "type": "SET_SELECTABLE", "parameters": { "elementId": "card-1", "selectable": true, "variableKey": "card1_selected", "overlayResourceId": "check", "effect": "pulse" } },
-
-        { "id": "show-c2", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-2", "resourceId": "card-a", "position": { "x": 460, "y": 160 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
-        { "id": "selable-c2", "type": "SET_SELECTABLE", "parameters": { "elementId": "card-2", "selectable": true, "variableKey": "card2_selected", "overlayResourceId": "check", "effect": "pulse" } },
-
-        { "id": "show-c3", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-3", "resourceId": "card-b", "position": { "x": 300, "y": 340 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
-        { "id": "selable-c3", "type": "SET_SELECTABLE", "parameters": { "elementId": "card-3", "selectable": true, "variableKey": "card3_selected", "overlayResourceId": "check", "effect": "pulse" } },
-
-        { "id": "show-c4", "type": "SHOW_IMAGE", "parameters": { "elementId": "card-4", "resourceId": "card-b", "position": { "x": 460, "y": 340 }, "size": { "width": 120, "height": 160 }, "zIndex": 1 } },
-        { "id": "selable-c4", "type": "SET_SELECTABLE", "parameters": { "elementId": "card-4", "selectable": true, "variableKey": "card4_selected", "overlayResourceId": "check", "effect": "pulse" } }
-      ]
+        {
+          "id": "title",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "title",
+            "text": "✅ 点选卡片可多选 (0-4)",
+            "position": {
+              "x": 20,
+              "y": 20
+            },
+            "style": {
+              "fontSize": "24px",
+              "color": "#ffffff"
+            }
+          }
+        },
+        {
+          "id": "show-c1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-1",
+            "resourceId": "card-a",
+            "position": {
+              "x": 300,
+              "y": 160
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c1",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-1",
+            "selectable": true,
+            "variableKey": "card1_selected",
+            "overlayResourceId": "check",
+            "effect": "slide-in-right",
+            "onSelectedCommands": [
+              {
+                "id": "show_image_2",
+                "type": "SHOW_IMAGE",
+                "parameters": {
+                  "elementId": "9",
+                  "resourceId": "check",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  },
+                  "parentId": "card-1",
+                  "align": "center",
+                  "size": {
+                    "width": 0,
+                    "height": 0
+                  },
+                  "visible": true,
+                  "zIndex": 0,
+                  "animation": {
+                    "entry": {
+                      "animId": ""
+                    },
+                    "loop": {
+                      "animId": ""
+                    }
+                  },
+                  "style": {
+                    "anchorX": 0.5,
+                    "anchorY": 0.5
+                  }
+                }
+              }
+            ],
+            "onCancelSelectedCommands": [
+              {
+                "id": "set_element_style_1",
+                "type": "SET_ELEMENT_STYLE",
+                "parameters": {
+                  "elementId": "9",
+                  "style": {
+                    "display": "none"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "show-c2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-2",
+            "resourceId": "card-a",
+            "position": {
+              "x": 460,
+              "y": 160
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c2",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-2",
+            "selectable": true,
+            "variableKey": "card2_selected",
+            "overlayResourceId": "check",
+            "effect": "pulse",
+            "onSelectedCommands": [],
+            "onCancelSelectedCommands": []
+          }
+        },
+        {
+          "id": "show-c3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-3",
+            "resourceId": "card-b",
+            "position": {
+              "x": 300,
+              "y": 340
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c3",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-3",
+            "selectable": true,
+            "variableKey": "card3_selected",
+            "overlayResourceId": "check",
+            "effect": "pulse",
+            "onSelectedCommands": [],
+            "onCancelSelectedCommands": []
+          }
+        },
+        {
+          "id": "show-c4",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-4",
+            "resourceId": "card-b",
+            "position": {
+              "x": 460,
+              "y": 340
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c4",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-4",
+            "selectable": true,
+            "variableKey": "card4_selected",
+            "overlayResourceId": "check",
+            "effect": "pulse",
+            "onSelectedCommands": [],
+            "onCancelSelectedCommands": []
+          }
+        }
+      ],
+      "resources": [
+        "bounce-in",
+        "fade-in",
+        "scale-0-1",
+        "scale-pop-in",
+        "slide-in-right",
+        "hover-slow",
+        "pulse"
+      ],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
     }
-  ]
+  ],
+  "resources": {
+    "images": [
+      {
+        "id": "card-a",
+        "src": "images/card-a.svg",
+        "name": "card-a"
+      },
+      {
+        "id": "card-b",
+        "src": "images/card-b.svg",
+        "name": "card-b"
+      },
+      {
+        "id": "check",
+        "src": "images/check-circle.svg",
+        "name": "check"
+      }
+    ],
+    "audios": [],
+    "animations": [
+      {
+        "id": "弹入",
+        "src": "animations/弹入.json",
+        "name": "弹入"
+      },
+      {
+        "id": "淡入",
+        "src": "animations/淡入.json",
+        "name": "淡入"
+      },
+      {
+        "id": "从零放大",
+        "src": "animations/从零放大.json",
+        "name": "从零放大"
+      },
+      {
+        "id": "放大入场",
+        "src": "animations/放大入场.json",
+        "name": "放大入场"
+      },
+      {
+        "id": "向右滑入",
+        "src": "animations/向右滑入.json",
+        "name": "向右滑入"
+      },
+      {
+        "id": "上下悬浮",
+        "src": "animations/上下悬浮.json",
+        "name": "上下悬浮"
+      },
+      {
+        "id": "呼吸",
+        "src": "animations/呼吸.json",
+        "name": "呼吸"
+      }
+    ],
+    "videos": []
+  }
 }

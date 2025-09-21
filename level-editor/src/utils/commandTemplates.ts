@@ -129,7 +129,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'hoverY', label: '上下悬浮' },
         { value: 'pulse', label: '呼吸缩放' }
       ] },
-      { name: 'duration', label: '单次时长(ms)', type: 'number', required: false, defaultValue: 1200 }
+      { name: 'duration', label: '单次时长(ms)', type: 'number', required: false, defaultValue: 1200 },
+      { name: 'animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '可选：使用动画资源时间轴循环播放；填写后优先生效' }
     ]
   },
   {
@@ -144,10 +145,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'selectable', label: '启用可选中', type: 'boolean', required: false, defaultValue: true },
       { name: 'variableKey', label: '绑定变量名', type: 'text', required: false, description: '自动把选中状态写入此变量(true/false)' },
       { name: 'overlayResourceId', label: '选中覆盖图', type: 'resource', required: false, resourceKind: 'image' },
-      { name: 'effect', label: '选中特效', type: 'select', required: false, defaultValue: '', options: [
-        { value: '', label: '无' },
-        { value: 'pulse', label: '呼吸' }
-      ] }
+      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, resourceKind: 'animation', description: '可选：选中时播放的动画资源（不选则为内置“呼吸”效果）' }
       // 子命令 onSelected/onCancelSelected 在指令树中编辑
     ]
   },
@@ -187,7 +185,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选', showIf: { path: 'onClick', equals: 'flip' }, resourceKind: 'image' },
       { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选', showIf: { path: 'onClick', equals: 'flip' }, resourceKind: 'image' },
       { name: 'showBack', label: '翻到背面', type: 'boolean', required: false, defaultValue: true, description: 'onClick=flip 时有效', showIf: { path: 'onClick', equals: 'flip' } },
-      { name: 'effect', label: '选中特效', type: 'text', required: false, description: 'onClick=toggle_selected 时可选，如 pulse', showIf: { path: 'onClick', equals: 'toggle_selected' } }
+      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, description: 'onClick=toggle_selected 时可选：选中时播放的动画资源（留空则为内置“呼吸”）', showIf: { path: 'onClick', equals: 'toggle_selected' }, resourceKind: 'animation' }
       // 注意：子命令 commands[] 在指令树中编辑，不在此面板
     ]
   },
@@ -200,8 +198,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#3F51B5',
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
-      { name: 'draggable', label: '启用拖拽', type: 'boolean', required: false, defaultValue: true, description: '是否可拖拽' },
-      { name: 'dragType', label: '拖拽类型', type: 'text', required: false, description: '用于与掉落区匹配（可选）', showIf: { path: 'draggable', equals: true } }
+      { name: 'draggable', label: '启用拖拽', type: 'boolean', required: false, defaultValue: true, description: '是否可拖拽' }
     ]
   },
   {

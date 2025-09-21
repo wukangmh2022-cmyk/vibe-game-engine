@@ -12,27 +12,27 @@
     "animations": [
       {
         "id": "淡入",
-        "src": "animations/entry/fade-in.json"
+        "src": "animations/淡入.json"
       },
       {
         "id": "弹入",
-        "src": "animations/entry/bounce-in.json"
+        "src": "animations/弹入.json"
       },
       {
         "id": "缩放弹入",
-        "src": "animations/entry/scale-pop-in.json"
+        "src": "animations/放大入场.json"
       },
       {
         "id": "向右滑入",
-        "src": "animations/entry/slide-in-right.json"
+        "src": "animations/向右滑入.json"
       },
       {
         "id": "缩放",
-        "src": "animations/entry/scale-0-1.json"
+        "src": "animations/从零放大.json"
       },
       {
         "id": "上下浮动",
-        "src": "animations/loop/hover-slow.json"
+        "src": "animations/上下悬浮.json"
       }
     ]
   },

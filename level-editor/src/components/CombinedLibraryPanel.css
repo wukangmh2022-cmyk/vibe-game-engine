@@ -27,3 +27,18 @@
 .combined-lib .res-compact [style*='overflow: auto'] { /* ResourceListPanel 内部列表 */
   min-height: 0;
 }
+
+/* Small neutral buttons used in project/scene resource lists */
+.combined-lib .lib-small-btn {
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.combined-lib .lib-small-btn:hover { background: #e9ecef; border-color: #ced4da; }
+
+/* Folder row tweaks: smaller label font */
+.combined-lib .lib-folder-row strong { font-size: 12px; }

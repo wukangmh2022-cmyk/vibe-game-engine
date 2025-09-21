@@ -73,11 +73,98 @@ export class SetSelectedHandler extends BaseCommandHandler {
 
     if (selected) {
       const eff = p.effect || (node as any).__selectEffect || 'pulse';
-      if (eff === 'pulse') this.animator.loopPulseScale(node, 0.95, 1.05, 900);
+      if (eff === 'pulse') {
+        this.animator.loopPulseScale(node, 0.95, 1.05, 900);
+      } else if (typeof eff === 'string' && eff.trim()) {
+        // 播放资源动画时间轴（非阻塞，一次性）
+        this.playTimeline(node, eff.trim(), context).catch(() => {});
+      }
     } else {
       try { this.animator.stop(node); } catch {}
       if ((node as any).scale) { (node as any).scale.x = 1; (node as any).scale.y = 1; }
     }
     return this.createSuccessResult({ elementId: id, selected });
+  }
+
+  private async playTimeline(node: any, specIdOrUrl: string, context: CommandContext): Promise<void> {
+    try {
+      const url = await this.resolveAnimationUrl(specIdOrUrl, context);
+      if (!url || typeof (globalThis as any).fetch !== 'function') return;
+      const startToken = ((node as any).__animToken || 0);
+      const res = await fetch(url);
+      const data = await res.json();
+      const timeline = (data.timeline || []).slice().sort((a: any, b: any) => (a.time || 0) - (b.time || 0));
+      const relative = !!data.relative;
+      const origin = data.origin;
+      if (origin === 'center' && (node as any).anchor) (node as any).anchor.set(0.5);
+      if (timeline.length === 0) return;
+
+      const toAbs = (props: any) => this.toAnimatorProps(props);
+      const base = { x: (node as any).x || 0, y: (node as any).y || 0, alpha: (node as any).alpha ?? 1, scaleX: (node as any).scale?.x ?? 1, scaleY: (node as any).scale?.y ?? 1 };
+      const resolveWithBase = (props: any) => {
+        const out = { ...props };
+        if (relative) {
+          if (out.x != null) out.x = (base.x ?? 0) + out.x;
+          if (out.y != null) out.y = (base.y ?? 0) + out.y;
+          if (out.scaleX != null) out.scaleX = (base.scaleX ?? 1) + out.scaleX;
+          if (out.scaleY != null) out.scaleY = (base.scaleY ?? 1) + out.scaleY;
+        }
+        return out;
+      };
+
+      if (((node as any).__animToken || 0) !== startToken) return;
+      const first = timeline[0];
+      this.applyAnimatorProps(node, toAbs(resolveWithBase(first.props || {})));
+
+      for (let i = 0; i < timeline.length - 1; i++) {
+        const cur = timeline[i];
+        const nxt = timeline[i + 1];
+        if (((node as any).__animToken || 0) !== startToken) return;
+        const from = this.getAnimatorState(node);
+        const to = toAbs(resolveWithBase(nxt.props || {}));
+        const duration = Math.max(0, (nxt.time || 0) - (cur.time || 0));
+        const easing = nxt.ease || 'easeOutQuad';
+        await this.animator.animate(node, from, to, duration, easing as any);
+        if (((node as any).__animToken || 0) !== startToken) return;
+      }
+    } catch {}
+  }
+
+  private async resolveAnimationUrl(spec: string, context: CommandContext): Promise<string | null> {
+    if (!spec) return null;
+    const rm: any = (context as any).resourceManager;
+    const res = rm?.getResource ? rm.getResource(spec) : null;
+    return res?.url || (typeof spec === 'string' ? spec : null);
+  }
+
+  private toAnimatorProps(props: any): any {
+    const out: any = {};
+    if (props.alpha != null) out.alpha = props.alpha;
+    if (props.x != null) out.x = props.x;
+    if (props.y != null) out.y = props.y;
+    if (props.scaleX != null || props.scaleY != null) {
+      out.scale = { x: props.scaleX ?? 1, y: props.scaleY ?? 1 };
+    }
+    return out;
+  }
+
+  private applyAnimatorProps(node: any, props: any) {
+    if (!props) return;
+    if (props.alpha != null) (node as any).alpha = props.alpha;
+    if (props.x != null) (node as any).x = props.x;
+    if (props.y != null) (node as any).y = props.y;
+    if (props.scale && (node as any).scale) {
+      (node as any).scale.x = props.scale.x ?? (node as any).scale.x;
+      (node as any).scale.y = props.scale.y ?? (node as any).scale.y;
+    }
+  }
+
+  private getAnimatorState(node: any) {
+    const st: any = {};
+    if ((node as any).alpha != null) st.alpha = (node as any).alpha;
+    if ((node as any).x != null) st.x = (node as any).x;
+    if ((node as any).y != null) st.y = (node as any).y;
+    if ((node as any).scale) st.scale = { x: (node as any).scale.x ?? 1, y: (node as any).scale.y ?? 1 };
+    return st;
   }
 }

@@ -77,6 +77,8 @@
 | `SET_ELEMENT_STYLE` | `elementId` | 通过 `style` 对象设置 `display`, `opacity` 等 |
 | `SHOW_MEDIA` | `elementId`, `mediaType`, `resourceId` | `autoplay`, `loop`, `muted`, `controls` 等为可选字段 |
 
+其中显示文本指令支持${gameState.gold} 这种嵌入变量，通常用于一些状态文字渲染如角色属性、倒计时等。
+
 ### 3.3 动画与特效
 
 | 指令 `type` | 必填参数 | 可选参数 |

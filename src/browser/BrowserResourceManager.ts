@@ -7,19 +7,19 @@ export class BrowserResourceManager implements IResourceManager {
   private normalize(url?: string): string | undefined {
     if (!url) return url;
     try {
+      // If absolute scheme (http, https, blob, data, file, etc.) or already parent-relative/rooted, keep
+      if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) || url.startsWith('/') || url.startsWith('../')) return url;
+
       const g: any = (typeof window !== 'undefined' ? (window as any) : (globalThis as any));
       const base: string | undefined = g?.__ASSET_BASE__ || g?.__PROJECT_BASE__;
-      if (base && !/^(https?:)?\/\//.test(url) && !url.startsWith('/')) {
+      if (base) {
         const clean = url.replace(/^\.\/+/, '').replace(/^\.\//, '');
         const joined = (base.endsWith('/') ? `${base}${clean}` : `${base}/${clean}`);
         return joined;
       }
     } catch {}
-    // If absolute scheme (http, https, blob, data, file, etc.) or already parent-relative, keep
-    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(url) || url.startsWith('/') || url.startsWith('../')) return url;
-    // Strip leading './'
+    // Strip leading './' and fallback for web runtime pathing
     if (url.startsWith('./')) url = url.slice(2);
-    // runtime.html is under /web, assets live under repo root => prefix '../'
     return `../${url}`;
   }
 

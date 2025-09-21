@@ -56,18 +56,40 @@ export class AnimateInHandler extends BaseCommandHandler {
       const url = await this.resolveAnimationUrl(specIdOrUrl, context);
       if (!url || typeof (globalThis as any).fetch !== 'function') return;
       const startToken = ((node as any).__animToken || 0);
-      const res = await fetch(url);
-      const data = await res.json();
+      const tryFetch = async (u: string): Promise<any | null> => {
+        try { const r = await fetch(u); if (r.ok) return await r.json(); } catch {}
+        return null;
+      };
+      let data: any = await tryFetch(url);
+      if (!data) {
+        try {
+          const g: any = (typeof window !== 'undefined' ? (window as any) : (globalThis as any));
+          const base: string = g?.__ASSET_BASE__ || g?.__PROJECT_BASE__ || '';
+          if (base && typeof url === 'string' && url.startsWith(base)) {
+            const rel = url.slice(base.length).replace(/^\/+/, '');
+            if (rel.startsWith('animations/')) {
+              data = await tryFetch('/' + rel);
+            }
+          }
+        } catch {}
+      }
+      if (!data) return;
       const timeline = (data.timeline || []).slice().sort((a: any, b: any) => (a.time || 0) - (b.time || 0));
       const relative = !!data.relative;
       const origin = data.origin;
-      if (origin === 'center' && (node as any).anchor) (node as any).anchor.set(0.5);
+      // Do not mutate anchor during playback to avoid coordinate drift
       if (timeline.length === 0) return;
 
       const toAbs = (props: any) => this.toAnimatorProps(props);
       const base = { x: (node as any).x || 0, y: (node as any).y || 0, alpha: (node as any).alpha ?? 1, scaleX: (node as any).scale?.x ?? 1, scaleY: (node as any).scale?.y ?? 1 };
       const resolveWithBase = (props: any) => {
         const out = { ...props };
+        // Support shorthand `scale`
+        if (out.scale != null && (out.scaleX == null && out.scaleY == null)) {
+          const s = out.scale;
+          if (typeof s === 'number') { out.scaleX = s; out.scaleY = s; }
+          else if (s && typeof s === 'object') { if (s.x != null) out.scaleX = s.x; if (s.y != null) out.scaleY = s.y; }
+        }
         if (relative) {
           if (out.x != null) out.x = (base.x ?? 0) + out.x;
           if (out.y != null) out.y = (base.y ?? 0) + out.y;
@@ -107,8 +129,12 @@ export class AnimateInHandler extends BaseCommandHandler {
     if (props.alpha != null) out.alpha = props.alpha;
     if (props.x != null) out.x = props.x;
     if (props.y != null) out.y = props.y;
+    // Support scaleX/scaleY or shorthand `scale`
     if (props.scaleX != null || props.scaleY != null) {
       out.scale = { x: props.scaleX ?? 1, y: props.scaleY ?? 1 };
+    } else if (props.scale != null) {
+      if (typeof props.scale === 'number') out.scale = { x: props.scale, y: props.scale };
+      else if (typeof props.scale === 'object') out.scale = { x: props.scale.x ?? 1, y: props.scale.y ?? 1 };
     }
     return out;
   }

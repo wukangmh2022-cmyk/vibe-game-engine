@@ -14,6 +14,7 @@ import { ProjectHome } from './components/ProjectHome';
 import { TriggerModalEditor } from './components/TriggerModalEditor';
 import './App.css';
 import { runAndLogTemplateSanity } from './utils/templateSanity';
+import vfs from './utils/vfs';
 
 interface AppState {
   currentProject: GameProject | null;
@@ -336,7 +337,7 @@ const App: React.FC = () => {
         evs.push({ id, name: '新事件', triggers: [{ type: 'auto', start: 'immediate' }], commands: [] });
         return { ...l, events: evs };
       });
-      return { ...prev, currentProject: { ...prev.currentProject, levels } };
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, unsaved: true };
     });
   };
 
@@ -349,7 +350,19 @@ const App: React.FC = () => {
         return { ...l, events: evs };
       });
       const selectedEventId = prev.selectedEventId === eventId ? null : prev.selectedEventId;
-      return { ...prev, currentProject: { ...prev.currentProject, levels }, selectedEventId };
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, selectedEventId, unsaved: true };
+    });
+  };
+
+  const handleRenameEvent = (eventId: string, newName: string) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const levels = prev.currentProject.levels.map((l: any) => {
+        if (l.id !== prev.currentLevelId) return l;
+        const evs = Array.isArray(l.events) ? l.events.map((e: any) => e?.id === eventId ? { ...e, name: newName } : e) : [];
+        return { ...l, events: evs };
+      });
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, unsaved: true };
     });
   };
 
@@ -408,7 +421,13 @@ const App: React.FC = () => {
       const join = (p: string) => isAbs(p) ? p : (base.endsWith('/') ? `${base}${p.replace(/^\.\//,'')}` : `${base}/${p.replace(/^\.\//,'')}`);
       const resObj = (gameData.resources && typeof gameData.resources === 'object') ? gameData.resources : {};
       const imgs = Array.isArray((resObj as any).images) ? (resObj as any).images : [];
-      imgs.forEach((r: any) => { if (r?.id && r?.src) resourceMap.set(r.id, join(r.src)); });
+      imgs.forEach((r: any) => {
+        if (r?.id && r?.src) {
+          const p = String(r.src).replace(/^\.\//,'');
+          const url = vfs.getResourceURL(p) || join(p);
+          resourceMap.set(r.id, url);
+        }
+      });
 
       // 递归处理指令，包括事件和条件分支中的指令
       interface GameEvent {
@@ -588,10 +607,34 @@ const App: React.FC = () => {
       const editorResources: any[] = [];
       try {
         const r = resObj as any;
-        (r.images || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'image', src: join(x.src), name: x.name || x.id }));
-        (r.audios || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'audio', src: join(x.src), name: x.name || x.id }));
-        (r.animations || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'animation', src: join(x.src), name: x.name || x.id }));
-        (r.videos || []).forEach((x: any) => editorResources.push({ id: x.id, type: 'video', src: join(x.src), name: x.name || x.id }));
+        const mapSrc = (s: any) => {
+          const p = String(s || '').replace(/^\.\//,'');
+          return vfs.getResourceURL(p) || join(p);
+        };
+        const toRel = (s: any) => {
+          const raw = String(s || '').replace(/^\.\//,'');
+          // Strip project base if present
+          if (raw && base && raw.startsWith(base)) return raw.slice(base.length).replace(/^\/+/, '');
+          return raw;
+        };
+        const pushWithPath = (type: string, x: any) => {
+          const rel = toRel(x.src);
+          editorResources.push({ id: x.id, type, src: mapSrc(x.src), path: rel, name: x.name || x.id });
+        };
+        (r.images || []).forEach((x: any) => pushWithPath('image', x));
+        (r.audios || []).forEach((x: any) => pushWithPath('audio', x));
+        (r.animations || []).forEach((x: any) => pushWithPath('animation', x));
+        (r.videos || []).forEach((x: any) => pushWithPath('video', x));
+
+        // 支持数组形式的 resources（兼容旧数据）
+        if (Array.isArray(gameData.resources)) {
+          (gameData.resources as any[]).forEach((x: any) => {
+            if (!x || typeof x !== 'object') return;
+            const t = x.type || 'image';
+            const rel = toRel(x.src);
+            editorResources.push({ id: x.id, type: t, src: mapSrc(x.src), path: rel, name: x.name || x.id });
+          });
+        }
       } catch {}
       
       setAppState(prev => ({
@@ -712,7 +755,7 @@ const App: React.FC = () => {
 
   const handleSaveJson = () => {
     if (!appState.currentProject) return;
-    
+
     // 1) 组装最新的场景 JSON（优先使用 rawCommands 树结构）
     const levels = (appState.currentProject.levels || []).map((lv: any) => {
       const out: any = { ...lv };
@@ -720,49 +763,66 @@ const App: React.FC = () => {
       delete out.rawCommands;
       return out;
     });
+    // 资源打包为对象形式，确保重载时可解析
+    const packResources = (list: any[]) => {
+      const out: any = { images: [], audios: [], animations: [], videos: [] };
+      const base = (window as any).__ASSET_BASE__ || appState.projectBase || '';
+      const isAbs = (p: string) => /^(https?:|blob:|data:|file:)/.test(p) || p.startsWith('/') || p.startsWith('../');
+      const strip = (s: string) => {
+        const p = String(s || '');
+        if (base && p.startsWith(base)) return p.slice(base.length).replace(/^\/+/, '');
+        if (/^(blob:|data:)/.test(p)) return p; // 无法还原，保留
+        return p.replace(/^\.\//,'');
+      };
+      (list || []).forEach((r: any) => {
+        const pathRaw = String((r as any).path || '');
+        // Prefer recorded path when it is a relative project path; otherwise derive from src
+        const rel = pathRaw && !isAbs(pathRaw) ? pathRaw : strip(r.src);
+        const item = { id: r.id, src: rel, name: r.name } as any;
+        if (r.type === 'image') out.images.push(item);
+        else if (r.type === 'audio') out.audios.push(item);
+        else if (r.type === 'video') out.videos.push(item);
+        else if (r.type === 'animation') out.animations.push(item);
+      });
+      return out;
+    };
+
     const gameData = {
       id: appState.currentProject.id,
       name: appState.currentProject.name,
       version: appState.currentProject.version,
       globalVariables: appState.currentProject.globalVariables,
+      globalSwitches: appState.currentProject.globalSwitches || {},
       levels,
-      resources: appState.currentProject.resources
+      resources: packResources(appState.currentProject.resources as any[])
     };
 
-    // 2) 写入到会话缓存（并由 useEffect 持久化到 localStorage）
+    // Determine save path (prompt on first save)
+    let savePath = appState.currentScenePath || '';
+    if (!savePath) {
+      try {
+        const def = `scene/${(appState.currentProject?.id || 'untitled')}.json`;
+        const input = window.prompt('首次保存：请输入保存路径（位于 scene/ 目录）', def);
+        if (!input || !input.trim()) return;
+        savePath = input.trim().replace(/^\.\//,'');
+        if (!savePath.startsWith('scene/')) savePath = 'scene/' + savePath;
+      } catch { return; }
+    }
+
+    // 2) 写入 VFS（folder → local Map; idb → IndexedDB）
+    try { vfs.writeScene(savePath, gameData); } catch {}
+
+    // 3) 写入到会话缓存（并由 useEffect 持久化到 localStorage）
     setAppState(prev => {
       const scenes = (prev.sessionScenes || []).slice();
-      let path = prev.currentScenePath || '';
-      if (!path) {
-        try {
-          const def = `scene/${(prev.currentProject?.id || 'untitled')}.json`;
-          const input = window.prompt('首次保存：请输入保存路径（位于 scene/ 目录）', def);
-          if (!input || !input.trim()) return prev;
-          path = input.trim().replace(/^\.\//,'');
-          if (!path.startsWith('scene/')) path = 'scene/' + path;
-        } catch { return prev; }
-      }
-      const idx = scenes.findIndex(s => s.path === path);
-      const entry = { path, data: gameData, lastEditedAt: Date.now() };
+      const idx = scenes.findIndex(s => s.path === savePath);
+      const entry = { path: savePath, data: gameData, lastEditedAt: Date.now() };
       if (idx >= 0) scenes[idx] = entry; else scenes.push(entry);
-      return { ...prev, sessionScenes: scenes, runtimeGameData: gameData, currentScenePath: path, unsaved: false };
+      return { ...prev, sessionScenes: scenes, runtimeGameData: gameData, currentScenePath: savePath, unsaved: false };
     });
 
-    // If local folder mode is active, also write into __LOCAL_FILES__ virtual FS
-    try {
-      const lf: Map<string, File> | undefined = (window as any).__LOCAL_FILES__;
-      if (lf && appState.currentScenePath) {
-        const path = appState.currentScenePath.startsWith('scene/') ? appState.currentScenePath : ('scene/' + appState.currentScenePath.replace(/^\.\//,''));
-        const blob = new Blob([JSON.stringify(gameData, null, 2)], { type: 'application/json' });
-        const file = new File([blob], path.split('/').pop() || 'scene.json', { type: 'application/json' });
-        lf.set(path, file);
-      }
-    } catch {}
-
-    // 3) 轻提示：返回初始页可下载导出的“整个工程”
-    // 4) 更新虚拟项目索引
-    try { psUpsert(appState.projectBase || '', { path: appState.currentScenePath || '', lastEditedAt: Date.now() }); } catch {}
-    try { alert('关卡已保存。返回初始页可导出整个工程（右下角“导出工程”）。'); } catch {}
+    // 4) 更新虚拟项目索引 + 轻提示（仅本地文件夹工程持久化）
+    try { if (vfs.getBackend() === 'folder') { psUpsert(appState.projectBase || '', { path: savePath, lastEditedAt: Date.now() }); } } catch {}
   };
 
   // 新增：加载测试数据
@@ -872,7 +932,8 @@ const App: React.FC = () => {
             ...prev.currentProject.globalVariables,
             [key]: value
           }
-        }
+        },
+        unsaved: true
       };
     });
   };
@@ -891,7 +952,8 @@ const App: React.FC = () => {
         currentProject: {
           ...prev.currentProject,
           globalVariables: newVariables
-        }
+        },
+        unsaved: true
       };
     });
   };
@@ -909,7 +971,8 @@ const App: React.FC = () => {
             ...globalSwitches,
             [key]: value
           }
-        }
+        },
+        unsaved: true
       };
     });
   };
@@ -928,7 +991,8 @@ const App: React.FC = () => {
         currentProject: {
           ...prev.currentProject,
           globalSwitches: newSwitches
-        }
+        },
+        unsaved: true
       };
     });
   };
@@ -942,63 +1006,42 @@ const App: React.FC = () => {
           shouldAutoLoad={!!appState.hasOpenedProject}
           onExportProject={async () => {
             try {
-              // Build scene list from session cache; if empty, fall back to config.json
-              let scenes = (appState.sessionScenes || []).slice();
-              if (!scenes.length) {
-                // Try local-folder mode first
-                const lf: Map<string, File> | undefined = (window as any).__LOCAL_FILES__;
-                if (lf && lf.has('config.json')) {
-                  const cfgText = await lf.get('config.json')!.text();
-                  const cfg = JSON.parse(cfgText);
-                  const list: string[] = [];
-                  const root = cfg?.['scene-tree']?.curnode; if (root) list.push(root);
-                  const children = Array.isArray(cfg?.['scene-tree']?.child_node) ? cfg['scene-tree'].child_node : [];
-                  children.forEach((c: any) => { if (c?.curnode) list.push(c.curnode); });
-                  for (const p of list) {
-                    const f = lf.get(p); if (!f) continue;
-                    const txt = await f.text();
-                    scenes.push({ path: p, data: JSON.parse(txt), lastEditedAt: null as any });
-                  }
-                } else if (appState.projectBase) {
-                  // Fetch from server base
-                  const base = appState.projectBase.endsWith('/') ? appState.projectBase : (appState.projectBase + '/');
-                  const cfgRes = await fetch(base + 'config.json');
-                  if (cfgRes.ok) {
-                    const cfg = await cfgRes.json();
-                    const list: string[] = [];
-                    const root = cfg?.['scene-tree']?.curnode; if (root) list.push(root);
-                    const children = Array.isArray(cfg?.['scene-tree']?.child_node) ? cfg['scene-tree'].child_node : [];
-                    children.forEach((c: any) => { if (c?.curnode) list.push(c.curnode); });
-                    for (const p of list) {
-                      const url = base + p.replace(/^\.\//, '');
-                      const rs = await fetch(url); if (!rs.ok) continue; const data = await rs.json();
-                      scenes.push({ path: p, data, lastEditedAt: null as any });
-                    }
+              // 递归遍历 VFS，导出整个项目（包含 config.json、scene 与资源）
+              const out: Record<string, string | Uint8Array | ArrayBuffer> = {};
+              const toVisit: string[] = [''];
+              while (toVisit.length) {
+                const dir = toVisit.pop()!;
+                const entries = await vfs.readdir(dir);
+                for (const e of entries) {
+                  if (e.type === 'directory') {
+                    toVisit.push(e.path);
+                  } else {
+                    const content = await vfs.readFile(e.path);
+                    if (content == null) continue;
+                    if (typeof content === 'string') out[e.path] = content;
+                    else out[e.path] = await content.arrayBuffer();
                   }
                 }
               }
 
-              if (!scenes.length) { alert('没有可导出的场景'); return; }
+              // 若缺失 config.json，基于场景生成一个最小化配置
+              const hasConfig = Object.prototype.hasOwnProperty.call(out, 'config.json');
+              if (!hasConfig) {
+                const scenePaths = await vfs.listScenes();
+                if (!scenePaths.length) { alert('没有可导出的内容'); return; }
+                const root = scenePaths[0];
+                const children = scenePaths.slice(1).map(p => ({ curnode: p, child_node: [] as any[] }));
+                const cfg = {
+                  project_name: appState.currentProject?.name || 'exported-project',
+                  'scene-tree': { curnode: root, child_node: children },
+                  user_data_sheet: { user_nickname: 'default', scene_data: {} },
+                  version: appState.currentProject?.version || '1.0.0'
+                };
+                out['config.json'] = JSON.stringify(cfg, null, 2);
+              }
 
-              // Build 00project-like files
-              const files: Record<string, string> = {};
-              scenes.forEach(s => {
-                const path = s.path.startsWith('scene/') ? s.path : ('scene/' + s.path.replace(/^\.\//,''));
-                files[path] = JSON.stringify(s.data, null, 2);
-              });
-              const root = scenes[0].path.startsWith('scene/') ? scenes[0].path : ('scene/' + scenes[0].path.replace(/^\.\//,''));
-              const children = scenes.slice(1).map(s => ({ curnode: (s.path.startsWith('scene/') ? s.path : ('scene/' + s.path.replace(/^\.\//,''))), child_node: [] as any[] }));
-              const cfg = {
-                project_name: appState.currentProject?.name || 'exported-project',
-                'scene-tree': { curnode: root, child_node: children },
-                user_data_sheet: { user_nickname: 'default', scene_data: {} },
-                version: appState.currentProject?.version || '1.0.0'
-              };
-              files['config.json'] = JSON.stringify(cfg, null, 2);
-
-              // Create ZIP
               const { createZip } = await import('./utils/zip');
-              const zipBlob = createZip(files);
+              const zipBlob = createZip(out);
               const url = URL.createObjectURL(zipBlob);
               const a = document.createElement('a'); a.href = url; a.download = 'project.zip'; a.click(); URL.revokeObjectURL(url);
             } catch (e) {
@@ -1018,8 +1061,9 @@ const App: React.FC = () => {
               });
             } catch {}
             try { (window as any).__ASSET_BASE__ = base; } catch {}
+            try { vfs.setProjectBase(base || ''); } catch {}
             setAppState(prev => ({ ...prev, projectBase: base, currentScenePath: sceneRel, isHome: false, unsaved: false, hasOpenedProject: true }));
-            try { psSetKey(base || ''); psUpsert(base || '', { path: sceneRel, lastEditedAt: Date.now() }); } catch {}
+            try { if (vfs.getBackend() === 'folder') { psSetKey(base || ''); psUpsert(base || '', { path: sceneRel, lastEditedAt: Date.now() }); } } catch {}
             handleLoadJson(data, base);
           }}
         />
@@ -1091,10 +1135,10 @@ const App: React.FC = () => {
         <FloatingPanel
           id="panel-preview"
           title="预览"
-          defaultX={560}
-          defaultY={80}
-          defaultWidth={(currentLevel as any).canvasWidth ? Math.min(900, Math.max(320, Math.round(((currentLevel as any).canvasWidth as any) * 0.8))) : 640}
-          defaultHeight={(currentLevel as any).canvasHeight ? Math.min(700, Math.max(240, Math.round(((currentLevel as any).canvasHeight as any) * 0.8))) : 400}
+          defaultX={830}
+          defaultY={100}
+          defaultWidth={640}
+          defaultHeight={480}
         >
           <PixiCanvas
             commands={currentCommands}
@@ -1108,19 +1152,20 @@ const App: React.FC = () => {
         </FloatingPanel>
 
         {/* 浮动面板：事件列表 */}
-        <FloatingPanel id="panel-events" title="事件" defaultX={16} defaultY={80} defaultWidth={240} defaultHeight={260}>
-          <EventListPanel
-            level={currentLevel}
-            selectedEventId={appState.selectedEventId}
-            onEventSelect={handleEventSelect}
-            onOpenTriggerEditor={handleOpenTriggerEditor}
-            onAddEvent={handleAddEvent}
-            onDeleteEvent={handleDeleteEvent}
-          />
+        <FloatingPanel id="panel-events" title="事件" defaultX={0} defaultY={100} defaultWidth={260} defaultHeight={260}>
+        <EventListPanel
+          level={currentLevel}
+          selectedEventId={appState.selectedEventId}
+          onEventSelect={handleEventSelect}
+          onOpenTriggerEditor={handleOpenTriggerEditor}
+          onAddEvent={handleAddEvent}
+          onDeleteEvent={handleDeleteEvent}
+          onRenameEvent={handleRenameEvent}
+        />
         </FloatingPanel>
 
         {/* 浮动面板：指令树编辑器 */}
-        <FloatingPanel id="panel-commands" title="指令树" defaultX={270} defaultY={80} defaultWidth={520} defaultHeight={520}>
+        <FloatingPanel id="panel-commands" title="指令树" defaultX={285} defaultY={100} defaultWidth={520} defaultHeight={590}>
           <CommandTreePanel
             key={appState.selectedEventId || (currentLevel as any).id}
             project={appState.currentProject}
@@ -1137,10 +1182,78 @@ const App: React.FC = () => {
         </FloatingPanel>
 
         {/* 浮动面板：综合库面板（变量/开关 + 资源） */}
-        <FloatingPanel id="panel-library" title="综合库面板" defaultX={16} defaultY={360} defaultWidth={360} defaultHeight={360}>
+        <FloatingPanel id="panel-library" title="综合库面板" defaultX={0} defaultY={400} defaultWidth={270} defaultHeight={360}>
           <CombinedLibraryPanel
             project={appState.currentProject}
             currentLevel={currentLevel as any}
+            onRemoveProjectResource={(rid: string) => {
+              setAppState(prev => {
+                if (!prev.currentProject) return prev;
+                // Remove from project resource dictionary
+                const nextRes = (prev.currentProject.resources || []).filter(r => r.id !== rid);
+                // Also clean up any level.resources references
+                const nextLevels = prev.currentProject.levels.map(l => {
+                  const arr = (l.resources || []).filter((x: any) => x !== rid);
+                  return { ...l, resources: arr } as any;
+                });
+                // Sync runtime JSON as well
+                let nextRuntime = prev.runtimeGameData;
+                try {
+                  if (nextRuntime && typeof nextRuntime === 'object') {
+                    const clone = JSON.parse(JSON.stringify(nextRuntime));
+                    // Remove from resource object groups
+                    const groups = ['images','audios','animations','videos'];
+                    const ro = (clone.resources && typeof clone.resources === 'object') ? clone.resources : { images: [], audios: [], animations: [], videos: [] };
+                    for (const g of groups) {
+                      if (Array.isArray(ro[g])) ro[g] = ro[g].filter((x: any) => x?.id !== rid);
+                    }
+                    clone.resources = ro;
+                    // Remove from all level resources
+                    if (Array.isArray(clone.levels)) {
+                      clone.levels = clone.levels.map((lv: any) => ({ ...lv, resources: Array.isArray(lv.resources) ? lv.resources.filter((x: any) => x !== rid) : [] }));
+                    }
+                    nextRuntime = clone;
+                  }
+                } catch {}
+                return { ...prev, currentProject: { ...prev.currentProject, resources: nextRes, levels: nextLevels }, runtimeGameData: nextRuntime, unsaved: true };
+              });
+            }}
+            onQuickAddResourceFromPath={(p: string) => {
+              setAppState(prev => {
+                if (!prev.currentProject) return prev;
+                const exists = (prev.currentProject.resources || []).some((r: any) => (r as any).path === p || r.src === p);
+                if (exists) return prev;
+                // Detect resource type by folder prefix or file extension
+                const low = String(p || '').toLowerCase();
+                const is = (pre: string) => low.startsWith(pre);
+                const type = is('images/') || is('image/') ? 'image'
+                  : (is('audios/') || is('audio/')) ? 'audio'
+                  : (is('videos/') || is('video/')) ? 'video'
+                  : (is('animations/') || is('animation/')) ? 'animation'
+                  : (/\.(png|jpg|jpeg|gif|webp|svg)$/i.test(low) ? 'image'
+                    : (/\.(mp3|wav|ogg|m4a)$/i.test(low) ? 'audio'
+                      : (/\.(mp4|webm|mov)$/i.test(low) ? 'video'
+                        : (/\.(json)$/i.test(low) ? 'animation' : 'image'))));
+                const name = p.split('/').pop()!.replace(/\.[^.]+$/, '');
+                const used = new Set((prev.currentProject.resources || []).map(r => r.id));
+                let id = name.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'res';
+                if (used.has(id)) { let i=1; while (used.has(`${id}_${i}`)) i++; id = `${id}_${i}`; }
+                const merged = [ ...(prev.currentProject.resources || []), { id, type, src: p, path: p, name } ];
+                // Sync into runtime JSON when present
+                let nextRuntime = prev.runtimeGameData;
+                try {
+                  if (nextRuntime && typeof nextRuntime === 'object') {
+                    const clone = JSON.parse(JSON.stringify(nextRuntime));
+                    const ro = (clone.resources && typeof clone.resources === 'object') ? clone.resources : { images: [], audios: [], animations: [], videos: [] };
+                    const key = type === 'image' ? 'images' : type === 'audio' ? 'audios' : type === 'video' ? 'videos' : 'animations';
+                    const arr = Array.isArray(ro[key]) ? ro[key] : [];
+                    if (!arr.some((x: any) => x?.id === id)) arr.push({ id, src: p, name });
+                    ro[key] = arr; clone.resources = ro; nextRuntime = clone;
+                  }
+                } catch {}
+                return { ...prev, currentProject: { ...prev.currentProject, resources: merged }, runtimeGameData: nextRuntime, unsaved: true };
+              });
+            }}
             onAddLevelResource={(rid: string) => {
               setAppState(prev => {
                 if (!prev.currentProject) return prev;
@@ -1149,7 +1262,22 @@ const App: React.FC = () => {
                   const set = new Set([...(l.resources || [])]); set.add(rid);
                   return { ...l, resources: Array.from(set) } as any;
                 });
-                return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
+                // Sync into runtime JSON when present
+                let nextRuntime = prev.runtimeGameData;
+                try {
+                  if (nextRuntime && typeof nextRuntime === 'object') {
+                    const clone = JSON.parse(JSON.stringify(nextRuntime));
+                    if (Array.isArray(clone.levels)) {
+                      const li = clone.levels.findIndex((lv: any) => (lv.id || '') === prev.currentLevelId);
+                      if (li >= 0) {
+                        const arr = Array.isArray(clone.levels[li].resources) ? clone.levels[li].resources : [];
+                        const s = new Set(arr); s.add(rid); clone.levels[li].resources = Array.from(s);
+                      }
+                    }
+                    nextRuntime = clone;
+                  }
+                } catch {}
+                return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, runtimeGameData: nextRuntime, unsaved: true };
               });
             }}
             onRemoveLevelResource={(rid: string) => {
@@ -1160,7 +1288,22 @@ const App: React.FC = () => {
                   const arr = (l.resources || []).filter((x: any) => x !== rid);
                   return { ...l, resources: arr } as any;
                 });
-                return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
+                // Sync into runtime JSON when present
+                let nextRuntime = prev.runtimeGameData;
+                try {
+                  if (nextRuntime && typeof nextRuntime === 'object') {
+                    const clone = JSON.parse(JSON.stringify(nextRuntime));
+                    if (Array.isArray(clone.levels)) {
+                      const li = clone.levels.findIndex((lv: any) => (lv.id || '') === prev.currentLevelId);
+                      if (li >= 0) {
+                        const arr = Array.isArray(clone.levels[li].resources) ? clone.levels[li].resources : [];
+                        clone.levels[li].resources = arr.filter((x: any) => x !== rid);
+                      }
+                    }
+                    nextRuntime = clone;
+                  }
+                } catch {}
+                return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, runtimeGameData: nextRuntime, unsaved: true };
               });
             }}
             onVariableChange={handleVariableChange}

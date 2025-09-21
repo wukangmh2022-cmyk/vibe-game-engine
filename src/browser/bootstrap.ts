@@ -247,6 +247,15 @@ export async function mountRuntime(
       try { (audioManager as any)?.stopAll?.(); } catch {}
       try { (audioManager as any)?.dispose?.(); } catch {}
       try { app.destroy(true, true); } catch {}
+      // Clear global Pixi texture caches to avoid leaking blob URLs across re-mounts
+      try {
+        const utils: any = (PIXIImpl as any)?.utils;
+        const BT = utils?.BaseTextureCache || {};
+        const TC = utils?.TextureCache || {};
+        for (const k in BT) { try { BT[k]?.destroy?.(true); } catch {} delete (BT as any)[k]; }
+        for (const k in TC) { try { TC[k]?.destroy?.(true); } catch {} delete (TC as any)[k]; }
+        (app.renderer as any)?.textureGC?.run?.();
+      } catch {}
     },
     executor,
     app,

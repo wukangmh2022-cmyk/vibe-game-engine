@@ -67,28 +67,28 @@
     ],
     "animations": [
       {
-        "id": "anim-fade-in",
-        "src": "animations/entry/fade-in.json"
+        "id": "淡入",
+        "src": "animations/淡入.json"
       },
       {
-        "id": "anim-bounce-in",
-        "src": "animations/entry/bounce-in.json"
+        "id": "弹入",
+        "src": "animations/弹入.json"
       },
       {
-        "id": "anim-scale-pop-in",
-        "src": "animations/entry/scale-pop-in.json"
+        "id": "放大入场",
+        "src": "animations/放大入场.json"
       },
       {
-        "id": "anim-slide-in-right",
-        "src": "animations/entry/slide-in-right.json"
+        "id": "向右滑入",
+        "src": "animations/向右滑入.json"
       },
       {
-        "id": "anim-scale-0-1",
-        "src": "animations/entry/scale-0-1.json"
+        "id": "从零放大",
+        "src": "animations/从零放大.json"
       },
       {
-        "id": "anim-hover-slow",
-        "src": "animations/loop/hover-slow.json"
+        "id": "上下悬浮",
+        "src": "animations/上下悬浮.json"
       }
     ],
     "videos": [
@@ -131,7 +131,7 @@
             "zIndex": 0,
             "animation": {
               "entry": {
-                "animId": "anim-fade-in"
+                "animId": "淡入"
               }
             }
           }
@@ -163,7 +163,7 @@
             },
             "animation": {
               "entry": {
-                "animId": "anim-fade-in"
+                "animId": "淡入"
               }
             }
           }
@@ -271,7 +271,7 @@
                     "zIndex": 0,
                     "animation": {
                       "entry": {
-                        "animId": "anim-fade-in"
+                        "animId": "淡入"
                       }
                     }
                   }
@@ -380,7 +380,7 @@
                           "zIndex": 0,
                           "animation": {
                             "entry": {
-                              "animId": "anim-fade-in"
+                              "animId": "淡入"
                             }
                           }
                         }
@@ -427,7 +427,7 @@
                           },
                           "animation": {
                             "entry": {
-                              "animId": "anim-slide-in-right"
+                              "animId": "向右滑入"
                             }
                           }
                         }
@@ -448,10 +448,10 @@
                           },
                           "animation": {
                             "entry": {
-                              "animId": "anim-scale-pop-in"
+                              "animId": "放大入场"
                             },
                             "loop": {
-                              "animId": "anim-hover-slow"
+                              "animId": "上下悬浮"
                             }
                           }
                         }

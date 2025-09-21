@@ -16,6 +16,7 @@ interface EventListPanelProps {
   onOpenTriggerEditor: (eventId: string, triggerIndex: number, triggerData: any) => void;
   onAddEvent?: () => void;
   onDeleteEvent?: (eventId: string) => void;
+  onRenameEvent?: (eventId: string, newName: string) => void;
 }
 
 export const EventListPanel: React.FC<EventListPanelProps> = ({
@@ -24,9 +25,11 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
   onEventSelect,
   onOpenTriggerEditor,
   onAddEvent,
-  onDeleteEvent
+  onDeleteEvent,
+  onRenameEvent
 }) => {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; eventId: string } | null>(null);
 
   // 从关卡数据中提取事件信息
   const extractEvents = (levelData: any): Event[] => {
@@ -138,6 +141,10 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
                     ? 'selected' : ''
                 }`}
                 onClick={() => onEventSelect(event.id === 'main-flow' ? null : event.id)}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setCtxMenu({ x: e.clientX, y: e.clientY, eventId: event.id });
+                }}
               >
                 <button
                   className="expand-btn"
@@ -199,6 +206,34 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
           总计: {events.length}个事件
         </div>
       </div>
+
+      {ctxMenu && (
+        <>
+          <div
+            style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, background: '#fff', border: '1px solid #e9ecef', borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 2000, overflow: 'hidden', minWidth: 140 }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{ padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}
+              onClick={() => {
+                const ev = (extractEvents(level as any) || []).find(e => e.id === ctxMenu.eventId);
+                const oldName = ev?.name || '';
+                try {
+                  const v = window.prompt('重命名事件', oldName);
+                  if (v && v.trim()) onRenameEvent?.(ctxMenu.eventId, v.trim());
+                } catch {}
+                setCtxMenu(null);
+              }}
+            >重命名</div>
+            <div style={{ height: 1, background: '#f1f3f5' }} />
+            <div
+              style={{ padding: '6px 10px', fontSize: 12, cursor: ctxMenu.eventId === 'main-flow' ? 'not-allowed' : 'pointer', color: ctxMenu.eventId === 'main-flow' ? '#adb5bd' : '#dc3545' }}
+              onClick={() => { if (ctxMenu.eventId !== 'main-flow') onDeleteEvent?.(ctxMenu.eventId); setCtxMenu(null); }}
+            >删除</div>
+          </div>
+          <div onClick={() => setCtxMenu(null)} onContextMenu={(e)=>{ e.preventDefault(); setCtxMenu(null); }} style={{ position: 'fixed', inset: 0, zIndex: 1999 }} />
+        </>
+      )}
     </div>
   );
 };

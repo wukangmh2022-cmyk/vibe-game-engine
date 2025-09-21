@@ -4,6 +4,7 @@ import * as PIXI from 'pixi.js';
 import './PixiCanvas.css';
 // New: library-style runtime mount API (import directly to avoid bundling extras)
 import { mountRuntime, MountedRuntime } from '../../../src/browser/bootstrap';
+import vfs from '../utils/vfs';
 
 interface PixiCanvasProps {
   // 兼容旧 props（原始预览用法）
@@ -103,6 +104,8 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
               if (idx > 0) { const [lv] = levels.splice(idx, 1); levels.unshift(lv); toMount = { ...(gameData as any), levels }; }
             }
           } catch {}
+          // Rewrite resource URLs via VFS so that imported/IDB resources resolve to blob: URLs
+          try { vfs.rewriteResourceURLs(toMount); } catch {}
           const container = canvasRef.current as HTMLElement;
           const mounted = await mountRuntime(container, toMount, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
           if (cancelled) { try { mounted.dispose(); } catch {} return; }
@@ -132,35 +135,13 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
               const base: string = (window as any).__ASSET_BASE__ || '/00project/';
               let data: any = urlOrData;
               if (typeof urlOrData === 'string') {
-                // 支持本地文件夹工程：使用 __LOCAL_FILES__ 读取场景 JSON
-                const localFiles: Map<string, File> | undefined = (window as any).__LOCAL_FILES__;
                 const relRaw = String(urlOrData || '');
                 const rel1 = relRaw.replace(/^\.\//, '').replace(/^\/+/, '');
-                const tryPaths = [rel1, rel1.startsWith('scene/') ? rel1 : (`scene/${rel1}`)];
-                if (localFiles) {
-                  // Try both variants inside local folder mapping
-                  const key = tryPaths.find(p => localFiles.has(p));
-                  if (!key) throw new Error(`[redirect] scene not found in local project: ${relRaw}`);
-                  const f = localFiles.get(key)!;
-                  const text = await f.text();
-                  const json = JSON.parse(text);
-                  // 重写资源为 blob:// URL
-                  try {
-                    const groups = ['images','audios','animations','videos'];
-                    const res = json?.resources || {};
-                    for (const g of groups) {
-                      const arr = Array.isArray(res[g]) ? res[g] : [];
-                      for (const item of arr) {
-                        const src: string = item.src || item.url;
-                        if (typeof src === 'string') {
-                          const key = src.replace(/^\.\//,'');
-                          const file = localFiles.get(key) || localFiles.get(`/${key}`) || localFiles.get(key.replace(/^\/+/, ''));
-                          if (file) item.src = URL.createObjectURL(file);
-                        }
-                      }
-                    }
-                  } catch {}
-                  data = json;
+                // Try VFS first
+                const fromVfs = await vfs.readScene(rel1.startsWith('scene/') ? rel1 : `scene/${rel1}`);
+                if (fromVfs) {
+                  try { vfs.rewriteResourceURLs(fromVfs); } catch {}
+                  data = fromVfs;
                 } else {
                   const u = (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relRaw) || relRaw.startsWith('/'))
                     ? urlOrData
