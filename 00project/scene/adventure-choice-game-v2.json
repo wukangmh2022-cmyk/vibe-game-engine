@@ -1,9 +1,7 @@
 {
   "id": "adventure-choice-game-v2",
   "name": "冒险选择游戏 V2",
-  "description": "按钮内置是/否分支与选择多路分支；删除绝大多数事件到子命令，仅保留一个并行等待60秒的剧情事件",
   "version": "2.0.0",
-  "schema": "v2",
   "globalVariables": {
     "score": 0,
     "health": 100,
@@ -13,106 +11,10 @@
     "currentLocation": "forest"
   },
   "globalSwitches": {},
-  "audio": {
-    "globalVolume": 0.8
-  },
-  "resources": {
-    "images": [
-      {
-        "id": "forest-bg",
-        "src": "images/forest.png"
-      },
-      {
-        "id": "road",
-        "src": "images/road.jpg"
-      },
-      {
-        "id": "treasure-room",
-        "src": "images/cave.png"
-      },
-      {
-        "id": "game-over-screen",
-        "src": "images/game-over.svg"
-      },
-      {
-        "id": "backpack",
-        "src": "images/backpack.svg"
-      },
-      {
-        "id": "legendary-sword",
-        "src": "images/sword2.svg"
-      },
-      {
-        "id": "btn-orange",
-        "src": "images/btn-org.png"
-      },
-      {
-        "id": "btn-blue",
-        "src": "images/btn-blue.svg"
-      },
-      {
-        "id": "panel-blue-1",
-        "src": "images/ui-blue.svg"
-      }
-    ],
-    "audios": [
-      {
-        "id": "bgm-main",
-        "src": "audio/bgm/063-Slow06.mp3"
-      },
-      {
-        "id": "se-click",
-        "src": "audio/se/001-System01.ogg"
-      }
-    ],
-    "animations": [
-      {
-        "id": "淡入",
-        "src": "animations/淡入.json"
-      },
-      {
-        "id": "弹入",
-        "src": "animations/弹入.json"
-      },
-      {
-        "id": "放大入场",
-        "src": "animations/放大入场.json"
-      },
-      {
-        "id": "向右滑入",
-        "src": "animations/向右滑入.json"
-      },
-      {
-        "id": "从零放大",
-        "src": "animations/从零放大.json"
-      },
-      {
-        "id": "上下悬浮",
-        "src": "animations/上下悬浮.json"
-      }
-    ],
-    "videos": [
-      {
-        "id": "intro-video",
-        "src": "media/intro.mp4"
-      }
-    ]
-  },
   "levels": [
     {
       "id": "adventure-start-v2",
       "name": "冒险开始 V2",
-      "description": "基于V2数据结构的开场关卡",
-      "canvasWidth": 800,
-      "canvasHeight": 600,
-      "initialState": {
-        "score": 0,
-        "health": 100,
-        "gold": 50,
-        "hasKey": false,
-        "hasSword": false,
-        "currentLocation": "forest"
-      },
       "commands": [
         {
           "id": "show-forest-background",
@@ -147,7 +49,7 @@
               "y": 20
             },
             "style": {
-              "fontSize": 30.0,
+              "fontSize": 30,
               "color": "#ffffff",
               "fontFamily": "Arial, Helvetica, sans-serif",
               "stroke": "#000000",
@@ -179,7 +81,7 @@
               "y": 80
             },
             "style": {
-              "fontSize": 20.0,
+              "fontSize": 20,
               "color": "#ffffff",
               "fontFamily": "Arial, Helvetica, sans-serif",
               "stroke": "#1e3a8a",
@@ -208,7 +110,7 @@
               "y": 25
             },
             "style": {
-              "fontSize": 16.0,
+              "fontSize": 16,
               "color": "#ffffff",
               "fontFamily": "Arial, Helvetica, sans-serif",
               "stroke": "#000000",
@@ -229,7 +131,10 @@
           "type": "SHOW_CHOICES",
           "parameters": {
             "elementId": "btn-enter-forest",
-            "position": { "x": 50, "y": 200 },
+            "position": {
+              "x": 50,
+              "y": 200
+            },
             "ui": {
               "rowMax": 2,
               "fontSize": 16,
@@ -334,8 +239,8 @@
             },
             "ui": {
               "rowMax": 1,
-              "gapX" : 20,
-              "gapY" : 20,
+              "gapX": 20,
+              "gapY": 20,
               "fontSize": 16,
               "minWidth": 0,
               "buttonSkinId": "btn-primary-9slice"
@@ -351,8 +256,10 @@
                   "type": "if_condition",
                   "parameters": {
                     "condition": {
-                      "type": "expression",
-                      "expression": "context.stateManager.getVariable('hasKey') === true"
+                      "type": "variable",
+                      "key": "hasKey",
+                      "operator": "eq",
+                      "value": true
                     },
                     "trueCommands": [
                       {
@@ -470,12 +377,21 @@
                         "type": "CHECK_IN_AREA",
                         "parameters": {
                           "elementId": "sword",
-                          "area": { "x": 620, "y": 420, "width": 120, "height": 120 },
+                          "area": {
+                            "x": 620,
+                            "y": 420,
+                            "width": 120,
+                            "height": 120
+                          },
                           "commands": [
                             {
                               "id": "set-has-sword",
                               "type": "set_variable",
-                              "parameters": { "key": "hasSword", "op": "set", "value": true }
+                              "parameters": {
+                                "key": "hasSword",
+                                "op": "set",
+                                "value": true
+                              }
                             },
                             {
                               "id": "switch-to-outer",
@@ -483,30 +399,56 @@
                               "parameters": {
                                 "elementId": "background",
                                 "resourceId": "forest-bg",
-                                "position": { "x": 0, "y": 0 },
-                                "size": { "width": 800, "height": 600 },
+                                "position": {
+                                  "x": 0,
+                                  "y": 0
+                                },
+                                "size": {
+                                  "width": 800,
+                                  "height": 600
+                                },
                                 "zIndex": 0
                               }
                             },
                             {
                               "id": "hide-sword",
                               "type": "SET_ELEMENT_STYLE",
-                              "parameters": { "elementId": "sword", "style": { "display": "none" } }
+                              "parameters": {
+                                "elementId": "sword",
+                                "style": {
+                                  "display": "none"
+                                }
+                              }
                             },
                             {
                               "id": "hide-stats",
                               "type": "SET_ELEMENT_STYLE",
-                              "parameters": { "elementId": "stats-display", "style": { "display": "none" } }
+                              "parameters": {
+                                "elementId": "stats-display",
+                                "style": {
+                                  "display": "none"
+                                }
+                              }
                             },
                             {
                               "id": "hide-enter-cave",
                               "type": "SET_ELEMENT_STYLE",
-                              "parameters": { "elementId": "story-text", "style": { "display": "none" } }
+                              "parameters": {
+                                "elementId": "story-text",
+                                "style": {
+                                  "display": "none"
+                                }
+                              }
                             },
                             {
                               "id": "hide-show-cave-tip",
                               "type": "SET_ELEMENT_STYLE",
-                              "parameters": { "elementId": "cave-tip", "style": { "display": "none" } }
+                              "parameters": {
+                                "elementId": "cave-tip",
+                                "style": {
+                                  "display": "none"
+                                }
+                              }
                             },
                             {
                               "id": "show-congrats",
@@ -514,11 +456,24 @@
                               "parameters": {
                                 "elementId": "story-text",
                                 "text": "🎉 恭喜你获得传说之剑！冒险胜利",
-                                "position": { "x": 60, "y": 480 },
-                                "style": { "fontSize": 22.0, "color": "#ffffff", "maxWidth": 680 }
+                                "position": {
+                                  "x": 60,
+                                  "y": 480
+                                },
+                                "style": {
+                                  "fontSize": 22,
+                                  "color": "#ffffff",
+                                  "maxWidth": 680
+                                }
                               }
                             },
-                            { "id": "emit-treasure-collected", "type": "EMIT_SIGNAL", "parameters": { "signal": "treasure_collected" } }
+                            {
+                              "id": "emit-treasure-collected",
+                              "type": "EMIT_SIGNAL",
+                              "parameters": {
+                                "signal": "treasure_collected"
+                              }
+                            }
                           ]
                         }
                       }
@@ -535,7 +490,7 @@
                             "y": 350
                           },
                           "style": {
-                            "fontSize": 16.0,
+                            "fontSize": 16,
                             "color": "#e74c3c",
                             "fill": "#e74c3c",
                             "dropShadow": false
@@ -580,7 +535,7 @@
                       "y": 400
                     },
                     "style": {
-                      "fontSize": 16.0,
+                      "fontSize": 16,
                       "color": "#16a085",
                       "fill": "#16a085",
                       "dropShadow": false
@@ -609,8 +564,10 @@
                   "type": "if_condition",
                   "parameters": {
                     "condition": {
-                      "type": "expression",
-                      "expression": "context.stateManager.getVariable('gold') >= 30"
+                      "type": "variable",
+                      "key": "gold",
+                      "operator": "gte",
+                      "value": 30
                     },
                     "trueCommands": [
                       {
@@ -659,7 +616,7 @@
                             "y": 400
                           },
                           "style": {
-                            "fontSize": 16.0,
+                            "fontSize": 16,
                             "color": "#16a085",
                             "fill": "#16a085",
                             "dropShadow": false
@@ -698,7 +655,7 @@
                             "y": 450
                           },
                           "style": {
-                            "fontSize": 16.0,
+                            "fontSize": 16,
                             "color": "#e74c3c"
                           },
                           "blocking": true,
@@ -719,6 +676,18 @@
             }
           ]
         }
+      ],
+      "resources": [
+        "____",
+        "__",
+        "___1",
+        "_____1",
+        "___2",
+        "_____2",
+        "_____3",
+        "_____4",
+        "_____5",
+        "_____6"
       ],
       "events": [
         {
@@ -751,7 +720,7 @@
                   "y": 10
                 },
                 "style": {
-                  "fontSize": 16.0,
+                  "fontSize": 16,
                   "color": "#ffffff",
                   "fill": "#ffffff",
                   "stroke": "#000000",
@@ -816,7 +785,7 @@
                         "y": 520
                       },
                       "style": {
-                        "fontSize": 18.0,
+                        "fontSize": 18,
                         "color": "#000000",
                         "stroke": "#ffffff",
                         "strokeThickness": 3
@@ -867,36 +836,46 @@
               "type": "BGM_STOP",
               "parameters": {}
             },
-            
             {
               "id": "return-entry-choice",
               "type": "CHOICES",
               "parameters": {
                 "elementId": "return-entry-choice",
-                "position": { "x": 560, "y": 520 },
-                "ui": { "rowMax": 1, "fontSize": 16, "buttonSkinId": "btn-primary-9slice" }
+                "position": {
+                  "x": 560,
+                  "y": 520
+                },
+                "ui": {
+                  "rowMax": 1,
+                  "fontSize": 16,
+                  "buttonSkinId": "btn-primary-9slice"
+                }
               },
               "options": [
                 {
                   "id": "back-to-entry",
                   "text": "返回入口",
                   "commands": [
-                    { "id": "redirect-back-entry", "type": "SCENE_REDIRECT", "parameters": { "url": "scene/entry.json" } }
+                    {
+                      "id": "redirect-back-entry",
+                      "type": "SCENE_REDIRECT",
+                      "parameters": {
+                        "url": "scene/entry.json"
+                      }
+                    }
                   ]
                 }
               ]
             }
           ]
         }
-      ]
+      ],
+      "canvasWidth": 800,
+      "canvasHeight": 600
     },
     {
       "id": "media-demo-v2",
       "name": "媒体演示 V2",
-      "description": "演示 SHOW_MEDIA 指令（视频不支持动画）",
-      "canvasWidth": 800,
-      "canvasHeight": 600,
-      "initialState": {},
       "commands": [
         {
           "id": "show-demo-video",
@@ -920,24 +899,131 @@
             "controls": true
           }
         }
-      ]
+      ],
+      "resources": [],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
     }
   ],
-  "skins": [
-    {
-      "id": "dialog-default-9slice",
-      "imageId": "panel-blue-1",
-      "slice": {
-        "left": 28,
-        "top": 28,
-        "right": 28,
-        "bottom": 28
+  "resources": {
+    "images": [
+      {
+        "id": "forest-bg",
+        "src": "images/forest.png",
+        "name": "forest-bg"
+      },
+      {
+        "id": "road",
+        "src": "images/road.jpg",
+        "name": "road"
+      },
+      {
+        "id": "treasure-room",
+        "src": "images/cave.png",
+        "name": "treasure-room"
+      },
+      {
+        "id": "game-over-screen",
+        "src": "images/game-over.svg",
+        "name": "game-over-screen"
+      },
+      {
+        "id": "backpack",
+        "src": "images/backpack.svg",
+        "name": "backpack"
+      },
+      {
+        "id": "legendary-sword",
+        "src": "images/sword2.svg",
+        "name": "legendary-sword"
+      },
+      {
+        "id": "btn-orange",
+        "src": "images/btn-org.png",
+        "name": "btn-orange"
+      },
+      {
+        "id": "btn-blue",
+        "src": "images/btn-blue.svg",
+        "name": "btn-blue"
+      },
+      {
+        "id": "panel-blue-1",
+        "src": "images/ui-blue.svg",
+        "name": "panel-blue-1"
       }
-    },
-    {
-      "id": "btn-primary-9slice",
-      "imageId": "btn-orange",
-      "slice": {"left":201,"top":53,"right":212,"bottom":54}
-    }
-  ]
+    ],
+    "audios": [
+      {
+        "id": "bgm-main",
+        "src": "audio/bgm/063-Slow06.mp3",
+        "name": "bgm-main"
+      },
+      {
+        "id": "se-click",
+        "src": "audio/se/001-System01.ogg",
+        "name": "se-click"
+      }
+    ],
+    "animations": [
+      {
+        "id": "____",
+        "src": "animations/基础效果/从零放大.json",
+        "name": "从零放大"
+      },
+      {
+        "id": "__",
+        "src": "animations/基础效果/弹入.json",
+        "name": "弹入"
+      },
+      {
+        "id": "___1",
+        "src": "animations/基础效果/淡入.json",
+        "name": "淡入"
+      },
+      {
+        "id": "_____1",
+        "src": "animations/基础效果/放大入场.json",
+        "name": "放大入场"
+      },
+      {
+        "id": "___2",
+        "src": "animations/基础效果/呼吸.json",
+        "name": "呼吸"
+      },
+      {
+        "id": "_____2",
+        "src": "animations/基础效果/上下悬浮.json",
+        "name": "上下悬浮"
+      },
+      {
+        "id": "_____3",
+        "src": "animations/基础效果/向上滑入.json",
+        "name": "向上滑入"
+      },
+      {
+        "id": "_____4",
+        "src": "animations/基础效果/向下滑入.json",
+        "name": "向下滑入"
+      },
+      {
+        "id": "_____5",
+        "src": "animations/基础效果/向右滑入.json",
+        "name": "向右滑入"
+      },
+      {
+        "id": "_____6",
+        "src": "animations/基础效果/向左滑入.json",
+        "name": "向左滑入"
+      }
+    ],
+    "videos": [
+      {
+        "id": "intro-video",
+        "src": "media/intro.mp4",
+        "name": "intro-video"
+      }
+    ]
+  }
 }

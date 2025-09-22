@@ -140,8 +140,14 @@ export async function mountRuntime(
   if (videos.length) await resourceManager.preloadResources(videos.map(v => ({ id: v.id, type: 'video', url: v.src })) as any);
   (audioManager as any).setResolver?.((id: string) => (resourceManager as any).getResource?.(id)?.url);
 
-  // Init state
+  // Init state: load global variables/switches first, then level.initialState overrides
   const level = game?.levels?.[0];
+  try {
+    const gv = (game && (game.globalVariables || (game.config && game.config.globalVariables))) || {};
+    const gs = (game && (game.globalSwitches || (game.config && game.config.globalSwitches))) || {};
+    Object.entries(gv).forEach(([k, v]) => stateManager.setVariable(k, v));
+    Object.entries(gs).forEach(([k, v]) => stateManager.setSwitch(k as string, v as any));
+  } catch {}
   Object.entries(level?.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
 
   // Register level events (auto/custom/expression)

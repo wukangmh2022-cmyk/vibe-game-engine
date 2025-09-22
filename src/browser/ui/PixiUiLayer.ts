@@ -118,7 +118,7 @@ export function attachPixiUi(
     const yesUrl = ui.yesResourceId ? resourceManager.getResource?.(ui.yesResourceId)?.url : undefined;
     const noUrl = ui.noResourceId ? resourceManager.getResource?.(ui.noResourceId)?.url : undefined;
     const sk = ui.buttonSkinId ? resourceManager.getSkin?.(ui.buttonSkinId) : null;
-    const skinUrl = sk?.imageId ? resourceManager.getResource?.(sk.imageId)?.url : undefined;
+    const skinUrl = (sk?.url) ? sk.url : (sk?.imageId ? resourceManager.getResource?.(sk.imageId)?.url : undefined);
     const slice = sk?.slice;
     const stage: any = renderManager?.getStage?.();
     if (!stage) return;
@@ -191,7 +191,7 @@ export function attachPixiUi(
     const maxWidthUi = (ui.maxWidth != null ? Number(ui.maxWidth) : 0) || 0; // 0 = no limit
     const stage: any = renderManager?.getStage?.(); if (!stage) return;
     const sk = ui.buttonSkinId ? resourceManager.getSkin?.(ui.buttonSkinId) : null;
-    const skinUrl = sk?.imageId ? resourceManager.getResource?.(sk.imageId)?.url : undefined;
+    const skinUrl = (sk?.url) ? sk.url : (sk?.imageId ? resourceManager.getResource?.(sk.imageId)?.url : undefined);
     const slice = sk?.slice;
     const resId = ui.buttonResourceId || undefined;
     const url = resId ? resourceManager.getResource?.(resId)?.url : skinUrl;
@@ -227,7 +227,7 @@ export function attachPixiUi(
       const label = opt.text || opt.id || String(idx + 1);
       const b = makeBtn(label, () => {
         try { stage.removeChild(group); } catch {}
-        eventManager.emit('choice_selected', { commandId: payload.commandId, elementId: payload.elementId, optionId: opt.id });
+        eventManager.emit('choice_selected', { commandId: payload.commandId, elementId: payload.elementId, optionId: opt.id, index: idx, text: label });
       });
       if ((gapX == null || isNaN(gapX as any)) || (gapY == null || isNaN(gapY as any))) {
         const refH = Math.max(((b as any).__h) || 0, Math.ceil(fontSize * 2));

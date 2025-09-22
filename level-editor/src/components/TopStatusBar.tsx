@@ -16,6 +16,7 @@ interface TopStatusBarProps {
   onPlayToggle: (playing: boolean) => void;
   onShowBlueprint?: () => void; // 新增：显示蓝图
   onExitToHome?: () => void; // 新增：返回初始页
+  onShowAIGenerate?: () => void; // 新增：AI 生成弹窗
 }
 
 export const TopStatusBar: React.FC<TopStatusBarProps> = ({
@@ -31,7 +32,8 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
   onPlayToggle,
   onLoadTestData,
   onShowBlueprint, // 新增参数
-  onExitToHome
+  onExitToHome,
+  onShowAIGenerate
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,7 +117,8 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
             title="AI生成"
             style={{ marginLeft: 6 }}
             onClick={() => {
-              // DJXTODO: 触发 AI 生成逻辑
+              // 打开 AI 生成弹窗
+              onShowAIGenerate && onShowAIGenerate();
             }}
           >
             AI生成🌟

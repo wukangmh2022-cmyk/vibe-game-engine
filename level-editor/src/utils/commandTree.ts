@@ -99,15 +99,7 @@ export function jsonToTree(list: any[]): CommandNode[] {
         node.children.push({ id: `${node.id}_opt_${i + 1}`, type: 'BRANCH', label, kind: 'branch', children });
       }
     }
-    // SET_CLICKABLE → onClick=commands: show a single branch for click body
-    if (up === 'SET_CLICKABLE') {
-      const p = node.parameters || {};
-      const cmdArr = Array.isArray(rawParams?.commands) ? rawParams.commands : Array.isArray(p?.commands) ? p.commands : [];
-      if (Array.isArray(cmdArr) && cmdArr.length > 0) {
-        node.children.push({ id: `${node.id}_on_click`, type: 'BRANCH', label: '点击时', kind: 'branch', children: cmdArr.map(build) });
-      }
-      if ('commands' in p) delete (p as any).commands;
-    }
+    // NOTE: SET_CLICKABLE branch logic handled above (only when onClick==='commands')
     return node;
   };
   return Array.isArray(list) ? list.map(build) : [];

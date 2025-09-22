@@ -30,5 +30,22 @@
             }
         }
     },
+  "skins": [
+    {
+      "id": "dialog-default-9slice",
+      "url": "images/ui-blue.svg",
+      "slice": {
+        "left": 28,
+        "top": 28,
+        "right": 28,
+        "bottom": 28
+      }
+    },
+    {
+      "id": "btn-primary-9slice",
+      "url": "images/btn-org.png",
+      "slice": {"left":201,"top":53,"right":212,"bottom":54}
+    }
+  ],
     "version": "1.20"
 }

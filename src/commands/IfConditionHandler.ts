@@ -69,6 +69,15 @@ export class IfConditionHandler extends BaseCommandHandler {
         throw new Error(`Unknown condition type: ${condition.type}`);
     }
 
+    // Optional debug: print left value before compare
+    try {
+      const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_CONDITION') === '1';
+      if (dbg) {
+        const op = condition.operator;
+        (context.logger || console).info?.('[IF_CONDITION] compare', { key: condition.key, left: value, operator: op, right: condition.value });
+      }
+    } catch {}
+
     return this.compareValues(value, condition.operator, condition.value);
   }
 

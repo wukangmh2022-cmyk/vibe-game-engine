@@ -134,6 +134,8 @@ export interface CommandParameterDef {
   max?: number;
   description?: string;
   placeholder?: string;
+  // 编辑器扩展：隐藏该字段（依然保留参数结构，用于兼容老数据或运行时）
+  editorHidden?: boolean;
   // 可选：根据其他参数值决定是否显示该字段
   showIf?: {
     path: string;            // 依赖的参数路径，如 'condition.type' 或 'onClick'
@@ -156,4 +158,6 @@ export interface CommandTemplate {
   category: string;
   icon: string;
   color: string;
+  // 标记：该指令会“创建/产生一个元素”，编辑器据此隐藏 elementId 字段，并默认把 commandId 写入参数 id
+  spawnsElement?: boolean;
 }

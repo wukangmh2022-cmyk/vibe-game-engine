@@ -69,7 +69,8 @@ export class ShowTextHandler extends BaseCommandHandler {
           const sk = (context.resourceManager as any)?.getSkin?.(skinId);
           // Only use mapped skin; do not fallback to arbitrary resource id
           const imageId = sk?.imageId;
-          let url: string | undefined = imageId ? (context.resourceManager as any)?.getResource?.(imageId)?.url : undefined;
+          // Prefer explicit URL from skin; otherwise resolve by imageId
+          let url: string | undefined = (sk && (sk as any).url) ? (sk as any).url : (imageId ? (context.resourceManager as any)?.getResource?.(imageId)?.url : undefined);
           const addVer = (u?: string): string | undefined => {
             if (!u) return u;
             try {

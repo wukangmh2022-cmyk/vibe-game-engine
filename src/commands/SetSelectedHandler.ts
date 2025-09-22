@@ -19,6 +19,8 @@ export class SetSelectedHandler extends BaseCommandHandler {
     if (!node) return this.createErrorResult(`Element not found: ${id}`);
 
     const selected = !!p.selected;
+    // 记录最近变更选中状态的元素ID，便于后续指令或事件引用
+    try { (context as any).stateManager?.setVariable?.('lastChangingSelectStateID', id); } catch {}
     node.__selected = selected;
     // ensure overlay exists using stored or provided resource id
     try {

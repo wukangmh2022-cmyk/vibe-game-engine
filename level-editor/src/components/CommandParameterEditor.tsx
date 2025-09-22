@@ -8,6 +8,7 @@ interface CommandParameterEditorProps {
   project?: GameProject | null;
   onSave: (params: Record<string, any>) => void;
   onCancel: () => void;
+  commandId?: string;
 }
 
 export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
@@ -15,7 +16,8 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
   initialParams,
   project,
   onSave,
-  onCancel
+  onCancel,
+  commandId
 }) => {
   const [params, setParams] = useState<Record<string, any>>(initialParams);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -213,6 +215,13 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         }
       }
     } catch {}
+    try {
+      // 若该指令会创建元素，则将指令ID写入参数 id，供运行时作为元素ID使用
+      if ((template as any).spawnsElement && commandId) {
+        const curId = getByPath(normalized, 'id');
+        if (!curId) normalized = setByPath(normalized, 'id', commandId);
+      }
+    } catch {}
     onSave(normalized);
   };
 
@@ -253,6 +262,30 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
       className: `param-input ${error ? 'error' : ''}`
     };
 
+    // Dynamic override: skin select for SHOW_CHOICES
+    if (param.name.endsWith('buttonSkinId')) {
+      const skins = (project?.resources || []).filter((r: any) => (r as any).type === 'skin');
+      if (skins.length) {
+        return (
+          <select {...commonProps as any} value={String(value || '')} onChange={(e)=>handleParamChange(param.name, e.target.value)}>
+            <option value="">（不使用皮肤）</option>
+            {skins.map((s: any) => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+          </select>
+        );
+      }
+    }
+    // Dynamic override: skin select for SHOW_TEXT (skinId or nested .skinId)
+    if (param.name === 'skinId' || param.name.endsWith('.skinId')) {
+      const skins = (project?.resources || []).filter((r: any) => (r as any).type === 'skin');
+      if (skins.length) {
+        return (
+          <select {...commonProps as any} value={String(value || '')} onChange={(e)=>handleParamChange(param.name, e.target.value)}>
+            <option value="">（不使用皮肤）</option>
+            {skins.map((s: any) => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+          </select>
+        );
+      }
+    }
     switch (param.type) {
       case 'text':
         return (
@@ -272,14 +305,19 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         
       case 'number':
         return (
-          <input
-            type="number"
-            {...commonProps}
-            min={param.min}
-            max={param.max}
-            step={param.type === 'number' ? 1 : undefined}
-            onChange={(e) => handleParamChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
-          />
+          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+            <input
+              type="number"
+              {...commonProps}
+              min={param.min}
+              max={param.max}
+              step={1}
+              onChange={(e) => handleParamChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
+              style={{ flex:1 }}
+            />
+            <button type="button" onClick={() => handleParamChange(param.name, Number(value||0) - 1)} style={{ padding:'2px 6px' }}>-</button>
+            <button type="button" onClick={() => handleParamChange(param.name, Number(value||0) + 1)} style={{ padding:'2px 6px' }}>+</button>
+          </div>
         );
         
       case 'boolean':
@@ -547,16 +585,55 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         </div>
         
         <div className="cmd-editor-content">
+          {commandId && (
+            <div style={{ display:'flex', alignItems:'center', gap:8, padding:'6px 0' }}>
+              <label style={{ fontSize:12, color:'#6c757d' }}>指令ID</label>
+              <input type="text" value={commandId} readOnly disabled style={{ flex:1, opacity:0.7 }} />
+            </div>
+          )}
           <div className="parameters-list">
             {(() => {
               const consumed = new Set<string>();
               const rows: any[] = [];
               const hasParam = (n: string) => !!template.parameters.find(p => p.name === n);
               const getParam = (n: string) => template.parameters.find(p => p.name === n)!;
+              const tUpper = String(template.type).toUpperCase();
+              const suppressed = new Set<string>();
+              // 统一处理：若模板声明 spawnsElement，则隐藏 elementId 字段，避免与指令ID混淆
+              if ((template as any).spawnsElement) suppressed.add('elementId');
+              const isSimple = (p: CommandParameterDef) => {
+                const n = p.name;
+                const type = String(p.type);
+                const exclude = new Set([
+                  'elementId','text','position.x','position.y','backgroundResourceId','ui.buttonResourceId','skinId'
+                ]);
+                if (suppressed.has(n)) return false;
+                if (exclude.has(n)) return false;
+                if (tUpper === 'SHOW_TEXT') {
+                  const simpleFields = new Set([
+                    'style.fontSize','style.color','style.stroke','style.strokeThickness','style.dropShadow','style.dropShadowColor','style.dropShadowBlur','style.dropShadowAngle','style.dropShadowDistance','style.maxWidth','style.textAlign','padding','backgroundPadding','blocking','dismissOnContinue'
+                  ]);
+                  if (simpleFields.has(n)) return true;
+                  // also treat style.* generically as simple
+                  if (n.startsWith('style.')) return true;
+                }
+                if (tUpper === 'SHOW_CHOICES') {
+                  if (n === 'blocking') return true;
+                  if (n.startsWith('ui.')) return true;
+                }
+                return false;
+              };
               for (const param of template.parameters) {
+                if ((param as any).editorHidden) { consumed.add(param.name); continue; }
+                if (suppressed.has(param.name)) { consumed.add(param.name); continue; }
                 if (consumed.has(param.name)) continue;
                 const visible = shouldShow(param);
                 if (!visible) { consumed.add(param.name); continue; }
+                // defer simple fields to compact grid
+                if (isSimple(param)) {
+                  // do not consume now; let compact grid render it after
+                  continue;
+                }
                 // position group
                 if (param.name === 'position.x' && hasParam('position.y')) {
                   const vx = shouldShow(getParam('position.x') as any);
@@ -639,9 +716,34 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                   </div>
                 );
               }
+              // After main fields, render compact simple fields grid (3 per row)
+              try {
+                const rendered: any[] = [];
+                (template.parameters || []).forEach((p) => {
+                  if ((p as any).editorHidden) { consumed.add(p.name); return; }
+                  if (suppressed.has(p.name)) { consumed.add(p.name); return; }
+                  if (!consumed.has(p.name) && shouldShow(p) && isSimple(p)) {
+                    consumed.add(p.name);
+                    rendered.push(
+                      <div key={`compact-${p.name}`} className="parameter-compact-item">
+                        <label className="parameter-label">{p.label || p.name}{p.required && <span className="required">*</span>}</label>
+                        {renderParameterInput(p)}
+                      </div>
+                    );
+                  }
+                });
+                if (rendered.length) {
+                  rows.push(
+                    <div key="__compact__" className="parameter-compact-grid">
+                      {rendered}
+                    </div>
+                  );
+                }
+              } catch {}
               return rows;
             })()}
           </div>
+          {/* 预览已移除：将在独立浮窗中实现单指令预览 */}
         </div>
         
         <div className="editor-footer">

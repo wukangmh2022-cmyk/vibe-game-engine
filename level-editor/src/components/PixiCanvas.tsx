@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameCommand } from '../types';
 import * as PIXI from 'pixi.js';
 import './PixiCanvas.css';
@@ -45,6 +45,7 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<MountedRuntime | null>(null);
+  const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
 
   // Helper: apply CSS scale on the underlying canvas
   const applyScale = (s: number) => {
@@ -104,12 +105,44 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
               if (idx > 0) { const [lv] = levels.splice(idx, 1); levels.unshift(lv); toMount = { ...(gameData as any), levels }; }
             }
           } catch {}
-          // Rewrite resource URLs via VFS so that imported/IDB resources resolve to blob: URLs
+          // Inject project-level skins from config.json into runtime data first
+          try {
+            const cfg = await vfs.readJSON<any>('config.json');
+            const skins = (cfg && (cfg.skins || (cfg.resources && cfg.resources.skins))) || [];
+            if (Array.isArray(skins) && skins.length) {
+              (toMount as any).skins = skins;
+            }
+          } catch {}
+          // Now rewrite resource URLs (including skins) via VFS so that imported/IDB resources resolve to blob: URLs
           try { vfs.rewriteResourceURLs(toMount); } catch {}
+          // Expose a VFS URL resolver for runtime (e.g., animation JSON)
+          try {
+            (window as any).__VFS_GET_URL__ = async (relPath: string) => {
+              try { return await vfs.getURL(relPath); } catch { return undefined; }
+            };
+          } catch {}
           const container = canvasRef.current as HTMLElement;
           const mounted = await mountRuntime(container, toMount, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
           if (cancelled) { try { mounted.dispose(); } catch {} return; }
           runtimeRef.current = mounted;
+          // mouse position overlay tracking within container
+          try {
+            const containerEl = canvasRef.current as HTMLElement;
+            const onMove = (e: MouseEvent) => {
+              try {
+                const rect = containerEl.getBoundingClientRect();
+                const s = (typeof scale === 'number') ? scale : computeAutoScale();
+                const x = Math.round((e.clientX - rect.left) / s);
+                const y = Math.round((e.clientY - rect.top) / s);
+                if (x >= 0 && y >= 0 && x <= canvasWidth && y <= canvasHeight) setMouse({ x, y });
+                else setMouse(null);
+              } catch { setMouse(null); }
+            };
+            const onLeave = () => setMouse(null);
+            containerEl.addEventListener('mousemove', onMove);
+            containerEl.addEventListener('mouseleave', onLeave);
+            (containerEl as any).__onMove = onMove; (containerEl as any).__onLeave = onLeave;
+          } catch {}
           // initial scale: explicit prop or auto-fit
           const initScale = (typeof scale === 'number') ? scale : computeAutoScale();
           applyScale(initScale);
@@ -184,6 +217,8 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
       // Detach resize observers if any
       try {
         const container = canvasRef.current as any;
+        const onMove = container?.__onMove; if (onMove) container.removeEventListener('mousemove', onMove);
+        const onLeave = container?.__onLeave; if (onLeave) container.removeEventListener('mouseleave', onLeave);
         const ro = container?.__scaleRO; if (ro && ro.disconnect) ro.disconnect();
         if (container) { delete container.__scaleRO; }
         const onWin = container?.__onWin; if (onWin) window.removeEventListener('resize', onWin);
@@ -226,18 +261,22 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
 
   return (
     <div className="pixi-canvas-container" style={{ display: 'flex', justifyContent: 'center' }}>
-      <div
-        ref={canvasRef}
-        className="pixi-canvas"
-        style={{
-          width: '100%',
-          height: '100%',
-          backgroundColor: '#0d0d0d',
-          border: '1px solid #333',
-          borderRadius: 4,
-          overflow: 'hidden'
-        }}
-      />
+      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+        <div
+          ref={canvasRef}
+          className="pixi-canvas"
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            backgroundColor: '#0d0d0d', border: '1px solid #333', borderRadius: 4, overflow: 'hidden'
+          }}
+        />
+        {mouse && (
+          <div style={{ position: 'absolute', right: 6, bottom: 6, padding: '2px 6px', background: 'rgba(0,0,0,0.6)', color: '#e6edf3', fontSize: 11, borderRadius: 4 }}>
+            ({mouse.x}, {mouse.y})
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -12,6 +12,7 @@ import { CommandTreePanel } from './components/CommandTreePanel';
 import { CombinedLibraryPanel } from './components/CombinedLibraryPanel';
 import { ProjectHome } from './components/ProjectHome';
 import { TriggerModalEditor } from './components/TriggerModalEditor';
+import { AIGenerateModal } from './components/AIGenerateModal';
 import './App.css';
 import { runAndLogTemplateSanity } from './utils/templateSanity';
 import vfs from './utils/vfs';
@@ -39,6 +40,8 @@ interface AppState {
   currentScenePath?: string | null;
   unsaved?: boolean;
   hasOpenedProject?: boolean;
+  // AI 生成弹窗开关
+  isAIGenerateOpen?: boolean;
 }
 
 // 添加事件触发条件更新函数的类型定义
@@ -84,7 +87,8 @@ const App: React.FC = () => {
     })(),
     currentScenePath: null,
     unsaved: false,
-    hasOpenedProject: false
+    hasOpenedProject: false,
+    isAIGenerateOpen: false
   });
 
   const currentLevel = appState.currentProject?.levels.find(l => l.id === appState.currentLevelId) || appState.currentProject?.levels[0];
@@ -366,7 +370,7 @@ const App: React.FC = () => {
     });
   };
 
-  const handleLoadJson = (gameData: any, baseOverride?: string) => {
+  const handleLoadJson = async (gameData: any, baseOverride?: string) => {
     if (gameData.levels && Array.isArray(gameData.levels)) {
       // 规范化：将 if_condition 的开关型与可识别的表达式型条件统一为变量型
       const normalizeConditionsDeep = (list: any[]): any[] => {
@@ -636,6 +640,14 @@ const App: React.FC = () => {
           });
         }
       } catch {}
+
+      // 读取项目级 skins（来自 config.json），并注入到编辑器资源列表，供参数面板选择
+      try {
+        const cfg = await vfs.readJSON<any>('config.json');
+        const skins = (cfg && (cfg.skins || (cfg.resources && cfg.resources.skins))) || [];
+        const list: Array<{ id: string; imageId?: string; url?: string; slice?: any; name?: string }> = Array.isArray(skins) ? skins : [];
+        list.forEach(s => { editorResources.push({ id: s.id, type: 'skin', name: s.name || s.id, imageId: (s as any).imageId, url: (s as any).url, slice: s.slice }); });
+      } catch {}
       
       setAppState(prev => ({
         ...prev,
@@ -673,6 +685,10 @@ const App: React.FC = () => {
       return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels } };
     });
   };
+
+  // 打开/关闭 AI 生成弹窗
+  const openAIGenerate = () => setAppState(prev => ({ ...prev, isAIGenerateOpen: true }));
+  const closeAIGenerate = () => setAppState(prev => ({ ...prev, isAIGenerateOpen: false }));
 
   // 新增：关卡增删
   const handleCreateLevel = () => {
@@ -1080,6 +1096,7 @@ const App: React.FC = () => {
         isPlaying={appState.isPlaying}
         onPlayToggle={(playing: boolean) => setAppState(prev => ({ ...prev, isPlaying: playing }))}
         onLoadTestData={handleLoadTestData}
+        onShowAIGenerate={openAIGenerate}
         onExitToHome={() => {
           setAppState(prev => {
             try {
@@ -1325,6 +1342,17 @@ const App: React.FC = () => {
         events={getCurrentLevelEvents()}
         onSave={handleSaveTriggerEdit}
         onCancel={handleCloseTriggerEditor}
+      />
+      {/* AI 生成弹窗 */}
+      <AIGenerateModal
+        isOpen={!!appState.isAIGenerateOpen}
+        currentLevel={(currentLevel as any) || { id: 'level1', name: '关卡1', commands: [], resources: [] }}
+        project={appState.currentProject}
+        onCancel={closeAIGenerate}
+        onApplyCommands={(cmds) => {
+          // AI 生成的 commands JSON → 写回当前关卡（替换 commands 列表）
+          try { handleTreeCommandsChange(Array.isArray(cmds) ? cmds : []); } catch {}
+        }}
       />
       </>
       )}

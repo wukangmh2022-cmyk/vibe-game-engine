@@ -10,22 +10,28 @@
       "name": "关卡1",
       "commands": [
         {
-          "id": "show_image_1",
+          "id": "init_variables",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "vegCount",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "show_background",
           "type": "SHOW_IMAGE",
           "parameters": {
-            "elementId": "0",
+            "elementId": "background",
             "resourceId": "tt2",
             "position": {
               "x": 0,
               "y": 0
             },
-            "parentId": "",
-            "align": "",
             "size": {
               "width": 800,
               "height": 600
             },
-            "visible": true,
             "zIndex": 0,
             "animation": {
               "entry": {
@@ -34,101 +40,459 @@
               "loop": {
                 "animId": ""
               }
-            }
-          }
-        },
-        {
-          "id": "show_image_1",
-          "type": "SHOW_IMAGE",
-          "parameters": {
-            "elementId": "1",
-            "resourceId": "__",
-            "position": {
-              "x": 2,
-              "y": 0
             },
             "parentId": "",
             "align": "",
-            "size": {
-              "width": 0,
-              "height": 0
+            "visible": true
+          }
+        },
+        {
+          "id": "show_guide_text",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "guide-text",
+            "text": "请将蔬菜拖拽到对应的蔬菜篮中，完成后点击提交按钮。",
+            "position": {
+              "x": 200,
+              "y": 50
             },
-            "visible": true,
-            "zIndex": 0,
+            "style": {
+              "fontSize": 24,
+              "color": "#000000",
+              "stroke": "",
+              "strokeThickness": 0,
+              "dropShadow": false,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 0,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "maxWidth": 999,
+              "textAlign": "left"
+            },
+            "blocking": true,
+            "dismissOnContinue": true,
+            "padding": 10,
+            "skinId": ""
+          }
+        },
+        {
+          "id": "show_veg_basket",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg-basket",
+            "resourceId": "btn-blue",
+            "position": {
+              "x": 50,
+              "y": 400
+            },
+            "size": {
+              "width": 240,
+              "height": 64
+            },
+            "zIndex": 1,
             "animation": {
               "entry": {
-                "animId": ""
+                "animId": "___4"
               },
               "loop": {
                 "animId": ""
               }
-            }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true,
+            "id": "show_veg_basket"
           }
         },
         {
-          "id": "set_clickable_1",
+          "id": "show_fruit_basket",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "fruit-basket",
+            "resourceId": "btn-orange",
+            "position": {
+              "x": 510,
+              "y": 400
+            },
+            "size": {
+              "width": 240,
+              "height": 64
+            },
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true,
+            "id": "show_fruit_basket"
+          }
+        },
+        {
+          "id": "show_veg1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg1",
+            "resourceId": "___1",
+            "position": {
+              "x": 200,
+              "y": 150
+            },
+            "size": {
+              "width": 139,
+              "height": 142
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "set_draggable_veg1",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg1",
+            "draggable": true
+          }
+        },
+        {
+          "id": "show_veg2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg2",
+            "resourceId": "___2",
+            "position": {
+              "x": 450,
+              "y": 150
+            },
+            "size": {
+              "width": 122,
+              "height": 122
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "set_draggable_veg2",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg2",
+            "draggable": true
+          }
+        },
+        {
+          "id": "show_submit_btn",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "submit-btn",
+            "resourceId": "btn-org",
+            "position": {
+              "x": 300,
+              "y": 500
+            },
+            "size": {
+              "width": 200,
+              "height": 50
+            },
+            "zIndex": 3,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": "___5"
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "check_veg1",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "elementId": "veg1",
+            "area": {
+              "x": 50,
+              "y": 400,
+              "width": 240,
+              "height": 64
+            },
+            "commands": [
+              {
+                "id": "set_veg_count_add",
+                "type": "SET_VARIABLE",
+                "parameters": {
+                  "key": "vegCount",
+                  "op": "add",
+                  "value": 1
+                }
+              },
+              {
+                "id": "move_veg1_to_basket",
+                "type": "MOVE_TO",
+                "parameters": {
+                  "elementId": "veg1",
+                  "x": 100,
+                  "y": 420,
+                  "duration": 500
+                }
+              },
+              {
+                "id": "animate_veg1_feedback",
+                "type": "ANIMATE_IN",
+                "parameters": {
+                  "elementId": "veg1",
+                  "preset": "scaleIn",
+                  "duration": 300,
+                  "mode": "preset",
+                  "animId": "",
+                  "direction": "up",
+                  "offset": 60
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "check_veg1_wrong",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "elementId": "veg1",
+            "area": {
+              "x": 510,
+              "y": 400,
+              "width": 240,
+              "height": 64
+            },
+            "commands": [
+              {
+                "id": "move_veg1_back",
+                "type": "MOVE_TO",
+                "parameters": {
+                  "elementId": "veg1",
+                  "x": 200,
+                  "y": 150,
+                  "duration": 500
+                }
+              },
+              {
+                "id": "animate_veg1_wrong",
+                "type": "ANIMATE_IN",
+                "parameters": {
+                  "elementId": "veg1",
+                  "preset": "fade",
+                  "duration": 300,
+                  "mode": "preset",
+                  "animId": "",
+                  "direction": "up",
+                  "offset": 60
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "check_veg2",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "elementId": "veg2",
+            "area": {
+              "x": 50,
+              "y": 400,
+              "width": 240,
+              "height": 64
+            },
+            "commands": [
+              {
+                "id": "set_veg_count_add2",
+                "type": "SET_VARIABLE",
+                "parameters": {
+                  "key": "vegCount",
+                  "op": "add",
+                  "value": 1
+                }
+              },
+              {
+                "id": "move_veg2_to_basket",
+                "type": "MOVE_TO",
+                "parameters": {
+                  "elementId": "veg2",
+                  "x": 200,
+                  "y": 420,
+                  "duration": 500
+                }
+              },
+              {
+                "id": "animate_veg2_feedback",
+                "type": "ANIMATE_IN",
+                "parameters": {
+                  "elementId": "veg2",
+                  "preset": "scaleIn",
+                  "duration": 300,
+                  "mode": "preset",
+                  "animId": "",
+                  "direction": "up",
+                  "offset": 60
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "check_veg2_wrong",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "elementId": "veg2",
+            "area": {
+              "x": 510,
+              "y": 400,
+              "width": 240,
+              "height": 64
+            },
+            "commands": [
+              {
+                "id": "move_veg2_back",
+                "type": "MOVE_TO",
+                "parameters": {
+                  "elementId": "veg2",
+                  "x": 450,
+                  "y": 150,
+                  "duration": 500
+                }
+              },
+              {
+                "id": "animate_veg2_wrong",
+                "type": "ANIMATE_IN",
+                "parameters": {
+                  "elementId": "veg2",
+                  "preset": "fade",
+                  "duration": 300,
+                  "mode": "preset",
+                  "animId": "",
+                  "direction": "up",
+                  "offset": 60
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_clickable_submit",
           "type": "SET_CLICKABLE",
           "parameters": {
-            "elementId": "1",
+            "elementId": "submit-btn",
             "clickable": true,
             "onClick": "commands",
             "backResourceId": "",
             "frontResourceId": "",
             "showBack": true,
             "effect": "",
-            "commands": []
-          }
-        },
-        {
-          "id": "animate_in_1",
-          "type": "ANIMATE_IN",
-          "parameters": {
-            "elementId": "1",
-            "mode": "resource",
-            "animId": "____",
-            "preset": "bounce",
-            "duration": 600,
-            "direction": "up",
-            "offset": 60
-          }
-        },
-        {
-          "id": "set_draggable_1",
-          "type": "SET_DRAGGABLE",
-          "parameters": {
-            "elementId": "1",
-            "draggable": true,
-            "dragType": ""
-          }
-        },
-        {
-          "id": "show_choices_1",
-          "type": "SHOW_CHOICES",
-          "parameters": {
-            "elementId": "",
-            "blocking": true,
-            "position": {
-              "x": 355,
-              "y": 300
-            },
-            "ui": {
-              "rowMax": 1,
-              "minWidth": 0,
-              "buttonResourceId": "btn-org",
-              "buttonSkinId": ""
-            },
-            "options": [
+            "commands": [
               {
-                "text": "选项1",
-                "commands": []
-              },
-              {
-                "text": "选项2",
-                "commands": []
-              },
-              {
-                "text": "选项3",
-                "commands": []
+                "id": "check_completion",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "variable",
+                    "key": "vegCount",
+                    "operator": "eq",
+                    "value": 2
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "show_success_text",
+                      "type": "SHOW_TEXT",
+                      "parameters": {
+                        "elementId": "success-text",
+                        "text": "分类正确！",
+                        "position": {
+                          "x": 300,
+                          "y": 200
+                        },
+                        "style": {
+                          "fontSize": 28,
+                          "color": "#00FF00",
+                          "stroke": "",
+                          "strokeThickness": 0,
+                          "dropShadow": false,
+                          "dropShadowColor": "#000000",
+                          "dropShadowBlur": 0,
+                          "dropShadowAngle": 1.2,
+                          "dropShadowDistance": 2,
+                          "maxWidth": 999,
+                          "textAlign": "left"
+                        },
+                        "blocking": true,
+                        "dismissOnContinue": true,
+                        "padding": 20,
+                        "skinId": ""
+                      }
+                    },
+                    {
+                      "id": "next_level",
+                      "type": "NEXT_LEVEL",
+                      "parameters": {}
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "show_fail_text",
+                      "type": "SHOW_TEXT",
+                      "parameters": {
+                        "elementId": "fail-text",
+                        "text": "分类错误，请重试。",
+                        "position": {
+                          "x": 300,
+                          "y": 200
+                        },
+                        "style": {
+                          "fontSize": 28,
+                          "color": "#FF0000",
+                          "stroke": "",
+                          "strokeThickness": 0,
+                          "dropShadow": false,
+                          "dropShadowColor": "#000000",
+                          "dropShadowBlur": 0,
+                          "dropShadowAngle": 1.2,
+                          "dropShadowDistance": 2,
+                          "maxWidth": 999,
+                          "textAlign": "left"
+                        },
+                        "blocking": true,
+                        "dismissOnContinue": true,
+                        "padding": 20,
+                        "skinId": ""
+                      }
+                    }
+                  ]
+                }
               }
             ]
           }

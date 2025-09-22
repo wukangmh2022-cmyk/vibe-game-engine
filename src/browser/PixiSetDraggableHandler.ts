@@ -22,6 +22,13 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
         node.off('pointerup', node.__dragHandlers.up);
         node.off('pointerupoutside', node.__dragHandlers.upOutside);
         node.off('pointermove', node.__dragHandlers.move);
+        const st = rm.getStage?.();
+        if (st) {
+          st.off('pointermove', node.__dragHandlers.stageMove);
+          st.off('pointerup', node.__dragHandlers.stageUp);
+          st.off('pointerupoutside', node.__dragHandlers.stageUp);
+        }
+        try { window.removeEventListener('pointerup', node.__dragHandlers.winUp); } catch {}
       } catch {}
       node.__dragHandlers = undefined;
     }
@@ -35,6 +42,16 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
     node.eventMode = 'static';
     node.cursor = 'grab';
     node.dragType = dragType;
+    // Ensure stage can receive global pointer events during drag
+    try {
+      const app = rm.getApp?.();
+      const stage = rm.getStage?.();
+      if (app && stage) {
+        stage.eventMode = 'static';
+        // Make the whole screen hittable so stage gets pointer events even when leaving the dragged node
+        stage.hitArea = app.screen;
+      }
+    } catch {}
 
     let dragging = false; let offset = { x: 0, y: 0 };
     const down = (e: any) => {
@@ -72,12 +89,25 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
     };
     const upOutside = () => { dragging = false; node.cursor = 'grab'; (node as any).__dragging = false; };
     const move = (e: any) => { if (!dragging) return; const pos = e.data.getLocalPosition(node.parent); node.x = pos.x - offset.x; node.y = pos.y - offset.y; };
+    // Global handlers bound to stage so drag doesn't break when pointer leaves the sprite
+    const stage = rm.getStage?.();
+    const stageMove = (e: any) => move(e);
+    const stageUp = () => up();
+    const winUp = (e?: any) => { try { up(); } catch {} };
 
     node.on('pointerdown', down);
     node.on('pointerup', up);
     node.on('pointerupoutside', upOutside);
     node.on('pointermove', move);
-    node.__dragHandlers = { down, up, upOutside, move };
+    if (stage) {
+      try {
+        stage.on('pointermove', stageMove);
+        stage.on('pointerup', stageUp);
+        stage.on('pointerupoutside', stageUp);
+      } catch {}
+    }
+    try { window.addEventListener('pointerup', winUp, { passive: true }); } catch {}
+    node.__dragHandlers = { down, up, upOutside, move, stageMove, stageUp, winUp };
 
     return this.createSuccessResult({ elementId: id, draggable: true, dragType });
   }

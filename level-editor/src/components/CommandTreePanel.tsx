@@ -13,9 +13,13 @@ interface CommandTreePanelProps {
 }
 
 interface LineItem {
-  node: CommandNode;
+  // node line
+  node?: CommandNode;
+  path?: number[]; // indices from root to node
+  // placeholder line (end of a commands container)
+  placeholder?: boolean;
+  parentPath?: number[]; // path of the parent node (branch) or [] for root
   depth: number;
-  path: number[]; // indices from root to node
 }
 
 export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, initialCommandsJson, onChange }) => {
@@ -23,12 +27,17 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
   const [folded, setFolded] = useState<Set<string>>(new Set());
   const [insertTarget, setInsertTarget] = useState<{ path: number[]; mode: 'child' | 'sibling' } | null>(null);
   const [selectedPath, setSelectedPath] = useState<number[] | null>(null);
+  const [multiSel, setMultiSel] = useState<{ parentPath: number[]; start: number; end: number } | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; mode: 'single' | 'multi' | 'placeholder'; path: number[] } | null>(null);
+  const [clipboard, setClipboard] = useState<{ nodes: CommandNode[]; cut?: boolean } | null>(null);
   const [editing, setEditing] = useState<{ path: number[] } | null>(null);
+  const [pendingNewPath, setPendingNewPath] = useState<number[] | null>(null);
   const [showRaw, setShowRaw] = useState(false);
+  const [selectedPlaceholder, setSelectedPlaceholder] = useState<number[] | null>(null);
 
   useEffect(() => {
     try { setTree(jsonToTree(initialCommandsJson || [])); } catch { setTree([]); }
-    setFolded(new Set());
+    // 保持折叠状态，不重置 folded
     setSelectedPath(null);
   }, [initialCommandsJson]);
 
@@ -162,18 +171,44 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     }
   };
 
-  const materialize = (nodes: CommandNode[], depth = 0, path: number[] = []): LineItem[] => {
+  // Materialize lines with placeholders for commands containers (root and branch.children)
+  const lines: LineItem[] = React.useMemo(() => {
     const out: LineItem[] = [];
-    nodes.forEach((n, idx) => {
-      const p = [...path, idx];
-      out.push({ node: n, depth, path: p });
-      if (n.children && n.children.length && !folded.has(n.id)) {
-        out.push(...materialize(n.children, depth + 1, p));
+    const fold = folded;
+
+    const addCommandsContainer = (cmds: CommandNode[], depth: number, parentPath: number[]) => {
+      for (let i = 0; i < cmds.length; i++) {
+        const n = cmds[i];
+        const p = [...parentPath, i];
+        out.push({ node: n, depth, path: p });
+        if (!fold.has(n.id) && n.kind === 'action' && (n.children || []).length) {
+          addBranches(n.children || [], depth + 1, p);
+        }
+        if (!fold.has(n.id) && n.kind === 'branch') {
+          // nested branch as command (rare) — still render its commands container
+          addCommandsContainer(n.children || [], depth + 1, p);
+        }
       }
-    });
+      // single placeholder at the end of this commands container
+      out.push({ placeholder: true, parentPath, depth });
+    };
+
+    const addBranches = (branches: CommandNode[], depth: number, parentPath: number[]) => {
+      for (let i = 0; i < branches.length; i++) {
+        const b = branches[i];
+        const p = [...parentPath, i];
+        out.push({ node: b, depth, path: p });
+        if (!fold.has(b.id)) {
+          // for each branch, render its commands container (even if empty)
+          addCommandsContainer(b.children || [], depth + 1, p);
+        }
+      }
+      // NOTE: do NOT add placeholder for branches list itself
+    };
+
+    addCommandsContainer(tree, 0, []);
     return out;
-  };
-  const lines = materialize(tree, 0, []);
+  }, [tree, folded]);
   const rawJson = React.useMemo(() => {
     try { return JSON.stringify(treeToJson(tree), null, 2); } catch { return '[]'; }
   }, [tree]);
@@ -191,17 +226,17 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     try {
       const debug = typeof window !== 'undefined' && localStorage.getItem('DEBUG_TREE') === '1';
       if (!debug) return;
-      const snapshot = lines.map(li => ({
+      const snapshot = lines.map(li => li.node ? ({
         id: li.node.id,
         type: li.node.type,
         label: li.node.label,
         kind: li.node.kind,
         depth: li.depth,
         childrenCount: (li.node.children || []).length
-      }));
+      }) : ({ placeholder: true, parentPath: (li.parentPath || []).join('-'), depth: li.depth }));
       console.info('[CommandTreePanel] render-lines', snapshot);
     } catch {}
-  }, [JSON.stringify(lines.map(li => [li.node.id, li.depth]))]);
+  }, [JSON.stringify(lines.map(li => [li.node ? li.node.id : `ph|${(li.parentPath||[]).join('-')}`, li.depth]))]);
 
   const withTree = (updater: (nodes: CommandNode[]) => CommandNode[]) => {
     setTree(prev => {
@@ -308,8 +343,218 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     return n;
   };
 
+  // ---------- JSON clipboard helpers ----------
+  const nodesToJsonText = (nodes: CommandNode[]): string => {
+    try { return JSON.stringify(treeToJson(nodes), null, 2); } catch { return '[]'; }
+  };
+  const jsonTextToNodes = (text: string): CommandNode[] => {
+    try {
+      const data = JSON.parse(text);
+      const arr = Array.isArray(data) ? data : (Array.isArray((data||{}).commands) ? (data as any).commands : []);
+      return jsonToTree(arr || []);
+    } catch { return []; }
+  };
+  const tryWriteClipboard = async (text: string) => {
+    try { await (navigator as any)?.clipboard?.writeText?.(text); return true; } catch { return false; }
+  };
+  const tryReadClipboard = async (): Promise<string | null> => {
+    try { const t = await (navigator as any)?.clipboard?.readText?.(); if (t && t.trim()) return t; } catch {}
+    try { const t = prompt('从JSON粘贴（输入JSON数组或包含 commands 的对象）'); return t && t.trim() ? t : null; } catch { return null; }
+  };
+
+  // ---------- Selection & clipboard helpers ----------
+  const eqArr = (a: number[] | null | undefined, b: number[] | null | undefined) => {
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  };
+  const parentPathOf = (p: number[]) => p.slice(0, -1);
+  const indexOf = (p: number[]) => p[p.length - 1];
+  const isInMultiRange = (p: number[]) => {
+    if (!multiSel) return false;
+    const sameParent = eqArr(parentPathOf(p), multiSel.parentPath);
+    const idx = indexOf(p);
+    return sameParent && idx >= Math.min(multiSel.start, multiSel.end) && idx <= Math.max(multiSel.start, multiSel.end);
+  };
+  const handleRowClick = (e: React.MouseEvent, p: number[]) => {
+    try { e.stopPropagation(); } catch {}
+    if (e.shiftKey && selectedPath) {
+      const p1 = selectedPath;
+      if (eqArr(parentPathOf(p1), parentPathOf(p))) {
+        setSelectedPath(p);
+        setMultiSel({ parentPath: parentPathOf(p1), start: indexOf(p1), end: indexOf(p) });
+        setCtxMenu(null);
+        setSelectedPlaceholder(null);
+        return;
+      }
+    }
+    setSelectedPath(p);
+    setMultiSel(null);
+    setCtxMenu(null);
+    setSelectedPlaceholder(null);
+  };
+  const handleContextMenu = (e: React.MouseEvent, p: number[]) => {
+    e.preventDefault();
+    setSelectedPlaceholder(null);
+    const inRange = isInMultiRange(p);
+    if (!inRange) {
+      setSelectedPath(p);
+      setMultiSel(null);
+      setCtxMenu({ x: e.clientX, y: e.clientY, mode: 'single', path: p });
+    } else {
+      setCtxMenu({ x: e.clientX, y: e.clientY, mode: 'multi', path: p });
+    }
+  };
+
+  const getChildrenAtParent = (nodes: CommandNode[], parentPath: number[]): CommandNode[] => {
+    if (parentPath.length === 0) return nodes;
+    const { list, index } = getAtPath(nodes, parentPath);
+    const parent = list[index];
+    return (parent?.children || []) as CommandNode[];
+  };
+  const deepCloneWithNewIds = (nodes: CommandNode[]): CommandNode[] => {
+    const seed = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+    const re = (n: CommandNode, i: number): CommandNode => ({
+      id: `cmd_${seed}_${i}_${Math.random().toString(36).slice(2,6)}`,
+      type: n.type,
+      label: n.label,
+      kind: n.kind,
+      parameters: n.parameters ? { ...n.parameters } : undefined,
+      children: (n.children || []).map((c, j) => re(c, j))
+    });
+    return nodes.map((n, i) => re(n, i));
+  };
+  // helper to read from current tree state without mutating
+  const withTreeReturn = <T,>(fn: (nodes: CommandNode[]) => T): T => {
+    try { return fn(tree.map(cloneNode)); } catch { return fn(tree as any); }
+  };
+  const copySingle = (path: number[]) => {
+    const nodeArr = withTreeReturn(nodes => {
+      let cur: any = { children: nodes };
+      for (const idx of path) cur = cur.children[idx];
+      return [cloneNode(cur)];
+    });
+    setClipboard({ nodes: nodeArr, cut: false });
+    tryWriteClipboard(nodesToJsonText(nodeArr));
+  };
+  const cutSingle = (path: number[]) => {
+    const nodeArr = withTreeReturn(nodes => {
+      let cur: any = { children: nodes };
+      for (const idx of path) cur = cur.children[idx];
+      return [cloneNode(cur)];
+    });
+    setClipboard({ nodes: nodeArr, cut: true });
+    tryWriteClipboard(nodesToJsonText(nodeArr));
+    deleteSingle(path);
+  };
+  const pasteAfterSingle = (path: number[]) => {
+    if (!clipboard || !clipboard.nodes || clipboard.nodes.length === 0) return;
+    const toInsert = clipboard.cut ? clipboard.nodes.map(cloneNode) : deepCloneWithNewIds(clipboard.nodes);
+    withTree(nodes => {
+      const parentPath = parentPathOf(path);
+      const { list, index } = getAtPath(nodes, path);
+      const nl = list.slice();
+      nl.splice(index + 1, 0, ...toInsert);
+      return replaceAt(nodes, parentPath, nl);
+    });
+    if (clipboard.cut) setClipboard(null);
+  };
+  const pasteToParentEnd = (parentPath: number[]) => {
+    if (!clipboard || !clipboard.nodes || clipboard.nodes.length === 0) return;
+    const toInsert = clipboard.cut ? clipboard.nodes.map(cloneNode) : deepCloneWithNewIds(clipboard.nodes);
+    withTree(nodes => {
+      if (parentPath.length === 0) {
+        const nl = nodes.slice();
+        nl.push(...toInsert);
+        return nl;
+      }
+      const { list, index } = getAtPath(nodes, parentPath);
+      const parent = list[index];
+      const ch = (parent.children || []).slice();
+      ch.push(...toInsert);
+      const updated = { ...parent, children: ch };
+      const nl = list.slice(); nl[index] = updated;
+      return replaceAt(nodes, parentPath.slice(0, -1), nl);
+    });
+    if (clipboard.cut) setClipboard(null);
+  };
+  const deleteSingle = (path: number[]) => {
+    delSubtree(path);
+    setSelectedPath(null);
+    setMultiSel(null);
+  };
+  const copyRange = () => {
+    if (!multiSel) return;
+    const snap = withTreeReturn(nodes => {
+      const list = getChildrenAtParent(nodes, multiSel.parentPath);
+      const s = Math.min(multiSel.start, multiSel.end);
+      const e = Math.max(multiSel.start, multiSel.end);
+      return list.slice(s, e + 1).map(cloneNode);
+    });
+    setClipboard({ nodes: snap, cut: false });
+    tryWriteClipboard(nodesToJsonText(snap));
+  };
+  const cutRange = () => {
+    if (!multiSel) return;
+    const snap = withTreeReturn(nodes => {
+      const list = getChildrenAtParent(nodes, multiSel.parentPath);
+      const s = Math.min(multiSel.start, multiSel.end);
+      const e = Math.max(multiSel.start, multiSel.end);
+      return list.slice(s, e + 1).map(cloneNode);
+    });
+    setClipboard({ nodes: snap, cut: true });
+    tryWriteClipboard(nodesToJsonText(snap));
+    deleteRange();
+  };
+
+  const pasteJsonAfterSingle = async (path: number[]) => {
+    const text = await tryReadClipboard();
+    if (!text) return;
+    const nodes = jsonTextToNodes(text);
+    if (!nodes.length) return;
+    const toInsert = deepCloneWithNewIds(nodes);
+    withTree(prev => {
+      const { list, index } = getAtPath(prev, path);
+      const nl = list.slice();
+      nl.splice(index + 1, 0, ...toInsert);
+      return replaceAt(prev, path.slice(0, -1), nl);
+    });
+  };
+  const pasteJsonToParentEnd = async (parentPath: number[]) => {
+    const text = await tryReadClipboard();
+    if (!text) return;
+    const nodes = jsonTextToNodes(text);
+    if (!nodes.length) return;
+    const toInsert = deepCloneWithNewIds(nodes);
+    withTree(prev => {
+      if (parentPath.length === 0) {
+        const nl = prev.slice(); nl.push(...toInsert); return nl;
+      }
+      const { list, index } = getAtPath(prev, parentPath);
+      const parent = list[index];
+      const ch = (parent.children || []).slice(); ch.push(...toInsert);
+      const updated = { ...parent, children: ch };
+      const nl = list.slice(); nl[index] = updated;
+      return replaceAt(prev, parentPath.slice(0, -1), nl);
+    });
+  };
+  const deleteRange = () => {
+    if (!multiSel) return;
+    withTree(nodes => {
+      const s = Math.min(multiSel.start, multiSel.end);
+      const e = Math.max(multiSel.start, multiSel.end);
+      const list = getChildrenAtParent(nodes, multiSel.parentPath);
+      const nl = list.slice();
+      nl.splice(s, e - s + 1);
+      return replaceAt(nodes, multiSel.parentPath, nl);
+    });
+    setSelectedPath(null);
+    setMultiSel(null);
+  };
+
   return (
-    <div className="ctp">
+    <div className="ctp" onClick={() => setCtxMenu(null)}>
       <div className="ctp-toolbar">
         <button onClick={() => setInsertTarget({ path: selectedPath || [], mode: 'sibling' })}>＋ 添加指令</button>
         <button onClick={() => { if (selectedPath) moveSibling(selectedPath, -1); }} disabled={!selectedPath}>↑ 上移</button>
@@ -317,98 +562,168 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         <button onClick={() => { if (selectedPath) { delSubtree(selectedPath); setSelectedPath(null); } }} disabled={!selectedPath}>删除</button>
         <button onClick={() => setShowRaw(s => !s)} style={{ marginLeft: 8 }}>{showRaw ? '显示树' : '显示源数据'}</button>
       </div>
-      <div className="ctp-list">
+
+      {ctxMenu && (
+        <div
+          style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, background: '#fff', border: '1px solid #ddd', borderRadius: 6, boxShadow: '0 4px 14px rgba(0,0,0,0.12)', zIndex: 2147483647, minWidth: 160 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {ctxMenu.mode === 'single' && (
+            <>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={() => { copySingle(ctxMenu.path); setCtxMenu(null); }}>复制</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={() => { cutSingle(ctxMenu.path); setCtxMenu(null); }}>剪切</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent', opacity: clipboard && clipboard.nodes && clipboard.nodes.length ? 1 : 0.5 }} disabled={!clipboard || !clipboard.nodes || clipboard.nodes.length===0} onClick={() => { pasteAfterSingle(ctxMenu.path); setCtxMenu(null); }}>粘贴</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={async () => { await pasteJsonAfterSingle(ctxMenu.path); setCtxMenu(null); }}>从JSON粘贴</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent', color:'#c00' }} onClick={() => { deleteSingle(ctxMenu.path); setCtxMenu(null); }}>删除</button>
+            </>
+          )}
+          {ctxMenu.mode === 'placeholder' && (
+            <>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent', opacity: clipboard && clipboard.nodes && clipboard.nodes.length ? 1 : 0.5 }} disabled={!clipboard || !clipboard.nodes || clipboard.nodes.length===0} onClick={() => { pasteToParentEnd(ctxMenu.path); setCtxMenu(null); }}>粘贴</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={async () => { await pasteJsonToParentEnd(ctxMenu.path); setCtxMenu(null); }}>从JSON粘贴</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={() => { const pp = ctxMenu.path; if ((pp||[]).length === 0) setInsertTarget({ path: [], mode: 'sibling' }); else setInsertTarget({ path: pp, mode: 'child' }); setCtxMenu(null); }}>新建指令</button>
+            </>
+          )}
+          {ctxMenu.mode === 'multi' && (
+            <>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={() => { copyRange(); setCtxMenu(null); }}>复制所选</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent' }} onClick={() => { cutRange(); setCtxMenu(null); }}>剪切所选</button>
+              <button className="ph-menu-item" style={{ display:'block', width:'100%', textAlign:'left', padding:'8px 12px', border:'none', background:'transparent', color:'#c00' }} onClick={() => { deleteRange(); setCtxMenu(null); }}>删除所选</button>
+            </>
+          )}
+        </div>
+      )}
+      <div className="ctp-list" onClick={(e) => { if (e.currentTarget === e.target) { setSelectedPath(null); setMultiSel(null); setSelectedPlaceholder(null); setCtxMenu(null); } }}>
         {showRaw && (
           <div style={{ padding: 8 }}>
             <pre style={{ background: '#0b1020', color: '#e6edf3', padding: 12, borderRadius: 6, overflow: 'auto', maxHeight: 400 }}>{rawJson}</pre>
           </div>
         )}
         {!showRaw && lines.length === 0 && <div className="clp-empty">暂无指令，点击“添加命令”</div>}
-        {!showRaw && lines.map(li => (
-          <div key={li.node.id + '|' + li.path.join('-')} className={`ctp-row ${li.node.kind === 'branch' ? 'branch' : ''} ${selectedPath && JSON.stringify(selectedPath)===JSON.stringify(li.path) ? 'selected' : ''}`} style={{ marginLeft: li.depth * 16 }} onClick={() => setSelectedPath(li.path)}>
-            <div className="ctp-toggle" onClick={(e) => { e.stopPropagation(); toggle(li.node.id); }}>{li.node.children?.length ? (folded.has(li.node.id) ? '▶' : '▼') : ''}</div>
-            <div className="ctp-icon">{iconOf(li.node)}</div>
-            <div className="ctp-main">
-              {li.node.kind === 'branch' && <span className="ctp-badge">{li.node.label || '分支'}</span>}
-              <span className="ctp-title">{titleOf(li.node)}</span>
-              <span className="ctp-summary">{summaryOf(li.node)}</span>
+        {!showRaw && lines.map((li, idx) => {
+          if (li.placeholder) {
+            const key = `ph|${(li.parentPath || []).join('-')}|${idx}`;
+            const onDbl = () => {
+              const pp = li.parentPath || [];
+              if (pp.length === 0) setInsertTarget({ path: [], mode: 'sibling' });
+              else setInsertTarget({ path: pp, mode: 'child' });
+            };
+            const onCtx = (e: React.MouseEvent) => {
+              e.preventDefault(); e.stopPropagation();
+              setCtxMenu({ x: e.clientX, y: e.clientY, mode: 'placeholder', path: li.parentPath || [] });
+            };
+            return (
+              <div
+                key={key}
+                className={`ctp-row placeholder ${selectedPlaceholder && eqArr(selectedPlaceholder, li.parentPath || []) ? 'selected' : ''}`}
+                style={{ marginLeft: li.depth * 16 }}
+                onClick={(e) => { e.stopPropagation(); setSelectedPath(null); setMultiSel(null); setCtxMenu(null); setSelectedPlaceholder(li.parentPath || []); }}
+                onDoubleClick={onDbl}
+                onContextMenu={onCtx}
+              >
+                <div className="ctp-toggle" />
+                <div className="ctp-icon">＋</div>
+                <div className="ctp-main">
+                  <span className="ctp-summary" style={{ color:'#999' }}>空白（右键粘贴 / 双击新建）</span>
+                </div>
+                <div className="ctp-actions" />
+              </div>
+            );
+          }
+          const n = li.node!; const p = li.path!;
+          return (
+            <div
+              key={n.id + '|' + p.join('-')}
+              className={`ctp-row ${n.kind === 'branch' ? 'branch' : ''} ${selectedPath && eqArr(selectedPath, p) ? 'selected' : ''} ${isInMultiRange(p) ? 'in-range' : ''}`}
+              style={{ marginLeft: li.depth * 16 }}
+              onClick={(e) => handleRowClick(e, p)}
+              onContextMenu={(e) => handleContextMenu(e, p)}
+              onDoubleClick={() => { if (n.kind === 'action' && tplForType(n.type)) setEditing({ path: p }); }}
+            >
+              <div className="ctp-toggle" onClick={(e) => { e.stopPropagation(); toggle(n.id); }}>{(n.children?.length || 0) > 0 ? (folded.has(n.id) ? '▶' : '▼') : ''}</div>
+              <div className="ctp-icon">{iconOf(n)}</div>
+              <div className="ctp-main">
+                {n.kind === 'branch' && <span className="ctp-badge">{n.label || '分支'}</span>}
+                <span className="ctp-title">{titleOf(n)}</span>
+                <span className="ctp-summary">{summaryOf(n)}</span>
+              </div>
+              <div className="ctp-actions">
+                {n.kind === 'action' && tplForType(n.type) && (
+                  <button onClick={() => setEditing({ path: p })}>参数</button>
+                )}
+                {n.kind === 'action' && n.type === 'SHOW_CHOICES' && (
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    withTree(nodes => {
+                      const { list, index } = getAtPath(nodes, p);
+                      const me = list[index];
+                      const ch = (me.children || []).slice();
+                      const nextIdx = ch.length + 1;
+                      ch.push({ id: `${me.id}_opt_${nextIdx}`, type: 'BRANCH', label: `选项${nextIdx}`, kind: 'branch', children: [] });
+                      const updated = { ...me, children: ch };
+                      const nl = list.slice(); nl[index] = updated; return replaceAt(nodes, p.slice(0, -1), nl);
+                    });
+                  }}>添加选项</button>
+                )}
+                {n.kind === 'branch' && (
+                  <>
+                    <button onClick={() => setInsertTarget({ path: p, mode: 'child' })}>添加</button>
+                    {(() => {
+                      try {
+                        const parentPath = p.slice(0, -1);
+                        const { list: plist, index: pidx } = getAtPath(tree as any, parentPath);
+                        const parentNode = plist?.[pidx];
+                        const isChoiceOpt = parentNode && parentNode.type === 'SHOW_CHOICES';
+                        const count = isChoiceOpt ? ((parentNode.children || []).length) : 0;
+                        if (!isChoiceOpt || count <= 1) return null; // 仅在>1个选项时允许删除
+                        return (
+                          <button onClick={(e) => {
+                            e.stopPropagation();
+                            withTree(nodes => {
+                              const childIndex = p[p.length - 1];
+                              const parentPath2 = p.slice(0, -1);
+                              const { list: parentList2, index: parentIndex2 } = getAtPath(nodes, parentPath2);
+                              const parentNode2 = parentList2[parentIndex2];
+                              const children2 = (parentNode2.children || []).slice();
+                              if (children2.length <= 1) return nodes; // 再保险
+                              children2.splice(childIndex, 1);
+                              return replaceAt(nodes, parentPath2, children2);
+                            });
+                          }}>删除选项</button>
+                        );
+                      } catch { return null; }
+                    })()}
+                    {(() => {
+                      try {
+                        const parentPath = p.slice(0, -1);
+                        const { list: plist, index: pidx } = getAtPath(tree as any, parentPath);
+                        const parentNode = plist?.[pidx];
+                        const isChoiceOpt = parentNode && parentNode.type === 'SHOW_CHOICES';
+                        if (!isChoiceOpt) return null;
+                        return (
+                          <button onClick={(e) => {
+                            e.stopPropagation();
+                            const oldLabel = String(n.label || '');
+                            let name = oldLabel;
+                            try { const v = window.prompt('重命名选项', oldLabel); if (v && v.trim()) name = v.trim(); else return; } catch { return; }
+                            withTree(nodes => {
+                              const childIndex = p[p.length - 1];
+                              const { list: parentList2, index: parentIndex2 } = getAtPath(nodes, parentPath);
+                              const parentNode2 = parentList2[parentIndex2];
+                              const children2 = (parentNode2.children || []).map(cloneNode);
+                              if (children2[childIndex]) children2[childIndex].label = name;
+                              return replaceAt(nodes, parentPath, children2);
+                            });
+                          }}>重命名</button>
+                        );
+                      } catch { return null; }
+                    })()}
+                  </>
+                )}
+              </div>
             </div>
-            <div className="ctp-actions">
-              {li.node.kind === 'action' && tplForType(li.node.type) && (
-                <button onClick={() => setEditing({ path: li.path })}>参数</button>
-              )}
-              {li.node.kind === 'action' && li.node.type === 'SHOW_CHOICES' && (
-                <button onClick={(e) => {
-                  e.stopPropagation();
-                  withTree(nodes => {
-                    const { list, index } = getAtPath(nodes, li.path);
-                    const me = list[index];
-                    const ch = (me.children || []).slice();
-                    const nextIdx = ch.length + 1;
-                    ch.push({ id: `${me.id}_opt_${nextIdx}`, type: 'BRANCH', label: `选项${nextIdx}`, kind: 'branch', children: [] });
-                    const updated = { ...me, children: ch };
-                    const nl = list.slice(); nl[index] = updated; return replaceAt(nodes, li.path.slice(0, -1), nl);
-                  });
-                }}>添加选项</button>
-              )}
-              {li.node.kind === 'branch' && (
-                <>
-                  <button onClick={() => setInsertTarget({ path: li.path, mode: 'child' })}>添加</button>
-                  {(() => {
-                    try {
-                      const parentPath = li.path.slice(0, -1);
-                      const { list: plist, index: pidx } = getAtPath(tree as any, parentPath);
-                      const parentNode = plist?.[pidx];
-                      const isChoiceOpt = parentNode && parentNode.type === 'SHOW_CHOICES';
-                      const count = isChoiceOpt ? ((parentNode.children || []).length) : 0;
-                      if (!isChoiceOpt || count <= 1) return null; // 仅在>1个选项时允许删除
-                      return (
-                        <button onClick={(e) => {
-                          e.stopPropagation();
-                          withTree(nodes => {
-                            const childIndex = li.path[li.path.length - 1];
-                            const parentPath2 = li.path.slice(0, -1);
-                            const { list: parentList2, index: parentIndex2 } = getAtPath(nodes, parentPath2);
-                            const parentNode2 = parentList2[parentIndex2];
-                            const children2 = (parentNode2.children || []).slice();
-                            if (children2.length <= 1) return nodes; // 再保险
-                            children2.splice(childIndex, 1);
-                            return replaceAt(nodes, parentPath2, children2);
-                          });
-                        }}>删除选项</button>
-                      );
-                    } catch { return null; }
-                  })()}
-                  {(() => {
-                    try {
-                      const parentPath = li.path.slice(0, -1);
-                      const { list: plist, index: pidx } = getAtPath(tree as any, parentPath);
-                      const parentNode = plist?.[pidx];
-                      const isChoiceOpt = parentNode && parentNode.type === 'SHOW_CHOICES';
-                      if (!isChoiceOpt) return null;
-                      return (
-                        <button onClick={(e) => {
-                          e.stopPropagation();
-                          const oldLabel = String(li.node.label || '');
-                          let name = oldLabel;
-                          try { const v = window.prompt('重命名选项', oldLabel); if (v && v.trim()) name = v.trim(); else return; } catch { return; }
-                          withTree(nodes => {
-                            const childIndex = li.path[li.path.length - 1];
-                            const { list: parentList2, index: parentIndex2 } = getAtPath(nodes, parentPath);
-                            const parentNode2 = parentList2[parentIndex2];
-                            const children2 = (parentNode2.children || []).map(cloneNode);
-                            if (children2[childIndex]) children2[childIndex].label = name;
-                            return replaceAt(nodes, parentPath, children2);
-                          });
-                        }}>重命名</button>
-                      );
-                    } catch { return null; }
-                  })()}
-                </>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {insertTarget && (
@@ -449,6 +764,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                   // open parameter editor immediately
                   setSelectedPath(newPath);
                   setEditing({ path: newPath });
+                  setPendingNewPath(newPath);
                 }}
               />
             </div>
@@ -471,6 +787,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
             template={tpl}
             initialParams={n.parameters || {}}
             project={project}
+            commandId={n.id}
             onSave={(p) => {
               // set params and then add default branches according to params and type
               withTree(nodes => {
@@ -553,8 +870,16 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                 });
               });
               setEditing(null);
+              setPendingNewPath(null);
             }}
-            onCancel={() => setEditing(null)}
+            onCancel={() => {
+              if (pendingNewPath && JSON.stringify(pendingNewPath) === JSON.stringify(editing.path)) {
+                // remove the newly inserted node
+                delSubtree(pendingNewPath);
+                setPendingNewPath(null);
+              }
+              setEditing(null);
+            }}
           />
         );
         return onEditor;

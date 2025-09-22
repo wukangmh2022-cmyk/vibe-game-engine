@@ -168,6 +168,7 @@ export const CommandListPanel: React.FC<CommandListPanelProps> = ({
           template={tplOf(commands[editingIndex])}
           initialParams={commands[editingIndex].parameters}
           project={project}
+          commandId={commands[editingIndex].id}
           onSave={(p) => { const next = commands.slice(); next[editingIndex] = { ...next[editingIndex], parameters: p }; onCommandsChange(next); setEditingIndex(null); setPendingIndex(null); }}
           onCancel={() => {
             if (pendingIndex != null && pendingIndex === editingIndex) {

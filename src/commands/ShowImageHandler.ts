@@ -228,7 +228,33 @@ export class ShowImageHandler extends BaseCommandHandler {
     if (!spec) return null;
     const rm: any = (context as any).resourceManager;
     const res = rm?.getResource ? rm.getResource(spec) : null;
-    return res?.url || (typeof spec === 'string' ? spec : null);
+    if (res?.url) return res.url;
+    if (typeof spec !== 'string') return null;
+    try {
+      const g: any = (typeof window !== 'undefined' ? (window as any) : (globalThis as any));
+      const getVfsUrl = g?.__VFS_GET_URL__;
+      const norm = (p: string) => String(p || '').replace(/^\.\//,'').replace(/^\/+/, '');
+      const ensureJson = (p: string) => p.endsWith('.json') ? p : (p + '.json');
+      const candidates: string[] = [];
+      const name = norm(spec);
+      if (/\//.test(name)) {
+        candidates.push(ensureJson(name.startsWith('animations/') ? name : `animations/${name.replace(/^.*?\//,'')}`));
+      } else {
+        // Try common locations
+        candidates.push(ensureJson(`animations/${name}`));
+        candidates.push(ensureJson(`animations/基础效果/${name}`));
+      }
+      for (const rel0 of candidates) {
+        const rel = norm(rel0);
+        if (typeof getVfsUrl === 'function') {
+          const u = await getVfsUrl(rel);
+          if (u) return u;
+        }
+        const base: string = g?.__ASSET_BASE__ || g?.__PROJECT_BASE__ || '';
+        if (base) return base.endsWith('/') ? (base + rel) : (base + '/' + rel);
+      }
+      return '/' + candidates[0];
+    } catch { return spec; }
   }
 
   private toAnimatorProps(props: any): any {

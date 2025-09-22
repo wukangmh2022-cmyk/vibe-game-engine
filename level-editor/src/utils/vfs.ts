@@ -467,6 +467,18 @@ export const vfs: IVFS = {
           }
         }
       }
+      // also rewrite project-level skins (array form)
+      try {
+        const skins = Array.isArray((gameData as any)?.skins) ? (gameData as any).skins : [];
+        for (const s of skins) {
+          const url = s?.url;
+          if (typeof url === 'string') {
+            const p = normPath(url);
+            const u = this.getResourceURL(p);
+            if (u) s.url = u;
+          }
+        }
+      } catch {}
     } catch {}
   },
 

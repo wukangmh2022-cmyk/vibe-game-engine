@@ -9,6 +9,12 @@ DOCKER_CONTAINER_NAME="nginx-h5"  # Docker 容器名称
 SSH_KEY_PATH="$HOME/.ssh/my-ecs-key.pem"  # SSH 私钥路径（$HOME 自动解析家目录）
 # -----------------------------------------------------------------------------
 
+# 在上传前，确保 00PROMPT_GUIDE.MD 一并随 dist 发布（供线上读取）
+if [ -f "./00PROMPT_GUIDE.MD" ]; then
+  mkdir -p "$LOCAL_DIST_PATH" >/dev/null 2>&1
+  cp -f "./00PROMPT_GUIDE.MD" "$LOCAL_DIST_PATH/00PROMPT_GUIDE.MD"
+fi
+
 # 检查本地 dist 目录是否存在
 if [ ! -d "$LOCAL_DIST_PATH" ]; then
   echo "❌ 错误：本地 dist 目录不存在！路径：$LOCAL_DIST_PATH"

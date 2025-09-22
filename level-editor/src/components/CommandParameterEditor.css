@@ -204,6 +204,26 @@ textarea.param-input {
   margin-top: 4px;
 }
 
+/* Compact grid for simple fields (3 per row on wide screens) */
+.parameter-compact-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.parameter-compact-grid .parameter-compact-item {
+  flex: 1 1 calc(33.333% - 8px);
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+@media (max-width: 900px) {
+  .parameter-compact-grid .parameter-compact-item { flex-basis: calc(50% - 8px); }
+}
+@media (max-width: 520px) {
+  .parameter-compact-grid .parameter-compact-item { flex-basis: 100%; }
+}
+
 .editor-footer {
   display: flex;
   justify-content: flex-end;

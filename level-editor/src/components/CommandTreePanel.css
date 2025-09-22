@@ -7,9 +7,14 @@
 .ctp-toolbar { display:flex; align-items:center; gap:6px; padding:6px 8px; background:#fff; border-bottom:1px solid #e9ecef; }
 .ctp-toolbar button { font-size:12px; padding:4px 8px; }
 .ctp-list { flex:1; min-height:0; overflow:auto; background:#f8f9fa; padding:6px; }
+.ctp-list, .ctp-row, .ctp-main, .ctp-title, .ctp-summary, .ctp-badge, .ctp-icon, .ctp-toggle { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
 .ctp-row { display:flex; align-items:center; gap:6px; padding:4px 6px; background:#fff; border:1px solid #e9ecef; border-radius:6px; margin-bottom:4px; cursor: default; }
-.ctp-row.selected { background:#eaf4ff; border-color:#74c0fc; }
+.ctp-row.selected { background:#dceeff; border-color:#4dabf7; }
+.ctp-row.in-range { background:#e2f0ff; border-color:#8ec5ff; }
 .ctp-row.branch { background:#f3f9ff; border-color:#d0ebff; }
+.ctp-row.placeholder { background:#f8fbff; border:2px dashed #74c0fc; color:#6c757d; }
+.ctp-row.placeholder:hover { background:#eef7ff; border-color:#4dabf7; }
+.ctp-row.placeholder.selected { background:#e2f0ff; border-color:#8ec5ff; }
 .ctp-toggle { width:16px; text-align:center; cursor:pointer; color:#666; }
 .ctp-icon { width:16px; text-align:center; }
 .ctp-main { flex:1; min-width:0; display:flex; align-items:baseline; gap:6px; }

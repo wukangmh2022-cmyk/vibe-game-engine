@@ -158,6 +158,14 @@ async function bootstrap() {
   (audioManager as any).setResolver?.((id: string) => (resourceManager as any).getResource?.(id)?.url);
 
   // Init state
+  // 1) Load global variables/switches from game config (scene root)
+  try {
+    const gv = (game && (game.globalVariables || (game.config && game.config.globalVariables))) || {};
+    const gs = (game && (game.globalSwitches || (game.config && game.config.globalSwitches))) || {};
+    Object.entries(gv).forEach(([k, v]) => stateManager.setVariable(k, v));
+    Object.entries(gs).forEach(([k, v]) => stateManager.setSwitch(k, v as any));
+  } catch {}
+  // 2) Load level-specific initial state (overrides globals when overlapping)
   Object.entries(level.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
 
   // Register level events

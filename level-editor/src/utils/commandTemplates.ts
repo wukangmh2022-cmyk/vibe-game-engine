@@ -208,14 +208,10 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     category: CommandCategory.DISPLAY,
     icon: '🖼️',
     color: '#4CAF50',
+    spawnsElement: true,
     parameters: [
-      {
-        name: 'elementId',
-        label: '元素ID',
-        type: 'text',
-        required: true,
-        description: '元素ID'
-      },
+      // 元素ID 由编辑器管理，隐藏此字段避免与指令ID混淆
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
       { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '图片资源ID', resourceKind: 'image' },
       {
         name: 'position.x',
@@ -313,14 +309,21 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     category: CommandCategory.DISPLAY,
     icon: '📋',
     color: '#3F51B5',
+    spawnsElement: true,
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '元素ID（可选）' },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
       { name: 'blocking', label: '阻塞后续', type: 'boolean', required: false, defaultValue: true },
       { name: 'position.x', label: 'X坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'position.y', label: 'Y坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'ui.rowMax', label: '每行最大按钮数', type: 'number', required: false, defaultValue: 1 },
-      { name: 'ui.minWidth', label: '最小按钮宽', type: 'number', required: false },
-      { name: 'ui.buttonResourceId', label: '按钮资源', type: 'resource', required: false, resourceKind: 'image' },
+      { name: 'ui.gapX', label: '水平间距', type: 'number', required: false, defaultValue: 16 },
+      { name: 'ui.gapY', label: '垂直间距', type: 'number', required: false, defaultValue: 12 },
+      { name: 'ui.minWidth', label: '最小按钮宽', type: 'number', required: false, defaultValue: 30 },
+      { name: 'ui.fontSize', label: '按钮文字字号', type: 'number', required: false, defaultValue: 16 },
+      { name: 'ui.maxWidth', label: '按钮最大宽', type: 'number', required: false, defaultValue: 300 },
+      { name: 'ui.paddingX', label: '按钮左右内边距', type: 'number', required: false, defaultValue: 12 },
+      { name: 'ui.paddingY', label: '按钮上下内边距', type: 'number', required: false, defaultValue: 8 },
+      { name: 'ui.color', label: '按钮文字颜色', type: 'color', required: false, defaultValue: '#ffffff' },
       { name: 'ui.buttonSkinId', label: '按钮样式ID', type: 'text', required: false }
     ]
   },
@@ -347,8 +350,9 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     category: CommandCategory.DISPLAY,
     icon: '🎬',
     color: '#9C27B0',
+    spawnsElement: true,
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '元素ID' },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
       { name: 'mediaType', label: '媒体类型', type: 'select', required: true, defaultValue: 'video', options: [
         { value: 'video', label: '视频' }
       ], description: '媒体类型' },
@@ -371,14 +375,9 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     category: CommandCategory.DISPLAY,
     icon: '💬',
     color: '#2196F3',
+    spawnsElement: true,
     parameters: [
-      {
-        name: 'elementId',
-        label: '元素ID',
-        type: 'text',
-        required: true,
-        description: '元素ID'
-      },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
       {
         name: 'text',
         label: '文本内容',
@@ -418,10 +417,17 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         defaultValue: '#000000',
         description: '文本颜色'
       },
+      { name: 'style.stroke', label: '描边颜色', type: 'color', required: false, description: '文本描边颜色' },
+      { name: 'style.strokeThickness', label: '描边粗细', type: 'number', required: false, defaultValue: 0 },
+      { name: 'style.dropShadow', label: '投影', type: 'boolean', required: false, defaultValue: false },
+      { name: 'style.dropShadowColor', label: '投影颜色', type: 'color', required: false, defaultValue: '#000000' },
+      { name: 'style.dropShadowBlur', label: '投影模糊', type: 'number', required: false, defaultValue: 0 },
+      { name: 'style.dropShadowAngle', label: '投影角度', type: 'number', required: false, defaultValue: 1.2 },
+      { name: 'style.dropShadowDistance', label: '投影距离', type: 'number', required: false, defaultValue: 2 },
+      { name: 'style.maxWidth', label: '最大宽度(px)', type: 'text', required: false, defaultValue: 999, description: '如 600 或 600px' },
+      { name: 'style.textAlign', label: '对齐', type: 'select', required: false, defaultValue: 'left', options: [ { value: 'left', label: '左' }, { value: 'center', label: '中' }, { value: 'right', label: '右' } ] },
       { name: 'skinId', label: '背景框样式', type: 'text', required: false, description: '九宫格背景皮肤ID（如 dialog-default-9slice）' },
-      { name: 'padding', label: '内边距', type: 'number', required: false, description: '皮肤背景内边距' },
-      { name: 'backgroundResourceId', label: '背景资源ID', type: 'resource', required: false, description: '兼容：图片背景资源ID', resourceKind: 'image' },
-      { name: 'backgroundPadding', label: '背景内边距', type: 'number', required: false, description: '兼容：图片背景的内边距' },
+      { name: 'padding', label: '内边距', type: 'number', required: false, defaultValue: 20, description: '皮肤背景内边距' },
       { name: 'blocking', label: '阻塞继续', type: 'boolean', required: false, defaultValue: false, description: '是否阻塞流程直到用户继续' },
       { name: 'dismissOnContinue', label: '继续时关闭', type: 'boolean', required: false, defaultValue: true, description: '继续后自动移除该文本' }
     ]
