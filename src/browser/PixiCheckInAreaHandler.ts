@@ -6,9 +6,16 @@ export class PixiCheckInAreaHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const id: string = p.elementId;
+    const state: any = (context as any).stateManager;
+    let id: string | undefined = p.elementId;
+    if ((!id || typeof id !== 'string') && state?.getVariable) {
+      try {
+        const fromState = state.getVariable('last_drop_element_ID');
+        if (typeof fromState === 'string' && fromState) id = fromState;
+      } catch {}
+    }
     const area = p.area || {};
-    if (!id) return this.createErrorResult('Missing required parameter: elementId');
+    if (!id) return this.createErrorResult('Missing elementId and last_drop_element_ID');
     const rm: any = context.renderManager as any;
     const app = rm?.getApp ? rm.getApp() : rm?.app;
     const node = rm?.getNode ? rm.getNode(id) : null;
@@ -19,8 +26,6 @@ export class PixiCheckInAreaHandler extends BaseCommandHandler {
     const ax = Number(area.x) || 0, ay = Number(area.y) || 0, aw = Number(area.width) || 0, ah = Number(area.height) || 0;
     let fired = false;
     const exec = (context as any).executor;
-    const state = (context as any).stateManager;
-
     // Ensure holder
     if (!node.__checkAreaWatchers) node.__checkAreaWatchers = new Map<string, any>();
     // Cleanup same id watcher

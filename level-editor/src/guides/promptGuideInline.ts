@@ -103,7 +103,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | SET_CLICKABLE | elementId | 可选：clickable(默认 true)、onClick(commands/flip/toggle_selected)、frontResourceId, backResourceId, showBack, effect；若 onClick 为 commands，需提供 "commands": [ ...子指令... ] 子数组。|
 | SET_SELECTABLE | elementId | 可选：selectable、variableKey、overlayResourceId、effect，并可定义 onSelected / onCancelSelected 子命令。|
 | SET_DRAGGABLE | elementId | 可选：draggable（布尔）。拖拽落下后的逻辑通过 CHECK_IN_AREA 或自定义事件处理。|
-| CHECK_IN_AREA | elementId, area.x, area.y, area.width, area.height | 命中后可附带 commands 子数组。|
+| CHECK_IN_AREA | area.x, area.y, area.width, area.height | 命中后写入 last_drop_element_ID / last_drop_resource_ID，并执行 commands 子数组。|
 | SHOW_CHOICES | elementId | 使用 options 数组定义按钮；每个选项包含 id, text, （可选）commands。parameters.ui 可设置按钮样式，如 rowMax, fontSize, buttonSkinId。|
 
 ### 3.5 音频与系统
@@ -131,13 +131,17 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 ### 3.7 补充规则（务必遵守）
 
 - IF_CONDITION.condition 使用规范结构：{ type:"variable"|"switch"|"expression", key, operator, value } 或 { type:"expression", expression }；不要混入 condition.variable。
+ - IF_CONDITION 条件推荐：优先使用变量/开关型，不要把简单等值判断写成 expression。错误示例：{ type:"expression", expression:"last_drop_element_ID == 'veg4'" }；正确示例：{ type:"variable", key:"last_drop_element_ID", operator:"eq", value:"veg4" }。
+ - 如确需使用 expression：字符串判断支持 .includes()，例如 context.stateManager.getVariable('last_drop_element_ID').includes('veg')（本身已返回布尔值，可不写 === true）。在事件上下文中也可用 event.xxx。
+ - 注意：expression 不会自动把裸变量名解析为状态变量，不能直接写 xxstring.includes('xx')；需通过 context.stateManager.getVariable('xxstring') 或 event.xxstring 获取再调用 includes。
 - operator 仅可为 eq/ne/gt/lt/gte/lte；若出现 ==/!=/>/</>=/<=，请映射为上述枚举。
 - SHOW_CHOICES 必须完整提供 parameters.ui 的关键字段：rowMax、gapX、gapY、fontSize、maxWidth、paddingX、paddingY、color、buttonSkinId（未指定请给出合理默认）。
 - SET_DRAGGABLE 仅接受 draggable（布尔）；不要输出未定义字段（如 dragType）。
 - CHECK_IN_AREA 的 commands 表示“命中时”的子流程：
   - 可放到提交按钮（SET_CLICKABLE：onClick=commands）的子命令里统一检查；
   - 或者用 EMIT_SIGNAL + custom 事件，将检查逻辑解耦到事件（推荐在提示中写清触发关系）。
-- 拖拽命中后建议更新 itemXPlaced/vegCount 等变量；提交时只做汇总校验（例如 vegCount>=2）。
+- 不再在 CHECK_IN_AREA 中传入元素 ID，使用系统变量 last_drop_element_ID / last_drop_resource_ID 即可得知当前命中的元素与资源。
+- 拖拽命中后，判断正确投递资源ID后，建议更新 varCount 等变量；提交时只做汇总校验（例如 varCount>=2）。
 - 可用系统变量：命中后 last_drop_element_ID、last_drop_resource_ID；切换选中时 lastChangingSelectStateID（SET_SELECTABLE 或 SET_CLICKABLE: toggle_selected 时）。
 - 输出前删除未知字段与空壳对象，保持字段命名与类型严格符合模板。
 
@@ -223,13 +227,12 @@ events 数组中的每个对象：
 
 - 常用指令：SHOW_IMAGE、SET_ELEMENT_STYLE、ANIMATE_IN、SET_DRAGGABLE、CHECK_IN_AREA、SET_VARIABLE、IF_CONDITION、SHOW_TEXT。
 - 模式建议：
-  1) SHOW_IMAGE 批量创建待分类元素（初始可 visible=false，进入游戏后再显示+动画）。
+  1) SHOW_IMAGE 批量创建待分类元素。
   2) 进入游戏后：对每个元素执行 SET_ELEMENT_STYLE(display:"block") + ANIMATE_IN；然后对每个元素 SET_DRAGGABLE(draggable:true)。
   3) “提交”交互：
-     - 方案A：提交按钮（SHOW_IMAGE）+ SET_CLICKABLE(onClick=commands)，在其 commands 内对每个元素使用 CHECK_IN_AREA（命中目标区域时执行子命令：SET_VARIABLE 写入 itemXPlaced/vegCount、MOVE_TO 对齐入篮、ANIMATE_IN 做反馈）。
-     - 方案B：点击提交时 EMIT_SIGNAL（如 signal:"submit"）；定义 custom 事件 target:"submit"，把所有 CHECK_IN_AREA/校验逻辑放入事件（解耦提交与校验）。
-  4) 最后用 IF_CONDITION（例如 vegCount >= 目标数量）判断是否完成，true 分支显示胜利文本 + NEXT_LEVEL，false 分支显示失败提示。
-  5) 可用系统变量 last_drop_element_ID / last_drop_resource_ID；若用 SET_SELECTABLE 或 SET_CLICKABLE(toggle_selected) 进行点选/选中，切换时会写入 lastChangingSelectStateID。
+     - 方案A：提交按钮（SHOW_IMAGE）+ SET_CLICKABLE(onClick=commands)，在其 commands 内、使用 CHECK_IN_AREA可以监听不同的资源ID落入此区域（命中目标区域时执行子命令，根据last_drop_element_ID、last_drop_resource_ID变量可获取元素ID、资源ID）。
+  4) 最后用 IF_CONDITION（例如 varCount >= 目标数量）判断是否完成，true 分支显示胜利文本 + NEXT_LEVEL，false 分支显示失败提示。
+  5) CHECK_IN_AREA可用系统变量 last_drop_element_ID / last_drop_resource_ID；若用 SET_SELECTABLE 或 SET_CLICKABLE(toggle_selected) 进行点选/选中，切换时会写入系统变量： lastChangingSelectStateID。
 
 ### 5.3 翻牌/记忆类（翻卡匹配）
 

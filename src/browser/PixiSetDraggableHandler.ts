@@ -12,6 +12,7 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
 
     const rm: any = context.renderManager as any;
+    const state = (context as any).stateManager;
     const node = rm?.getNode ? rm.getNode(id) : undefined;
     if (!node) return this.createErrorResult(`Element not found: ${id}`);
 
@@ -79,6 +80,11 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
           const payload = { dropZoneId: z.id, draggedElementId: id, dragType };
           // 便于调试：在控制台打印一次
           try { console.log('[emit] drop:success', payload); } catch {}
+          try {
+            state?.setVariable?.('last_drop_element_ID', id);
+            const resId = (node as any).resourceId || '';
+            state?.setVariable?.('last_drop_resource_ID', resId || '');
+          } catch {}
           context.eventManager.emit('drop:success', payload);
           // 同时按投放区ID发出专属信号，便于无需表达式的事件监听
           try { console.log('[emit]', z.id, payload); } catch {}

@@ -9,12 +9,23 @@ export class CheckInAreaHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
-      const { elementId, area, commands, checkMode = 'center' } = command.parameters || {};
+      const { area, commands, checkMode = 'center' } = command.parameters || {};
+      const stateManager = context.stateManager as any;
+      let elementId: string | undefined = command.parameters?.elementId;
+
+      if ((!elementId || typeof elementId !== 'string') && stateManager?.getVariable) {
+        try {
+          const fromState = stateManager.getVariable('last_drop_element_ID');
+          if (typeof fromState === 'string' && fromState) {
+            elementId = fromState;
+          }
+        } catch {}
+      }
 
       if (!elementId) {
         return {
           success: false,
-          error: 'Missing required parameter: elementId'
+          error: 'Missing elementId and last_drop_element_ID'
         };
       }
 
@@ -54,8 +65,9 @@ export class CheckInAreaHandler extends BaseCommandHandler {
       // 命中时设置系统变量，并执行子命令
       if (isInArea) {
         try {
+          const resourceId = (element.dataset && (element.dataset.resourceId || element.dataset.resourceID)) || '';
           context.stateManager.setVariable('last_drop_element_ID', elementId);
-          context.stateManager.setVariable('last_drop_resource_ID', '');
+          context.stateManager.setVariable('last_drop_resource_ID', resourceId || '');
         } catch {}
         const exec: any = (context as any).executor;
         if (Array.isArray(commands) && commands.length) {
@@ -102,11 +114,7 @@ export class CheckInAreaHandler extends BaseCommandHandler {
    * 验证指令参数
    */
   validateParameters(parameters: any): boolean {
-    if (!parameters.elementId || typeof parameters.elementId !== 'string') {
-      return false;
-    }
-
-    if (!this.validateArea(parameters.area)) {
+    if (!parameters || !this.validateArea(parameters.area)) {
       return false;
     }
 

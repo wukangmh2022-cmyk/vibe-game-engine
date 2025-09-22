@@ -13,7 +13,7 @@ interface AIGenerateModalProps {
 }
 
 // 填入你的 OpenRouter API Key（临时硬编码，稍后可替换）
-const OPENROUTER_API_KEY = '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'; 
+const OPENROUTER_API_KEY = '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'; 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({

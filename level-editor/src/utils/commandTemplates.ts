@@ -158,7 +158,6 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '📐',
     color: '#3F51B5',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '被检测的元素ID（其中心点）' },
       { name: 'area.x', label: '区域X', type: 'number', required: true, defaultValue: 0 },
       { name: 'area.y', label: '区域Y', type: 'number', required: true, defaultValue: 0 },
       { name: 'area.width', label: '区域宽', type: 'number', required: true, defaultValue: 100 },

@@ -116,8 +116,14 @@ export class CreateDropZoneHandler extends BaseCommandHandler {
 
       // 获取拖拽的元素ID
       const draggedElementId = e.dataTransfer?.getData('text/plain');
-      
+
       if (draggedElementId) {
+        try {
+          context.stateManager?.setVariable('last_drop_element_ID', draggedElementId);
+          const draggedEl = document.getElementById(draggedElementId) as HTMLElement | null;
+          const resourceId = draggedEl?.dataset?.resourceId || draggedEl?.getAttribute?.('data-resource-id') || '';
+          context.stateManager?.setVariable('last_drop_resource_ID', resourceId || '');
+        } catch {}
         // 触发投放事件
         context.eventManager.emit('drop:success', {
           dropZoneId: dropZone.id,

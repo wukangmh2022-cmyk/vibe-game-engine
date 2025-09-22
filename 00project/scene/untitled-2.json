@@ -10,7 +10,7 @@
       "name": "关卡1",
       "commands": [
         {
-          "id": "init_variables",
+          "id": "cmd_mfuv240j_gg42_0_izam",
           "type": "SET_VARIABLE",
           "parameters": {
             "key": "vegCount",
@@ -19,7 +19,7 @@
           }
         },
         {
-          "id": "show_background",
+          "id": "cmd_mfuv240j_gg42_1_h0nb",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "background",
@@ -47,7 +47,7 @@
           }
         },
         {
-          "id": "show_guide_text",
+          "id": "cmd_mfuv240j_gg42_2_clwq",
           "type": "SHOW_TEXT",
           "parameters": {
             "elementId": "guide-text",
@@ -76,18 +76,18 @@
           }
         },
         {
-          "id": "show_veg_basket",
+          "id": "cmd_mfuv240j_gg42_3_v2py",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "veg-basket",
-            "resourceId": "btn-blue",
+            "resourceId": "async_game_life_1002_basket--01",
             "position": {
               "x": 50,
-              "y": 400
+              "y": 416
             },
             "size": {
-              "width": 240,
-              "height": 64
+              "width": 273,
+              "height": 184
             },
             "zIndex": 1,
             "animation": {
@@ -100,23 +100,22 @@
             },
             "parentId": "",
             "align": "",
-            "visible": true,
-            "id": "show_veg_basket"
+            "visible": true
           }
         },
         {
-          "id": "show_fruit_basket",
+          "id": "cmd_mfuv240j_gg42_4_d5gd",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "fruit-basket",
-            "resourceId": "btn-orange",
+            "resourceId": "async_game_life_1002_basket--02",
             "position": {
-              "x": 510,
-              "y": 400
+              "x": 518,
+              "y": 371
             },
             "size": {
-              "width": 240,
-              "height": 64
+              "width": 232,
+              "height": 229
             },
             "zIndex": 1,
             "animation": {
@@ -129,19 +128,18 @@
             },
             "parentId": "",
             "align": "",
-            "visible": true,
-            "id": "show_fruit_basket"
+            "visible": true
           }
         },
         {
-          "id": "show_veg1",
+          "id": "cmd_mfuv240j_gg42_5_xzld",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "veg1",
             "resourceId": "___1",
             "position": {
-              "x": 200,
-              "y": 150
+              "x": 100,
+              "y": 100
             },
             "size": {
               "width": 139,
@@ -162,7 +160,7 @@
           }
         },
         {
-          "id": "set_draggable_veg1",
+          "id": "cmd_mfuv240j_gg42_6_s7qe",
           "type": "SET_DRAGGABLE",
           "parameters": {
             "elementId": "veg1",
@@ -170,14 +168,14 @@
           }
         },
         {
-          "id": "show_veg2",
+          "id": "cmd_mfuv240j_gg42_7_mrzj",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "veg2",
             "resourceId": "___2",
             "position": {
-              "x": 450,
-              "y": 150
+              "x": 259,
+              "y": 100
             },
             "size": {
               "width": 122,
@@ -198,7 +196,7 @@
           }
         },
         {
-          "id": "set_draggable_veg2",
+          "id": "cmd_mfuv240j_gg42_8_tg6p",
           "type": "SET_DRAGGABLE",
           "parameters": {
             "elementId": "veg2",
@@ -206,7 +204,79 @@
           }
         },
         {
-          "id": "show_submit_btn",
+          "id": "cmd_mfuv240j_gg42_9_gnx4",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg3",
+            "resourceId": "async_game_life_1002_item--03",
+            "position": {
+              "x": 401,
+              "y": 100
+            },
+            "size": {
+              "width": 196,
+              "height": 68
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_10_3a5d",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg3",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_11_w86z",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg4",
+            "resourceId": "async_game_life_1002_item--06",
+            "position": {
+              "x": 617,
+              "y": 100
+            },
+            "size": {
+              "width": 107,
+              "height": 125
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_12_3206",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg4",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_13_3smw",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "submit-btn",
@@ -234,177 +304,243 @@
           }
         },
         {
-          "id": "check_veg1",
+          "id": "cmd_mfuv240j_gg42_15_kveg",
           "type": "CHECK_IN_AREA",
           "parameters": {
-            "elementId": "veg1",
             "area": {
               "x": 50,
-              "y": 400,
-              "width": 240,
-              "height": 64
+              "y": 416,
+              "width": 273,
+              "height": 184
             },
             "commands": [
               {
-                "id": "set_veg_count_add",
-                "type": "SET_VARIABLE",
+                "id": "cmd_mfuv240j_gg42_0_v1ck",
+                "type": "IF_CONDITION",
                 "parameters": {
-                  "key": "vegCount",
-                  "op": "add",
-                  "value": 1
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg1'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vadd1",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "vegCount",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vhid1",
+                      "type": "HIDE_ELEMENTS",
+                      "parameters": {
+                        "elementIds": "veg1"
+                      }
+                    }
+                  ],
+                  "falseCommands": []
                 }
               },
               {
-                "id": "move_veg1_to_basket",
-                "type": "MOVE_TO",
+                "id": "cmd_mfuv240j_gg42_0_v2ck",
+                "type": "IF_CONDITION",
                 "parameters": {
-                  "elementId": "veg1",
-                  "x": 100,
-                  "y": 420,
-                  "duration": 500
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg2'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vadd2",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "vegCount",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vhid2",
+                      "type": "HIDE_ELEMENTS",
+                      "parameters": {
+                        "elementIds": "veg2"
+                      }
+                    }
+                  ],
+                  "falseCommands": []
                 }
               },
               {
-                "id": "animate_veg1_feedback",
-                "type": "ANIMATE_IN",
+                "id": "cmd_mfuv240j_gg42_0_v3ck",
+                "type": "IF_CONDITION",
                 "parameters": {
-                  "elementId": "veg1",
-                  "preset": "scaleIn",
-                  "duration": 300,
-                  "mode": "preset",
-                  "animId": "",
-                  "direction": "up",
-                  "offset": 60
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg3'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vadd3",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "vegCount",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vhid3",
+                      "type": "HIDE_ELEMENTS",
+                      "parameters": {
+                        "elementIds": "veg3"
+                      }
+                    }
+                  ],
+                  "falseCommands": []
+                }
+              },
+              {
+                "id": "cmd_mfuv240j_gg42_0_v4ck",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg4'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vadd4",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "vegCount",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_vhid4",
+                      "type": "HIDE_ELEMENTS",
+                      "parameters": {
+                        "elementIds": "veg4"
+                      }
+                    }
+                  ],
+                  "falseCommands": []
                 }
               }
             ]
           }
         },
         {
-          "id": "check_veg1_wrong",
+          "id": "cmd_mfuv240j_gg42_16_kfru",
           "type": "CHECK_IN_AREA",
           "parameters": {
-            "elementId": "veg1",
             "area": {
-              "x": 510,
-              "y": 400,
-              "width": 240,
-              "height": 64
+              "x": 518,
+              "y": 371,
+              "width": 232,
+              "height": 229
             },
             "commands": [
               {
-                "id": "move_veg1_back",
-                "type": "MOVE_TO",
+                "id": "cmd_mfuv240j_gg42_0_f1ck",
+                "type": "IF_CONDITION",
                 "parameters": {
-                  "elementId": "veg1",
-                  "x": 200,
-                  "y": 150,
-                  "duration": 500
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg1'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_fmov1",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "veg1",
+                        "x": 100,
+                        "y": 100,
+                        "duration": 500
+                      }
+                    }
+                  ],
+                  "falseCommands": []
                 }
               },
               {
-                "id": "animate_veg1_wrong",
-                "type": "ANIMATE_IN",
+                "id": "cmd_mfuv240j_gg42_0_f2ck",
+                "type": "IF_CONDITION",
                 "parameters": {
-                  "elementId": "veg1",
-                  "preset": "fade",
-                  "duration": 300,
-                  "mode": "preset",
-                  "animId": "",
-                  "direction": "up",
-                  "offset": 60
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg2'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_fmov2",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "veg2",
+                        "x": 259,
+                        "y": 100,
+                        "duration": 500
+                      }
+                    }
+                  ],
+                  "falseCommands": []
+                }
+              },
+              {
+                "id": "cmd_mfuv240j_gg42_0_f3ck",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg3'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_fmov3",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "veg3",
+                        "x": 401,
+                        "y": 100,
+                        "duration": 500
+                      }
+                    }
+                  ],
+                  "falseCommands": []
+                }
+              },
+              {
+                "id": "cmd_mfuv240j_gg42_0_f4ck",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "expression",
+                    "expression": "last_drop_element_ID == 'veg4'"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_fmov4",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "veg4",
+                        "x": 617,
+                        "y": 100,
+                        "duration": 500
+                      }
+                    }
+                  ],
+                  "falseCommands": []
                 }
               }
             ]
           }
         },
         {
-          "id": "check_veg2",
-          "type": "CHECK_IN_AREA",
-          "parameters": {
-            "elementId": "veg2",
-            "area": {
-              "x": 50,
-              "y": 400,
-              "width": 240,
-              "height": 64
-            },
-            "commands": [
-              {
-                "id": "set_veg_count_add2",
-                "type": "SET_VARIABLE",
-                "parameters": {
-                  "key": "vegCount",
-                  "op": "add",
-                  "value": 1
-                }
-              },
-              {
-                "id": "move_veg2_to_basket",
-                "type": "MOVE_TO",
-                "parameters": {
-                  "elementId": "veg2",
-                  "x": 200,
-                  "y": 420,
-                  "duration": 500
-                }
-              },
-              {
-                "id": "animate_veg2_feedback",
-                "type": "ANIMATE_IN",
-                "parameters": {
-                  "elementId": "veg2",
-                  "preset": "scaleIn",
-                  "duration": 300,
-                  "mode": "preset",
-                  "animId": "",
-                  "direction": "up",
-                  "offset": 60
-                }
-              }
-            ]
-          }
-        },
-        {
-          "id": "check_veg2_wrong",
-          "type": "CHECK_IN_AREA",
-          "parameters": {
-            "elementId": "veg2",
-            "area": {
-              "x": 510,
-              "y": 400,
-              "width": 240,
-              "height": 64
-            },
-            "commands": [
-              {
-                "id": "move_veg2_back",
-                "type": "MOVE_TO",
-                "parameters": {
-                  "elementId": "veg2",
-                  "x": 450,
-                  "y": 150,
-                  "duration": 500
-                }
-              },
-              {
-                "id": "animate_veg2_wrong",
-                "type": "ANIMATE_IN",
-                "parameters": {
-                  "elementId": "veg2",
-                  "preset": "fade",
-                  "duration": 300,
-                  "mode": "preset",
-                  "animId": "",
-                  "direction": "up",
-                  "offset": 60
-                }
-              }
-            ]
-          }
-        },
-        {
-          "id": "set_clickable_submit",
+          "id": "cmd_mfuv240j_gg42_14_p2m1",
           "type": "SET_CLICKABLE",
           "parameters": {
             "elementId": "submit-btn",
@@ -416,18 +552,16 @@
             "effect": "",
             "commands": [
               {
-                "id": "check_completion",
+                "id": "cmd_mfuv240j_gg42_0_028p",
                 "type": "IF_CONDITION",
                 "parameters": {
                   "condition": {
-                    "type": "variable",
-                    "key": "vegCount",
-                    "operator": "eq",
-                    "value": 2
+                    "type": "expression",
+                    "expression": "vegCount == 4"
                   },
                   "trueCommands": [
                     {
-                      "id": "show_success_text",
+                      "id": "cmd_mfuv240j_gg42_0_8ysb",
                       "type": "SHOW_TEXT",
                       "parameters": {
                         "elementId": "success-text",
@@ -456,14 +590,14 @@
                       }
                     },
                     {
-                      "id": "next_level",
+                      "id": "cmd_mfuv240j_gg42_1_am7h",
                       "type": "NEXT_LEVEL",
                       "parameters": {}
                     }
                   ],
                   "falseCommands": [
                     {
-                      "id": "show_fail_text",
+                      "id": "cmd_mfuv240j_gg42_0_4v9x",
                       "type": "SHOW_TEXT",
                       "parameters": {
                         "elementId": "fail-text",
@@ -515,7 +649,30 @@
         "_____3",
         "_____4",
         "_____5",
-        "_____6"
+        "_____6",
+        "async_game_life_1002_basket--01",
+        "async_game_life_1002_basket--02",
+        "async_game_life_1002_item--01",
+        "async_game_life_1002_item--02",
+        "async_game_life_1002_item--02_1",
+        "async_game_life_1002_item--03",
+        "async_game_life_1002_item--04",
+        "async_game_life_1002_item--05",
+        "async_game_life_1002_item--06",
+        "async_game_life_1002_item--07",
+        "async_game_life_1002_item--08",
+        "async_game_life_1002_item--09",
+        "async_game_life_1002_item--10",
+        "async_game_life_1002_item--11",
+        "async_game_life_1002_item--12",
+        "async_game_life_1010_item-bg",
+        "game_comp_general_button_continue",
+        "game_page_home_button_quit",
+        "game_page_home_button_start",
+        "general_modal_button_confirm_enter_now",
+        "general_modal_button_confirm_continue",
+        "general_modal_button_confirm",
+        "total_ranks_page_button_start"
       ],
       "events": [],
       "canvasWidth": 800,
@@ -628,6 +785,116 @@
         "id": "btn-blue",
         "src": "images/btn-blue.svg",
         "name": "btn-blue"
+      },
+      {
+        "id": "async_game_life_1002_basket--01",
+        "src": "images/old/async_game_life_1002_basket--01.png",
+        "name": "async_game_life_1002_basket--01"
+      },
+      {
+        "id": "async_game_life_1002_basket--02",
+        "src": "images/old/async_game_life_1002_basket--02.png",
+        "name": "async_game_life_1002_basket--02"
+      },
+      {
+        "id": "async_game_life_1002_item--01",
+        "src": "images/old/async_game_life_1002_item--01.png",
+        "name": "async_game_life_1002_item--01"
+      },
+      {
+        "id": "async_game_life_1002_item--02",
+        "src": "images/old/async_game_life_1002_item--02.png",
+        "name": "async_game_life_1002_item--02"
+      },
+      {
+        "id": "async_game_life_1002_item--03",
+        "src": "images/old/async_game_life_1002_item--03.png",
+        "name": "async_game_life_1002_item--03"
+      },
+      {
+        "id": "async_game_life_1002_item--04",
+        "src": "images/old/async_game_life_1002_item--04.png",
+        "name": "async_game_life_1002_item--04"
+      },
+      {
+        "id": "async_game_life_1002_item--05",
+        "src": "images/old/async_game_life_1002_item--05.png",
+        "name": "async_game_life_1002_item--05"
+      },
+      {
+        "id": "async_game_life_1002_item--06",
+        "src": "images/old/async_game_life_1002_item--06.png",
+        "name": "async_game_life_1002_item--06"
+      },
+      {
+        "id": "async_game_life_1002_item--07",
+        "src": "images/old/async_game_life_1002_item--07.png",
+        "name": "async_game_life_1002_item--07"
+      },
+      {
+        "id": "async_game_life_1002_item--08",
+        "src": "images/old/async_game_life_1002_item--08.png",
+        "name": "async_game_life_1002_item--08"
+      },
+      {
+        "id": "async_game_life_1002_item--09",
+        "src": "images/old/async_game_life_1002_item--09.png",
+        "name": "async_game_life_1002_item--09"
+      },
+      {
+        "id": "async_game_life_1002_item--10",
+        "src": "images/old/async_game_life_1002_item--10.png",
+        "name": "async_game_life_1002_item--10"
+      },
+      {
+        "id": "async_game_life_1002_item--11",
+        "src": "images/old/async_game_life_1002_item--11.png",
+        "name": "async_game_life_1002_item--11"
+      },
+      {
+        "id": "async_game_life_1002_item--12",
+        "src": "images/old/async_game_life_1002_item--12.png",
+        "name": "async_game_life_1002_item--12"
+      },
+      {
+        "id": "async_game_life_1010_item-bg",
+        "src": "images/old/async_game_life_1010_item-bg.png",
+        "name": "async_game_life_1010_item-bg"
+      },
+      {
+        "id": "game_comp_general_button_continue",
+        "src": "images/old/game_comp_general_button~continue.png",
+        "name": "game_comp_general_button~continue"
+      },
+      {
+        "id": "game_page_home_button_quit",
+        "src": "images/old/game_page_home_button_quit.png",
+        "name": "game_page_home_button_quit"
+      },
+      {
+        "id": "game_page_home_button_start",
+        "src": "images/old/game_page_home_button_start.png",
+        "name": "game_page_home_button_start"
+      },
+      {
+        "id": "general_modal_button_confirm_enter_now",
+        "src": "images/old/general_modal_button_confirm~enter_now.png",
+        "name": "general_modal_button_confirm~enter_now"
+      },
+      {
+        "id": "general_modal_button_confirm_continue",
+        "src": "images/old/general_modal_button_confirm~continue.png",
+        "name": "general_modal_button_confirm~continue"
+      },
+      {
+        "id": "general_modal_button_confirm",
+        "src": "images/old/general_modal_button_confirm.png",
+        "name": "general_modal_button_confirm"
+      },
+      {
+        "id": "total_ranks_page_button_start",
+        "src": "images/old/total_ranks_page_button_start.png",
+        "name": "total_ranks_page_button_start"
       }
     ],
     "audios": [],
