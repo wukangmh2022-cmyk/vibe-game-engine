@@ -45,6 +45,7 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const runtimeRef = useRef<MountedRuntime | null>(null);
+  const currentDataRef = useRef<any>(null);
   const [mouse, setMouse] = useState<{ x: number; y: number } | null>(null);
 
   // Helper: apply CSS scale on the underlying canvas
@@ -78,6 +79,16 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
     if (!canvasRef.current) return;
 
     // Always clear container before (re)mount
+    // Also detach any previous listeners/observers bound to the container
+    try {
+      const c: any = canvasRef.current;
+      // detach mouse overlays
+      if (c?.__onMove) { c.removeEventListener('mousemove', c.__onMove); delete c.__onMove; }
+      if (c?.__onLeave) { c.removeEventListener('mouseleave', c.__onLeave); delete c.__onLeave; }
+      // detach auto-scale observers
+      if (c?.__scaleRO && c.__scaleRO.disconnect) { c.__scaleRO.disconnect(); delete c.__scaleRO; }
+      if (c?.__onWin) { window.removeEventListener('resize', c.__onWin); delete c.__onWin; }
+    } catch {}
     canvasRef.current.innerHTML = '';
 
     // Dispose previous instance
@@ -125,6 +136,25 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
           const mounted = await mountRuntime(container, toMount, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
           if (cancelled) { try { mounted.dispose(); } catch {} return; }
           runtimeRef.current = mounted;
+          // Track current scene data for future 'this' reloads
+          currentDataRef.current = toMount;
+          try {
+            // Expose runtime managers for editor panels
+            (window as any).__RUNTIME_EVENT_MANAGER__ = mounted.eventManager;
+            (window as any).__RUNTIME_STATE_MANAGER__ = mounted.stateManager;
+            // Notify panels that runtime is mounted (for initial variable snapshot)
+            try { window.dispatchEvent(new CustomEvent('editor:runtime_mounted')); } catch {}
+            // Bridge variable/switch changes to DOM CustomEvents for React side-effects
+            const em = mounted.eventManager as any;
+            const relay = (name: string) => (payload: any) => {
+              try { window.dispatchEvent(new CustomEvent(name, { detail: payload })); } catch {}
+            };
+            em.on('variable_changed', relay('editor:variable_changed'));
+            em.on('switch_changed', relay('editor:switch_changed'));
+            em.on('command_start', (d: any) => relay('editor:runtime_command')({ id: d?.command?.id, status: 'start', command: d?.command }));
+            em.on('command_complete', (d: any) => relay('editor:runtime_command')({ id: d?.command?.id, status: (d?.result?.success === false ? 'error' : 'complete'), result: d?.result, command: d?.command }));
+            em.on('command_error', (d: any) => relay('editor:runtime_command')({ id: d?.command?.id, status: 'error', error: d?.error, command: d?.command }));
+          } catch {}
           // mouse position overlay tracking within container
           try {
             const containerEl = canvasRef.current as HTMLElement;
@@ -167,36 +197,102 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
             try {
               const base: string = (window as any).__ASSET_BASE__ || '/00project/';
               let data: any = urlOrData;
-              if (typeof urlOrData === 'string') {
-                const relRaw = String(urlOrData || '');
-                const rel1 = relRaw.replace(/^\.\//, '').replace(/^\/+/, '');
-                // Try VFS first
-                const fromVfs = await vfs.readScene(rel1.startsWith('scene/') ? rel1 : `scene/${rel1}`);
-                if (fromVfs) {
-                  try { vfs.rewriteResourceURLs(fromVfs); } catch {}
-                  data = fromVfs;
+              // Support special reload token with optional currentLevelId preservation
+              if (urlOrData && typeof urlOrData === 'object' && (urlOrData.reload === true)) {
+                const payload: any = urlOrData;
+                const cur = currentDataRef.current || gameData;
+                if (cur && payload.currentLevelId) {
+                  try {
+                    const levels = Array.isArray((cur as any).levels) ? [ ...(cur as any).levels ] : [];
+                    const idx = levels.findIndex((lv: any) => lv?.id === payload.currentLevelId);
+                    const reordered = (idx >= 0) ? { ...(cur as any), levels: [ levels[idx], ...levels.filter((_: any, i: number) => i !== idx) ] } : cur;
+                    data = reordered;
+                  } catch { data = cur; }
                 } else {
-                  const u = (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relRaw) || relRaw.startsWith('/'))
-                    ? urlOrData
-                    : (base.endsWith('/') ? (base + rel1) : (base + '/' + rel1));
-                  console.info('[PixiCanvas] redirect fetch', u);
-                  const res = await fetch(u);
-                  data = await res.json();
+                  data = cur;
+                }
+              } else if (typeof urlOrData === 'string') {
+                const token = String(urlOrData || '').trim();
+                if (token.toLowerCase() === 'this') {
+                  data = currentDataRef.current || gameData;
+                } else {
+                  const relRaw = String(urlOrData || '');
+                  const rel1 = relRaw.replace(/^\.\//, '').replace(/^\/+/, '');
+                  // Try VFS first
+                  const fromVfs = await vfs.readScene(rel1.startsWith('scene/') ? rel1 : `scene/${rel1}`);
+                  if (fromVfs) {
+                    try { vfs.rewriteResourceURLs(fromVfs); } catch {}
+                    data = fromVfs;
+                  } else {
+                    const u = (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relRaw) || relRaw.startsWith('/'))
+                      ? urlOrData
+                      : (base.endsWith('/') ? (base + rel1) : (base + '/' + rel1));
+                    console.info('[PixiCanvas] redirect fetch', u);
+                    const res = await fetch(u);
+                    data = await res.json();
+                  }
+                }
+              } else if (urlOrData && typeof urlOrData === 'object' && (urlOrData.url || urlOrData.data)) {
+                // Object form: { url, levelIndex? } or { data, levelIndex? }
+                const obj: any = urlOrData;
+                if (obj.data) {
+                  data = obj.data;
+                } else if (obj.url) {
+                  const relRaw = String(obj.url || '');
+                  const rel1 = relRaw.replace(/^\.\//, '').replace(/^\/+/, '');
+                  const fromVfs = await vfs.readScene(rel1.startsWith('scene/') ? rel1 : `scene/${rel1}`);
+                  if (fromVfs) {
+                    try { vfs.rewriteResourceURLs(fromVfs); } catch {}
+                    data = fromVfs;
+                  } else {
+                    const u = (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relRaw) || relRaw.startsWith('/'))
+                      ? obj.url
+                      : (base.endsWith('/') ? (base + rel1) : (base + '/' + rel1));
+                    console.info('[PixiCanvas] redirect fetch', u);
+                    const res = await fetch(u);
+                    data = await res.json();
+                  }
+                }
+                // Apply target levelIndex if provided
+                const li = (typeof obj.levelIndex === 'number') ? obj.levelIndex : (obj.levelIndex != null ? Number(obj.levelIndex) : undefined);
+                if (data && Array.isArray((data as any).levels) && typeof li === 'number' && li >= 0 && li < ((data as any).levels as any[]).length) {
+                  try {
+                    const lv = (data as any).levels[li];
+                    const rest = (data as any).levels.filter((_: any, i: number) => i !== li);
+                    data = { ...(data as any), levels: [ lv, ...rest ] };
+                  } catch {}
                 }
               }
+              // Inject project-level skins from config.json before remount
+              try {
+                const cfg = await vfs.readJSON<any>('config.json');
+                const skins = (cfg && (cfg.skins || (cfg.resources && cfg.resources.skins))) || [];
+                if (Array.isArray(skins) && skins.length) {
+                  (data as any).skins = skins;
+                }
+              } catch {}
+              // Ensure resource URLs (including skins) are rewritten to blob:/local URLs when using VFS
+              try { vfs.rewriteResourceURLs(data); } catch {}
               // re-mount
               const prev = runtimeRef.current; runtimeRef.current = null;
               if (prev) { try { prev.dispose(); } catch {} }
               if (canvasRef.current) canvasRef.current.innerHTML = '';
               const container2 = canvasRef.current as HTMLElement;
-              const mounted2 = await mountRuntime(container2, data, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
-              runtimeRef.current = mounted2;
-              const s2 = (typeof scale === 'number') ? scale : computeAutoScale();
-              applyScale(s2);
-            } catch (e) {
-              console.warn('[PixiCanvas] redirect failed', e);
-            }
-          };
+          const mounted2 = await mountRuntime(container2, data, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
+          runtimeRef.current = mounted2;
+          // update current scene data ref after redirect
+          currentDataRef.current = data;
+          const s2 = (typeof scale === 'number') ? scale : computeAutoScale();
+          applyScale(s2);
+          try {
+            (window as any).__RUNTIME_EVENT_MANAGER__ = mounted2.eventManager;
+            (window as any).__RUNTIME_STATE_MANAGER__ = mounted2.stateManager;
+            window.dispatchEvent(new CustomEvent('editor:runtime_mounted'));
+          } catch {}
+        } catch (e) {
+          console.warn('[PixiCanvas] redirect failed', e);
+        }
+      };
         } catch (e) {
           console.error('[PixiCanvas] mountRuntime failed:', e);
         }
@@ -240,6 +336,8 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
       try { applyScale(computeAutoScale()); } catch {}
     }
   }, [canvasWidth, canvasHeight]);
+
+  // 移除周期性 Texture GC，避免预览时的周期抖动/卡顿
 
   useEffect(() => {
     const handleResize = () => {

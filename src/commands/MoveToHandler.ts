@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 /**
  * 移动动画指令处理器
@@ -9,13 +10,18 @@ export class MoveToHandler extends BaseCommandHandler {
   readonly type = CommandType.MOVE_TO;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
-    const { elementId, x, y, duration, easing, relative } = command.parameters;
+    const { x, y, duration, easing, relative, keepOnMinusOne = true } = command.parameters || {};
+    const elementId = resolveIdFromBraces(command.parameters?.elementId, context);
     
     if (!elementId) {
       return this.createErrorResult('Missing required parameter: elementId');
     }
     
-    if (x === undefined && y === undefined) {
+    // 支持：当 keepOnMinusOne 为真时，-1 表示“不修改”
+    const nx = (keepOnMinusOne && x === -1) ? undefined : x;
+    const ny = (keepOnMinusOne && y === -1) ? undefined : y;
+
+    if (nx === undefined && ny === undefined) {
       return this.createErrorResult('At least one of x or y coordinates must be specified');
     }
 
@@ -33,7 +39,7 @@ export class MoveToHandler extends BaseCommandHandler {
       }
 
       // 获取目标元素
-      const element = (renderManager as any).getElement(elementId);
+      const element = (renderManager as any).getElement ? (renderManager as any).getElement(elementId) : (renderManager as any).getNode?.(elementId);
       if (!element) {
         return this.createErrorResult(`Element not found: ${elementId}`);
       }
@@ -42,8 +48,8 @@ export class MoveToHandler extends BaseCommandHandler {
       const currentX = element.x || 0;
       const currentY = element.y || 0;
       
-      const targetX = relative ? currentX + (x || 0) : (x !== undefined ? x : currentX);
-      const targetY = relative ? currentY + (y || 0) : (y !== undefined ? y : currentY);
+      const targetX = relative ? currentX + (nx ?? 0) : (nx !== undefined ? nx : currentX);
+      const targetY = relative ? currentY + (ny ?? 0) : (ny !== undefined ? ny : currentY);
       
       // 设置动画参数
       const animationConfig = {
@@ -66,7 +72,22 @@ export class MoveToHandler extends BaseCommandHandler {
       };
 
       // 执行移动动画
-      const animationId = await animationAdapter.moveTo(animationConfig);
+      const animationId = await (animationAdapter?.moveTo ? animationAdapter.moveTo(animationConfig) : (async () => {
+        // 兜底：若未提供 animationAdapter.moveTo，则使用 requestAnimationFrame 简易实现
+        return await new Promise<string>((resolve) => {
+          const start = Date.now();
+          const dur = Number(animationConfig.duration) || 1000;
+          const id = `anim_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+          const step = () => {
+            const t = Math.min(1, (Date.now() - start) / dur);
+            const cx = currentX + (targetX - currentX) * t;
+            const cy = currentY + (targetY - currentY) * t;
+            try { animationConfig.onUpdate?.(t, { x: cx, y: cy }); } catch {}
+            if (t < 1) requestAnimationFrame(step); else { try { animationConfig.onComplete?.(); } catch {} resolve(id); }
+          };
+          requestAnimationFrame(step);
+        });
+      })());
       
       context.logger.debug(`Move animation started for element: ${elementId} to (${targetX}, ${targetY})`);
       

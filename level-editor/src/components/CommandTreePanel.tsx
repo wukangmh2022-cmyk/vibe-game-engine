@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { GameProject } from '../types';
 import { CommandNode, jsonToTree, treeToJson } from '../utils/commandTree';
 import { COMMAND_TEMPLATES } from '../utils/commandTemplates';
@@ -34,6 +34,26 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
   const [pendingNewPath, setPendingNewPath] = useState<number[] | null>(null);
   const [showRaw, setShowRaw] = useState(false);
   const [selectedPlaceholder, setSelectedPlaceholder] = useState<number[] | null>(null);
+  const [runtimeStatus, setRuntimeStatus] = useState<{ id?: string; status?: 'start'|'complete'|'error' } | null>(null);
+  const idSetRef = React.useRef<Set<string>>(new Set());
+
+  // 监听运行时指令执行事件，用于高亮当前执行节点
+  useEffect(() => {
+    const onCmd = (e: any) => {
+      try {
+        const d = (e as CustomEvent).detail || {};
+        // Only react if the command ID exists in the currently visible tree
+        if (!d.id || !idSetRef.current.has(d.id)) return;
+        setRuntimeStatus({ id: d.id, status: d.status });
+        // 自动清除完成/错误高亮
+        if (d.status === 'complete' || d.status === 'error') {
+          setTimeout(() => setRuntimeStatus(s => (s && s.id === d.id ? null : s)), 1200);
+        }
+      } catch {}
+    };
+    window.addEventListener('editor:runtime_command', onCmd as any);
+    return () => window.removeEventListener('editor:runtime_command', onCmd as any);
+  }, []);
 
   useEffect(() => {
     try { setTree(jsonToTree(initialCommandsJson || [])); } catch { setTree([]); }
@@ -100,7 +120,9 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         if (c.type === 'variable') {
           const op = String(c.operator || 'eq');
           const label = ({ eq: '等于', ne: '不等于', gt: '大于', lt: '小于', gte: '大于等于', lte: '小于等于' } as any)[op] || op;
-          return `${c.key || ''} ${label} ${String(c.value ?? '')}`;
+          const v = c.value;
+          const valStr = (typeof v === 'string') ? `'${v}'` : String(v ?? '');
+          return `${c.key || ''} ${label} ${valStr}`;
         }
         if (c.type === 'switch') return `${c.key || ''} 等于 ${c.value === true ? '开' : '关'}`;
         return '';
@@ -146,6 +168,8 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
       case 'LOOP': {
         const lt = String(p.loopType || 'for').toLowerCase();
         const opSym = (tok: string) => ({ eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' }[tok] || tok || '==');
+        // 无参数的新版循环：直接显示 loop
+        if (!p || (Object.keys(p).length === 0)) return 'loop';
         if (lt === 'while') {
           const c = p.condition || {};
           if (c.type === 'expression' && c.expression) return `while ${c.expression}`;
@@ -212,6 +236,17 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
   const rawJson = React.useMemo(() => {
     try { return JSON.stringify(treeToJson(tree), null, 2); } catch { return '[]'; }
   }, [tree]);
+
+  // Build a fast lookup of visible node IDs for runtime event filtering
+  React.useEffect(() => {
+    try {
+      const s = new Set<string>();
+      for (const li of lines) {
+        if (li.node && li.node.id) s.add(li.node.id);
+      }
+      idSetRef.current = s;
+    } catch { idSetRef.current = new Set(); }
+  }, [JSON.stringify(lines.map(li => li.node ? li.node.id : `ph:${(li.parentPath||[]).join('-')}`))]);
 
   // Debug: 渲染前的最终数据（线性化的行）
   try {
@@ -414,16 +449,73 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     return (parent?.children || []) as CommandNode[];
   };
   const deepCloneWithNewIds = (nodes: CommandNode[]): CommandNode[] => {
-    const seed = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
-    const re = (n: CommandNode, i: number): CommandNode => ({
-      id: `cmd_${seed}_${i}_${Math.random().toString(36).slice(2,6)}`,
-      type: n.type,
-      label: n.label,
-      kind: n.kind,
-      parameters: n.parameters ? { ...n.parameters } : undefined,
-      children: (n.children || []).map((c, j) => re(c, j))
-    });
-    return nodes.map((n, i) => re(n, i));
+    // 1) Collect all existing IDs in current tree to avoid collisions
+    const used = new Set<string>();
+    const walk = (list: CommandNode[]) => {
+      for (const n of (list || [])) {
+        if (!n) continue;
+        if (n.id) used.add(String(n.id));
+        if (Array.isArray(n.children)) walk(n.children);
+        const p: any = n.parameters || {};
+        if (Array.isArray(p.trueCommands)) walk(p.trueCommands as any);
+        if (Array.isArray(p.falseCommands)) walk(p.falseCommands as any);
+        if (Array.isArray(p.commands)) walk(p.commands as any);
+      }
+    };
+    walk(tree);
+
+    // 1.1) Also collect IDs from entire project (all levels & events),
+    // so that IDs remain unique across the whole scene when pasting into events/main
+    try {
+      const walkJson = (arr: any[]) => {
+        (arr || []).forEach((o: any) => {
+          if (!o || typeof o !== 'object') return;
+          if (o.id) used.add(String(o.id));
+          const p: any = o.parameters || {};
+          if (Array.isArray(p.trueCommands)) walkJson(p.trueCommands);
+          if (Array.isArray(p.falseCommands)) walkJson(p.falseCommands);
+          if (Array.isArray(p.commands)) walkJson(p.commands);
+        });
+      };
+      const proj: any = project as any;
+      (proj?.levels || []).forEach((lv: any) => {
+        const root = Array.isArray(lv?.rawCommands) ? lv.rawCommands : (Array.isArray(lv?.commands) ? lv.commands : []);
+        walkJson(root);
+        (lv?.events || []).forEach((ev: any) => { if (Array.isArray(ev?.commands)) walkJson(ev.commands); });
+      });
+    } catch {}
+
+    // 2) Helpers for readable base and unique-generation
+    const baseOf = (n: CommandNode): string => {
+      const raw = String(n.type || 'cmd').toLowerCase();
+      return raw.replace(/[^a-z0-9_]+/g, '_').replace(/^_+|_+$/g, '') || 'cmd';
+    };
+    const uniqueId = (base: string): string => {
+      let i = 1;
+      let id = `${base}_${i}`;
+      while (used.has(id)) { i++; id = `${base}_${i}`; }
+      used.add(id);
+      return id;
+    };
+
+    // 3) Clone recursively: keep original id when it doesn't collide; otherwise rename
+    const re = (n: CommandNode): CommandNode => {
+      let newId = String(n.id || '');
+      if (!newId || used.has(newId)) {
+        newId = uniqueId(baseOf(n));
+      } else {
+        used.add(newId);
+      }
+      return {
+        id: newId,
+        type: n.type,
+        label: n.label,
+        kind: n.kind,
+        parameters: n.parameters ? { ...n.parameters } : undefined,
+        children: (n.children || []).map((c) => re(c))
+      };
+    };
+    return nodes.map((n) => re(n));
   };
   // helper to read from current tree state without mutating
   const withTreeReturn = <T,>(fn: (nodes: CommandNode[]) => T): T => {
@@ -455,7 +547,8 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
       const parentPath = parentPathOf(path);
       const { list, index } = getAtPath(nodes, path);
       const nl = list.slice();
-      nl.splice(index + 1, 0, ...toInsert);
+      // Insert before the current index (上方粘贴)
+      nl.splice(index, 0, ...toInsert);
       return replaceAt(nodes, parentPath, nl);
     });
     if (clipboard.cut) setClipboard(null);
@@ -517,7 +610,8 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     withTree(prev => {
       const { list, index } = getAtPath(prev, path);
       const nl = list.slice();
-      nl.splice(index + 1, 0, ...toInsert);
+      // Insert before current index
+      nl.splice(index, 0, ...toInsert);
       return replaceAt(prev, path.slice(0, -1), nl);
     });
   };
@@ -553,8 +647,89 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     setMultiSel(null);
   };
 
+  // Keyboard shortcuts: Ctrl/Cmd + C/X/V for copy/cut/paste
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const isTextInputLike = (el: Element | null): boolean => {
+    if (!el) return false;
+    const tag = (el as HTMLElement).tagName?.toLowerCase();
+    const editable = (el as HTMLElement).isContentEditable;
+    return editable || tag === 'input' || tag === 'textarea' || tag === 'select';
+  };
+  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = async (e) => {
+    // don't interfere when editing params dialog or typing in inputs
+    if (editing) return;
+    const active = (document?.activeElement || null) as Element | null;
+    if (isTextInputLike(active)) return;
+    const mod = e.metaKey || e.ctrlKey;
+    if (!mod) return;
+    const k = String(e.key || '').toLowerCase();
+    if (k === 'c') {
+      e.preventDefault(); e.stopPropagation();
+      if (multiSel) copyRange(); else if (selectedPath) copySingle(selectedPath);
+      return;
+    }
+    if (k === 'x') {
+      e.preventDefault(); e.stopPropagation();
+      if (multiSel) cutRange(); else if (selectedPath) cutSingle(selectedPath);
+      return;
+    }
+    if (k === 'v') {
+      e.preventDefault(); e.stopPropagation();
+      const hasObj = !!(clipboard && clipboard.nodes && clipboard.nodes.length);
+      if (hasObj) {
+        if (selectedPlaceholder) pasteToParentEnd(selectedPlaceholder);
+        else if (selectedPath) pasteAfterSingle(selectedPath);
+        else pasteToParentEnd([]);
+      } else {
+        // 无对象可粘贴时，回落到 JSON 文本粘贴
+        if (selectedPlaceholder) await pasteJsonToParentEnd(selectedPlaceholder);
+        else if (selectedPath) await pasteJsonAfterSingle(selectedPath);
+        else await pasteJsonToParentEnd([]);
+      }
+      return;
+    }
+  };
+
+  // Fallback: global keydown in case container doesn't get focus (e.g., static dist)
+  useEffect(() => {
+    const onWinKey = (e: KeyboardEvent) => {
+      if (editing) return;
+      const active = (document?.activeElement || null) as Element | null;
+      if (isTextInputLike(active)) return;
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      const k = String((e as any).key || '').toLowerCase();
+      if (k === 'c') {
+        e.preventDefault(); e.stopPropagation();
+        if (multiSel) copyRange(); else if (selectedPath) copySingle(selectedPath);
+        return;
+      }
+      if (k === 'x') {
+        e.preventDefault(); e.stopPropagation();
+        if (multiSel) cutRange(); else if (selectedPath) cutSingle(selectedPath);
+        return;
+      }
+      if (k === 'v') {
+        e.preventDefault(); e.stopPropagation();
+        if (selectedPlaceholder) pasteToParentEnd(selectedPlaceholder);
+        else if (selectedPath) pasteAfterSingle(selectedPath);
+        else pasteToParentEnd([]);
+        return;
+      }
+    };
+    window.addEventListener('keydown', onWinKey);
+    return () => window.removeEventListener('keydown', onWinKey);
+  }, [editing, selectedPath, selectedPlaceholder, multiSel]);
+
   return (
-    <div className="ctp" onClick={() => setCtxMenu(null)}>
+    <div
+      ref={containerRef}
+      className="ctp"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onMouseDown={() => { try { containerRef.current?.focus(); } catch {} }}
+      onClick={() => setCtxMenu(null)}
+    >
       <div className="ctp-toolbar">
         <button onClick={() => setInsertTarget({ path: selectedPath || [], mode: 'sibling' })}>＋ 添加指令</button>
         <button onClick={() => { if (selectedPath) moveSibling(selectedPath, -1); }} disabled={!selectedPath}>↑ 上移</button>
@@ -631,10 +806,12 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
             );
           }
           const n = li.node!; const p = li.path!;
+          const isExecuting = runtimeStatus && runtimeStatus.id && runtimeStatus.id === n.id;
+          const execClass = isExecuting ? (runtimeStatus!.status === 'error' ? 'exec-error' : runtimeStatus!.status === 'start' ? 'exec-running' : 'exec-done') : '';
           return (
             <div
               key={n.id + '|' + p.join('-')}
-              className={`ctp-row ${n.kind === 'branch' ? 'branch' : ''} ${selectedPath && eqArr(selectedPath, p) ? 'selected' : ''} ${isInMultiRange(p) ? 'in-range' : ''}`}
+              className={`ctp-row ${n.kind === 'branch' ? 'branch' : ''} ${selectedPath && eqArr(selectedPath, p) ? 'selected' : ''} ${isInMultiRange(p) ? 'in-range' : ''} ${execClass}`}
               style={{ marginLeft: li.depth * 16 }}
               onClick={(e) => handleRowClick(e, p)}
               onContextMenu={(e) => handleContextMenu(e, p)}
@@ -753,7 +930,10 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
                         if (targetPath.length === 0) { newPath = [sim.length]; const nl = sim.slice(); nl.push(node); return nl; }
                         const parentPath = targetPath.slice(0, -1);
                         const { list, index } = getAtPath(nodes, targetPath);
-                        newPath = [...parentPath, index + 1]; const nl = list.slice(); nl.splice(index + 1, 0, node); return replaceAt(nodes, parentPath, nl);
+                        // Insert above the selected node (before current index)
+                        newPath = [...parentPath, index];
+                        const nl = list.slice(); nl.splice(index, 0, node);
+                        return replaceAt(nodes, parentPath, nl);
                       }
                     };
                     const next = applySim(sim);

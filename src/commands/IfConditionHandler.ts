@@ -82,6 +82,7 @@ export class IfConditionHandler extends BaseCommandHandler {
   }
 
   private compareValues(left: any, operator: string, right: any): boolean {
+    // 严格比较，不做隐式类型转换；类型统一由编辑器侧完成
     switch (operator) {
       case 'eq': return left === right;
       case 'ne': return left !== right;

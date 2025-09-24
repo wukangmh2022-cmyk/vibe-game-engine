@@ -34,12 +34,14 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
     setTarget((trigger as any)?.target || '');
   }, [trigger]);
 
-  const handleSave = () => {
+  // Auto-sync to parent when fields change; parent弹窗底部“确定”统一提交
+  useEffect(() => {
     const out: ImprovedEventTrigger = { type: triggerType } as any;
     if (triggerType === 'auto') out.start = start || 'immediate';
     if (triggerType === 'custom' && target) out.target = target;
     onSave(out);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [triggerType, start, target]);
 
   return (
     <div className="improved-event-trigger-editor">
@@ -83,11 +85,7 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
         </div>
       )}
 
-      <div className="editor-actions">
-        <button onClick={handleSave} className="save-btn">💾 保存</button>
-        <button onClick={onCancel} className="cancel-btn">❌ 取消</button>
-      </div>
+      {/* 底部保存/取消由外层模态框统一处理 */}
     </div>
   );
 };
-

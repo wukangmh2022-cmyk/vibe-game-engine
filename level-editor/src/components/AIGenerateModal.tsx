@@ -455,7 +455,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
 
         <div className="ai-modal-footer">
           <div className="ai-status">
-            {loading ? '正在生成中，请稍候…' : error ? (<span className="ai-error">{error}</span>) : (copied ? '已复制到剪贴板' : '准备就绪')}
+            {loading ? '正在生成中，请稍候（30秒~1分钟）…' : error ? (<span className="ai-error">{error}</span>) : (copied ? '已复制到剪贴板' : '准备就绪')}
           </div>
           <div className="ai-actions">
             <button className="ai-secondary" onClick={handleCopyPrompt} disabled={loading}>复制 Prompt</button>

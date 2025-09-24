@@ -109,6 +109,7 @@ export class ShowChoicesHandler extends BaseCommandHandler {
         title: '',
         choices,
         timeout,
+        blocking: (blocking !== false),
         ui
       });
 

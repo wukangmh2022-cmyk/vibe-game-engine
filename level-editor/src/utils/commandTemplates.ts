@@ -20,10 +20,11 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🎨',
     color: '#607D8B',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: true, description: '目标元素ID' },
       { name: 'style.display', label: '显示(display)', type: 'select', required: false, defaultValue: '', options: [
         { value: '', label: '不修改' }, { value: 'block', label: 'block' }, { value: 'none', label: 'none' }
-      ], description: '是否显示该元素' }
+      ], description: '是否显示该元素' },
+      { name: 'style.scale', label: '缩放(scale)', type: 'number', required: false, description: '统一缩放（例如 0.6）' }
     ]
   },
   {
@@ -34,10 +35,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🧨',
     color: '#FF9800',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: false },
-      { name: 'elementIdVar', label: '元素ID变量', type: 'variable', required: false },
-      { name: 'attachToId', label: '挂载到元素', type: 'text', required: false },
-      { name: 'attachToIdVar', label: '挂载元素变量', type: 'variable', required: false },
+      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: false },
+      { name: 'attachToId', label: '挂载到元素（支持 {var}）', type: 'text', required: false },
       { name: 'resourceId', label: '粒子资源', type: 'resource', required: false, resourceKind: 'image' },
       { name: 'count', label: '粒子数量', type: 'number', required: false, defaultValue: 24 },
       { name: 'life', label: '寿命(ms)', type: 'number', required: false, defaultValue: 900 },
@@ -94,7 +93,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '✨',
     color: '#FF9800',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: true, description: '目标元素ID' },
       { name: 'mode', label: '动画来源', type: 'select', required: false, defaultValue: 'preset', options: [
         { value: 'preset', label: '预设动画' },
         { value: 'resource', label: '资源动画' }
@@ -124,13 +123,17 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🔁',
     color: '#FF9800',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'mode', label: '动画来源', type: 'select', required: false, defaultValue: 'preset', options: [
+        { value: 'preset', label: '预设动画' },
+        { value: 'resource', label: '资源动画' }
+      ] },
       { name: 'loopType', label: '循环类型', type: 'select', required: false, defaultValue: 'hoverY', options: [
         { value: 'hoverY', label: '上下悬浮' },
         { value: 'pulse', label: '呼吸缩放' }
-      ] },
-      { name: 'duration', label: '单次时长(ms)', type: 'number', required: false, defaultValue: 1200 },
-      { name: 'animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '可选：使用动画资源时间轴循环播放；填写后优先生效' }
+      ], showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'duration', label: '单次时长(ms)', type: 'number', required: false, defaultValue: 1200, showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '使用资源动画循环播放', showIf: { path: 'mode', equals: 'resource' } }
     ]
   },
   {
@@ -158,10 +161,11 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '📐',
     color: '#3F51B5',
     parameters: [
-      { name: 'area.x', label: '区域X', type: 'number', required: true, defaultValue: 0 },
-      { name: 'area.y', label: '区域Y', type: 'number', required: true, defaultValue: 0 },
-      { name: 'area.width', label: '区域宽', type: 'number', required: true, defaultValue: 100 },
-      { name: 'area.height', label: '区域高', type: 'number', required: true, defaultValue: 100 }
+      { name: 'elementId', label: '元素ID（可选）', type: 'text', required: false, description: '不填：全局检测（可多次触发）；填写：仅检测该元素（一次触发）' },
+      { name: 'area.x', label: '区域X', type: 'number', required: true, defaultValue: 0, description: '' },
+      { name: 'area.y', label: '区域Y', type: 'number', required: true, defaultValue: 0, description: '' },
+      { name: 'area.width', label: '区域宽', type: 'number', required: true, defaultValue: 100, description: '' },
+      { name: 'area.height', label: '区域高', type: 'number', required: true, defaultValue: 100, description: '提示：右下坐标 = (X + 宽, Y + 高)' }
       // 子命令 commands[] 在指令树中编辑，不在此面板
       // 命中时会写入：last_drop_element_ID, last_drop_resource_ID
     ]
@@ -176,6 +180,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
       { name: 'clickable', label: '启用点击', type: 'boolean', required: false, defaultValue: true, description: '是否可被点击' },
+      { name: 'blocking', label: '阻塞其他交互', type: 'boolean', required: false, defaultValue: false, description: '开启后，仅此元素可交互，直到子命令执行完毕' },
       { name: 'onClick', label: '点击动作', type: 'select', required: false, defaultValue: 'commands', options: [
         { value: 'commands', label: '执行子命令' },
         { value: 'flip', label: '翻牌 (flip)' },
@@ -209,8 +214,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#4CAF50',
     spawnsElement: true,
     parameters: [
-      // 元素ID 由编辑器管理，隐藏此字段避免与指令ID混淆
-      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（可编辑，默认等于指令ID）' },
       { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '图片资源ID', resourceKind: 'image' },
       {
         name: 'position.x',
@@ -291,6 +295,26 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     parameters: []
   },
   {
+    type: CommandType.SET_USER_DATA as any,
+    name: '设置用户变量',
+    description: '写入跨场景用户数据（保存在 config.json:user_data_sheet.scene_data[sceneId] 中；当前实现为浏览器 localStorage 同结构）',
+    category: CommandCategory.SYSTEM,
+    icon: '🗂️',
+    color: '#607D8B',
+    parameters: [
+      { name: 'sceneId', label: '分组ID(sceneId)', type: 'text', required: false, description: '用于写入 user_data_sheet.scene_data[sceneId]；不填用 __default__' },
+      { name: 'key', label: '键名', type: 'text', required: true },
+      { name: 'op', label: '操作', type: 'select', required: false, defaultValue: 'set', options: [
+        { value: 'set', label: '设为' },
+        { value: 'add', label: '加' },
+        { value: 'sub', label: '减' },
+        { value: 'mul', label: '乘' },
+        { value: 'div', label: '除' }
+      ]},
+      { name: 'value', label: '值', type: 'text', required: true, description: '支持数字/布尔/字符串' }
+    ]
+  },
+  {
     type: CommandType.SCENE_REDIRECT,
     name: '场景跳转',
     description: '跳转到指定场景（JSON 路径）',
@@ -298,7 +322,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🧭',
     color: '#9C27B0',
     parameters: [
-      { name: 'url', label: '目标场景', type: 'text', required: true, placeholder: 'scene/xxx.json', description: '可填绝对URL或相对工程根的 scene/...' }
+      { name: 'url', label: '目标场景', type: 'text', required: true, placeholder: 'entry.json 或 this', description: '可填绝对URL、相对路径（自动加 scene/ 前缀），或填 this 重启进入当前场景' },
+      { name: 'levelIndex', label: '关卡索引', type: 'number', required: false, description: '可选：进入目标场景中的第几个关卡（从 0 开始）' }
     ]
   },
   {
@@ -493,23 +518,6 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     ]
   },
   {
-    type: CommandType.HIDE_ELEMENTS,
-    name: '隐藏元素',
-    description: '隐藏指定的元素',
-    category: CommandCategory.DISPLAY,
-    icon: '👁️',
-    color: '#795548',
-    parameters: [
-      {
-        name: 'elementIds',
-        label: '元素ID列表',
-        type: 'text',
-        required: true,
-        description: '要隐藏的元素ID列表（逗号分隔）'
-      }
-    ]
-  },
-  {
     type: CommandType.MOVE_TO,
     name: '移动到',
     description: '将元素移动到指定位置',
@@ -528,15 +536,15 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         name: 'x',
         label: 'X坐标',
         type: 'number',
-        required: true,
-        description: '目标X坐标'
+        required: false,
+        description: '目标X坐标（留空或 -1 表示不修改）'
       },
       {
         name: 'y',
         label: 'Y坐标',
         type: 'number',
-        required: true,
-        description: '目标Y坐标'
+        required: false,
+        description: '目标Y坐标（留空或 -1 表示不修改）'
       },
       {
         name: 'duration',
@@ -545,6 +553,14 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         required: false,
         defaultValue: 1000,
         description: '动画持续时间(毫秒)'
+      },
+      {
+        name: 'keepOnMinusOne',
+        label: 'X/Y 为 -1 不修改',
+        type: 'boolean',
+        required: false,
+        defaultValue: true,
+        description: '开启后，当 X 或 Y 为 -1 时保持该轴不变'
       }
     ]
   },
@@ -608,10 +624,9 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     parameters: [
       { name: 'condition.type', label: '条件类型', type: 'select', required: true, defaultValue: 'variable', options: [
         { value: 'variable', label: '变量' },
-        { value: 'switch', label: '开关' },
         { value: 'expression', label: '表达式' }
-      ], description: '默认按“变量”比较，可切换为开关/表达式' },
-      { name: 'condition.key', label: '变量/开关名', type: 'text', required: false, placeholder: '例如: score 或 switchName', showIf: { path: 'condition.type', in: ['variable','switch'] } },
+      ], description: '默认按“变量”比较，必要时使用表达式' },
+      { name: 'condition.key', label: '变量名', type: 'text', required: false, placeholder: '例如: score', showIf: { path: 'condition.type', equals: 'variable' } },
       { name: 'condition.operator', label: '比较运算', type: 'select', required: false, defaultValue: 'eq', options: [
         { value: 'eq', label: '等于 (==)' },
         { value: 'ne', label: '不等于 (!=)' },
@@ -619,8 +634,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'lt', label: '小于 (<)' },
         { value: 'gte', label: '大于等于 (>=)' },
         { value: 'lte', label: '小于等于 (<=)' }
-      ], description: '当类型为变量/开关时生效', showIf: { path: 'condition.type', in: ['variable','switch'] } },
-      { name: 'condition.value', label: '比较值', type: 'text', required: false, placeholder: '例如: 10 / true / text', showIf: { path: 'condition.type', in: ['variable','switch'] } },
+      ], description: '当类型为变量时生效', showIf: { path: 'condition.type', equals: 'variable' } },
+      { name: 'condition.value', label: '比较值', type: 'text', required: false, placeholder: '例如: 10 / true / text', showIf: { path: 'condition.type', equals: 'variable' } },
       { name: 'condition.expression', label: '表达式', type: 'textarea', required: false, placeholder: '如需表达式，请在此编写：例如 gameState.score > 100', showIf: { path: 'condition.type', equals: 'expression' } }
     ]
   },
@@ -644,30 +659,29 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
   {
     type: CommandType.JUMP_TO,
     name: '跳转到',
-    description: '跳转到指定的指令位置',
+    description: '跳转到指定指令ID（更稳，不受索引变动影响）',
     category: CommandCategory.FLOW_CONTROL,
     icon: '↗️',
     color: '#9C27B0',
     parameters: [
       {
-        name: 'targetIndex',
-        label: '目标指令索引',
-        type: 'number',
+        name: 'target',
+        label: '目标指令ID',
+        type: 'text',
         required: true,
-        description: '目标指令索引'
+        placeholder: '例如：cmd_xxx_yyy',
+        description: '填写要跳转的指令ID（建议在指令树复制该ID粘贴）'
       }
     ]
   },
   {
     type: CommandType.LOOP,
-    name: '循环 (While)',
-    description: '基于条件的 While 循环',
+    name: '循环',
+    description: '无限循环（在循环体内自行用 IF_CONDITION + BREAK/JUMP 控制退出）',
     category: CommandCategory.FLOW_CONTROL,
     icon: '🔁',
     color: '#9C27B0',
-    parameters: [
-      { name: 'condition', label: '循环条件', type: 'expression', required: true, description: 'While 循环的条件' }
-    ]
+    parameters: []
   },
   {
     type: CommandType.BREAK,

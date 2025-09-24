@@ -59,6 +59,14 @@ export class EventManager implements IEventManager {
    * 触发事件
    */
   async emit(event: string, data?: any): Promise<void> {
+    // Debug log for event emissions (requested with prefix 'emit')
+    try {
+      // Avoid crashing if console is unavailable
+      // Use a compact, consistent prefix to grep easily
+      // Example: [emit] start { foo: 1 }
+      // Note: This logs all events; disable by redefining console.info if needed
+      (console && console.info) ? console.info('[emit]', event, data) : console.log('[emit]', event, data);
+    } catch {}
     // 记录事件历史
     this.addToHistory(event, data);
     

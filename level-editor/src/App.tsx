@@ -370,6 +370,27 @@ const App: React.FC = () => {
     });
   };
 
+  // 粘贴事件（从事件面板剪贴板），支持跨关卡粘贴
+  const handlePasteEvent = (eventData: any) => {
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const levels = prev.currentProject.levels.map((l: any) => {
+        if (l.id !== prev.currentLevelId) return l;
+        const evs = Array.isArray(l.events) ? l.events.slice() : [];
+        const id = `event_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,6)}`;
+        const safe = (src: any) => ({
+          id,
+          name: (src?.name ? String(src.name) : '粘贴的事件'),
+          triggers: Array.isArray(src?.triggers) ? src.triggers : [],
+          commands: Array.isArray(src?.commands) ? src.commands : []
+        });
+        evs.push(safe(eventData));
+        return { ...l, events: evs };
+      });
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, unsaved: true };
+    });
+  };
+
   const handleLoadJson = async (gameData: any, baseOverride?: string) => {
     if (gameData.levels && Array.isArray(gameData.levels)) {
       // 规范化：将 if_condition 的开关型与可识别的表达式型条件统一为变量型
@@ -702,7 +723,16 @@ const App: React.FC = () => {
       } catch {}
       const newLevel: any = { id, name, canvasWidth: 800, canvasHeight: 600, commands: [], resources: [], events: [] };
       const levels = [...prev.currentProject.levels, newLevel];
-      return { ...prev, currentProject: { ...prev.currentProject, levels }, currentLevelId: id, selectedEventId: null, selectedCommandIndex: -1 };
+      // sync runtime JSON
+      let nextRuntime = prev.runtimeGameData;
+      try {
+        if (nextRuntime && Array.isArray((nextRuntime as any).levels)) {
+          const clone = JSON.parse(JSON.stringify(nextRuntime));
+          clone.levels = [...(clone.levels || []), { ...newLevel }];
+          nextRuntime = clone;
+        }
+      } catch {}
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, runtimeGameData: nextRuntime, currentLevelId: id, selectedEventId: null, selectedCommandIndex: -1, unsaved: true };
     });
   };
 
@@ -712,7 +742,16 @@ const App: React.FC = () => {
       const levels = prev.currentProject.levels.filter(l => l.id !== levelId);
       if (levels.length === 0) return prev; // 至少保留一个
       const nextLevelId = (levels[0] || {}).id;
-      return { ...prev, currentProject: { ...prev.currentProject, levels }, currentLevelId: nextLevelId, selectedEventId: null, selectedCommandIndex: -1 };
+      // sync runtime JSON
+      let nextRuntime = prev.runtimeGameData;
+      try {
+        if (nextRuntime && Array.isArray((nextRuntime as any).levels)) {
+          const clone = JSON.parse(JSON.stringify(nextRuntime));
+          clone.levels = (clone.levels || []).filter((lv: any) => (lv.id || '') !== levelId);
+          nextRuntime = clone;
+        }
+      } catch {}
+      return { ...prev, currentProject: { ...prev.currentProject, levels }, runtimeGameData: nextRuntime, currentLevelId: nextLevelId, selectedEventId: null, selectedCommandIndex: -1, unsaved: true };
     });
   };
 
@@ -746,10 +785,16 @@ const App: React.FC = () => {
           const li = clone.levels.findIndex((lv: any) => (lv.id || '') === curLevelId);
           if (li >= 0) {
             if (editingEventId) {
+              // 当编辑事件命令时：若运行时副本还不存在该事件，直接用最新的项目事件数组覆盖（包含 triggers/新事件）
+              const projectLevel = nextLevels.find((lv: any) => (lv.id || '') === curLevelId) as any;
+              const latestEvents = Array.isArray(projectLevel?.events) ? projectLevel.events : [];
+              if (!Array.isArray(clone.levels[li].events) || !clone.levels[li].events.length) {
+                clone.levels[li].events = JSON.parse(JSON.stringify(latestEvents));
+              }
               const evs = Array.isArray(clone.levels[li].events) ? clone.levels[li].events : [];
               const idx = evs.findIndex((e: any) => e?.id === editingEventId);
               if (idx >= 0) evs[idx].commands = newJsonCommands;
-              else clone.levels[li].events = evs;
+              else clone.levels[li].events = JSON.parse(JSON.stringify(latestEvents));
             } else {
               clone.levels[li].commands = newJsonCommands;
             }
@@ -883,13 +928,43 @@ const App: React.FC = () => {
         
         return level;
       });
-      
+
+      // 同步到运行时 JSON（以便预览即时生效）
+      let nextRuntime = prev.runtimeGameData;
+      try {
+        if (nextRuntime && Array.isArray((nextRuntime as any).levels)) {
+          const clone = JSON.parse(JSON.stringify(nextRuntime));
+          const li = clone.levels.findIndex((lv: any) => (lv.id || '') === prev.currentLevelId);
+          if (li >= 0) {
+            // 确保 runtime 里有事件数组；若不存在，用项目里的最新事件数组覆盖
+            const projectLevel: any = updatedLevels.find((lv: any) => (lv.id || '') === prev.currentLevelId);
+            if (!Array.isArray(clone.levels[li].events) || !clone.levels[li].events.length) {
+              clone.levels[li].events = JSON.parse(JSON.stringify(projectLevel?.events || []));
+            }
+            const evs = Array.isArray(clone.levels[li].events) ? clone.levels[li].events : [];
+            const ei = evs.findIndex((e: any) => (e?.id || '') === eventId);
+            if (ei >= 0) {
+              const triggers = Array.isArray(evs[ei].triggers) ? evs[ei].triggers.slice() : [];
+              triggers[triggerIndex] = updatedTrigger;
+              evs[ei] = { ...evs[ei], triggers };
+              clone.levels[li].events = evs;
+            } else {
+              // 若 runtime 里还没有该事件，直接用项目侧事件数组覆盖
+              clone.levels[li].events = JSON.parse(JSON.stringify(projectLevel?.events || []));
+            }
+          }
+          nextRuntime = clone;
+        }
+      } catch {}
+
       return {
         ...prev,
         currentProject: {
           ...prev.currentProject,
           levels: updatedLevels
-        }
+        },
+        runtimeGameData: nextRuntime,
+        unsaved: true
       };
     });
   };
@@ -1107,7 +1182,14 @@ const App: React.FC = () => {
               });
             } catch {}
             const goHome = () => ({ ...prev, isHome: true, runtimeGameData: null, isPlaying: false });
-            if (prev.unsaved) {
+            // 更稳健的未保存检测：除标志位外，也比较关卡列表是否与运行时副本不一致（例如新增/删除/复制后尚未保存）
+            let levelsChanged = false;
+            try {
+              const a = (prev.currentProject?.levels || []).map(l => l.id);
+              const b = (prev.runtimeGameData?.levels || []).map((lv: any) => lv?.id);
+              levelsChanged = JSON.stringify(a) !== JSON.stringify(b);
+            } catch {}
+            if (prev.unsaved || levelsChanged) {
               try {
                 const ok = window.confirm('当前有未保存的修改，是否保存后返回初始页？');
                 if (ok) { setTimeout(() => handleSaveJson(), 0); }
@@ -1142,7 +1224,23 @@ const App: React.FC = () => {
             // 插入到原节点后
             const nextLevels = prev.currentProject.levels.slice();
             nextLevels.splice(idx + 1, 0, clone);
-            return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, currentLevelId: nid, unsaved: true };
+            // sync runtime JSON
+            let nextRuntime = prev.runtimeGameData;
+            try {
+              if (nextRuntime && Array.isArray((nextRuntime as any).levels)) {
+                const r = JSON.parse(JSON.stringify(nextRuntime));
+                const ridx = (r.levels || []).findIndex((lv: any) => (lv.id || '') === fromId);
+                if (ridx >= 0) {
+                  const rClone = JSON.parse(JSON.stringify(r.levels[ridx]));
+                  rClone.id = nid; rClone.name = clone.name;
+                  r.levels.splice(ridx + 1, 0, rClone);
+                } else {
+                  r.levels = [...(r.levels || []), { ...clone }];
+                }
+                nextRuntime = r;
+              }
+            } catch {}
+            return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, runtimeGameData: nextRuntime, currentLevelId: nid, unsaved: true };
           });
         }}
       />
@@ -1178,6 +1276,7 @@ const App: React.FC = () => {
           onAddEvent={handleAddEvent}
           onDeleteEvent={handleDeleteEvent}
           onRenameEvent={handleRenameEvent}
+          onPasteEvent={handlePasteEvent}
         />
         </FloatingPanel>
 

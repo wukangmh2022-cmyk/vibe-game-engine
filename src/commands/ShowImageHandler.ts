@@ -1,5 +1,8 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig } from '../types';
 import { Animator } from '../browser/Animator';
+
+// Cache parsed animation JSON by resolved URL/id to avoid repeated fetch/allocations
+const ANIM_JSON_CACHE: Map<string, any> = new Map();
 import { BaseCommandHandler } from '../core/CommandExecutor';
 
 export class ShowImageHandler extends BaseCommandHandler {
@@ -36,6 +39,54 @@ export class ShowImageHandler extends BaseCommandHandler {
     }
 
     try {
+      const rm: any = context.renderManager as any;
+      const existing = rm?.getNode ? rm.getNode(elementId) : null;
+      // If element with same id exists → treat as update instead of creating a new one
+      if (existing) {
+        // Resolve src by resourceId if needed
+        if (!src && resourceId && (context as any).resourceManager?.getResource) {
+          try {
+            const res: any = (context as any).resourceManager.getResource(resourceId);
+            if (res) src = res.url || res.src || src;
+          } catch {}
+        }
+        // Update texture if sprite-like and new src provided
+        try {
+          if (src) {
+            const P = rm?.getPixi?.();
+            if (P) {
+              const oldTex: any = (existing as any).texture;
+              const newTex = P.Texture.from(src);
+              (existing as any).texture = newTex;
+              // Proactively destroy previous texture to release GPU/VRAM
+              try { oldTex?.destroy?.(true); } catch {}
+            }
+          }
+        } catch {}
+        // Merge style and allow zIndex update
+        const mergedStyle: any = params.style ? { ...params.style } : {};
+        if (params.zIndex != null) mergedStyle.zIndex = params.zIndex;
+        // Apply updates via renderer API
+        const updates: Partial<ElementConfig> = {} as any;
+        // position (only when provided)
+        if (params.position && (params.position.x != null || params.position.y != null)) {
+          updates.position = { x: params.position.x, y: params.position.y } as any;
+        } else if (params.x != null || params.y != null) {
+          updates.position = { x, y } as any;
+        }
+        // size
+        if (width != null || height != null) {
+          updates.size = { width, height } as any;
+        }
+        // visibility
+        if (params.visible != null) (updates as any).visible = !!params.visible;
+        if (Object.keys(mergedStyle).length) (updates as any).style = mergedStyle;
+        rm.updateElement?.(elementId, updates);
+        // Non-blocking animations (entry/loop) still apply if provided
+        await this.applyAnimationsIfAny(elementId, params, context);
+        return this.createSuccessResult({ elementId, updated: true, position: updates.position || { x: existing.x, y: existing.y } });
+      }
+
       // If align center with parent specified:
       // - force child anchor to 0.5 for true center positioning
       // - if parent anchor is 0.5, child's (0,0) already at parent center → use offsets directly
@@ -115,30 +166,36 @@ export class ShowImageHandler extends BaseCommandHandler {
         const url = await this.resolveAnimationUrl(specIdOrUrl, context);
         if (!url || typeof (globalThis as any).fetch !== 'function') return; // Node 环境跳过
         const startToken = ((node as any).__animToken || 0);
-        const tryFetch = async (u: string): Promise<any | null> => { try { const r = await fetch(u); if (r.ok) return await r.json(); } catch {} return null; };
-        let data: any = await tryFetch(url);
+        const tryFetch = async (u: string): Promise<any | null> => { try { const r = await fetch(u, { cache: 'force-cache' as any }); if (r.ok) return await r.json(); } catch {} return null; };
+        let data: any = ANIM_JSON_CACHE.get(url);
+        if (!data) { data = await tryFetch(url); if (data) ANIM_JSON_CACHE.set(url, data); }
         if (!data) {
           try {
             const g: any = (typeof window !== 'undefined' ? (window as any) : (globalThis as any));
             const base: string = g?.__ASSET_BASE__ || g?.__PROJECT_BASE__ || '';
             if (base && typeof url === 'string' && url.startsWith(base)) {
               const rel = url.slice(base.length).replace(/^\/+/, '');
-              if (rel.startsWith('animations/')) {
-                data = await tryFetch('/' + rel);
-              }
+              if (rel.startsWith('animations/')) { data = await tryFetch('/' + rel); if (data) ANIM_JSON_CACHE.set(url, data); }
             }
           } catch {}
         }
         if (!data) return;
         const timeline = (data.timeline || []).slice().sort((a: any, b: any) => (a.time || 0) - (b.time || 0));
-        const relative = !!data.relative;
+        // 若动画未声明 relative，则在元素显式设定了大小时默认按相对模式处理，避免将 scale 置为绝对 1 破坏图片自定义尺寸
+        const sizeLocked = !!(node as any).__sizeLocked;
+        const relative = (data.relative != null) ? !!data.relative : sizeLocked;
         const origin = data.origin;
         // Do not mutate anchor during playback to avoid coordinate drift
         if (timeline.length === 0) return;
 
         const toAbs = (props: any) => this.toAnimatorProps(props);
-        const loopBase = { x: (node as any).x || 0, y: (node as any).y || 0, alpha: (node as any).alpha ?? 1, scaleX: (node as any).scale?.x ?? 1, scaleY: (node as any).scale?.y ?? 1 };
-        const resolveWithBase = (props: any) => {
+        // 基线：用于相对值的参考；
+        // 位置使用“当前帧 from 状态”为基线（允许与 MOVE_TO 叠加）；
+        // 缩放使用“播放开始时的锚点缩放”作为基线（避免每帧相对而累计漂移）。
+        const snapshotState = () => ({ x: (node as any).x || 0, y: (node as any).y || 0, alpha: (node as any).alpha ?? 1, scaleX: (node as any).scale?.x ?? 1, scaleY: (node as any).scale?.y ?? 1 });
+        const loopAnchor = snapshotState();
+        const lockedAnchor = snapshotState(); // 当 sizeLocked 且 relative=false 时，以显示尺寸为锚点
+        const resolveWithBase = (props: any, _posBase: { x:number; y:number }, scaleBase: { scaleX:number; scaleY:number }) => {
           const out = { ...props };
           // Support shorthand `scale`
           if (out.scale != null && (out.scaleX == null && out.scaleY == null)) {
@@ -147,10 +204,16 @@ export class ShowImageHandler extends BaseCommandHandler {
             else if (s && typeof s === 'object') { if (s.x != null) out.scaleX = s.x; if (s.y != null) out.scaleY = s.y; }
           }
           if (relative) {
-            if (out.x != null) out.x = (loopBase.x ?? 0) + out.x;
-            if (out.y != null) out.y = (loopBase.y ?? 0) + out.y;
-            if (out.scaleX != null) out.scaleX = (loopBase.scaleX ?? 1) + out.scaleX;
-            if (out.scaleY != null) out.scaleY = (loopBase.scaleY ?? 1) + out.scaleY;
+            // 位置：基于“播放开始锚点”增量（0 表示回到锚点），避免在 0 → … → 0 的时间轴中产生停滞
+            if (out.x != null) out.x = (loopAnchor.x ?? 0) + out.x;
+            if (out.y != null) out.y = (loopAnchor.y ?? 0) + out.y;
+            // 缩放：以“播放开始锚点”作为基线的乘法相对，避免帧间累计漂移
+            if (out.scaleX != null) out.scaleX = (loopAnchor.scaleX ?? 1) * out.scaleX;
+            if (out.scaleY != null) out.scaleY = (loopAnchor.scaleY ?? 1) * out.scaleY;
+          } else if (sizeLocked) {
+            // 绝对模式 + 锁尺寸：将时间轴缩放视为“基于显示尺寸”的倍率（固定锚点）
+            if (out.scaleX != null) out.scaleX = (lockedAnchor.scaleX ?? 1) * out.scaleX;
+            if (out.scaleY != null) out.scaleY = (lockedAnchor.scaleY ?? 1) * out.scaleY;
           }
           return out;
         };
@@ -158,14 +221,14 @@ export class ShowImageHandler extends BaseCommandHandler {
         // 应用第一帧（相对模式下也安全：y:0 => 当前位置），并在每步前检查令牌避免拖拽期突变
         if (((node as any).__animToken || 0) !== startToken) return;
         const first = timeline[0];
-        this.applyAnimatorProps(node, toAbs(resolveWithBase(first.props || {})));
+        this.applyAnimatorProps(node, toAbs(resolveWithBase(first.props || {}, { x: loopAnchor.x, y: loopAnchor.y }, { scaleX: loopAnchor.scaleX, scaleY: loopAnchor.scaleY })));
         
         for (let i = 0; i < timeline.length - 1; i++) {
           const cur = timeline[i];
           const nxt = timeline[i + 1];
           if (((node as any).__animToken || 0) !== startToken) return;
           const from = this.getAnimatorState(node);
-          const to = toAbs(resolveWithBase(nxt.props || {}));
+          const to = toAbs(resolveWithBase(nxt.props || {}, { x: from.x ?? 0, y: from.y ?? 0 }, { scaleX: loopAnchor.scaleX, scaleY: loopAnchor.scaleY }));
           const duration = Math.max(0, (nxt.time || 0) - (cur.time || 0));
           const easing = nxt.ease || 'easeOutQuad';
           await animator.animate(node, from, to, duration, easing as any);
@@ -183,7 +246,15 @@ export class ShowImageHandler extends BaseCommandHandler {
     // helper: start loop (reused for immediate or after entry finishes)
     const startLoop = (animId: string) => {
       let stopped = false;
-      const run = async () => { while (!stopped) { await playTimeline(animId); } };
+      const run = async () => {
+        // Prevent tight loop if node already destroyed or token invalidated
+        while (!stopped) {
+          try { if (!(node as any) || (node as any).destroyed) break; } catch { break; }
+          await playTimeline(animId);
+          // If during timeline node got killed or token changed, break
+          try { if (!(node as any) || (node as any).destroyed) break; } catch { break; }
+        }
+      };
       run();
       return () => { stopped = true; };
     };

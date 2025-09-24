@@ -240,12 +240,18 @@ export function attachPixiUi(
     });
     stage.addChild(group);
     uiGroups.add(group);
-    eventManager.once('choices_dismissed', () => { try { stage.removeChild(group); } catch {} uiGroups.delete(group); });
+    eventManager.once('choices_dismissed', () => {
+      try { stage.removeChild(group); } catch {}
+      uiGroups.delete(group);
+      try { (renderManager as any)?.clearExclusiveInteractive?.(); } catch {}
+    });
   }
 
   eventManager.on('choices_displayed', (payload: any) => {
     const stage: any = renderManager?.getStage?.(); if (!stage) return;
     if (!canShowChoices) canShowChoices = true;
+    // 当选择为阻塞（默认）时，设置独占交互：禁用所有已注册元素交互，仅允许UI组交互
+    try { if (payload?.blocking !== false && (renderManager as any)?.setExclusiveInteractive) { (renderManager as any).setExclusiveInteractive('__UI__'); } } catch {}
     if (shouldDelayChoices()) delayedChoices.push(payload); else renderChoices(payload);
   });
 
@@ -258,14 +264,19 @@ export function attachPixiUi(
       const onContinue = () => { eventManager.emit('text_continue', { elementId: payload.elementId }); };
       try { node.eventMode = 'static'; node.cursor = 'pointer'; node.on && node.on('pointerdown', onContinue); } catch {}
     }
+    // 文本阻塞期间，禁用所有已注册元素交互，仅允许该文本自身可交互
+    try { (renderManager as any)?.setExclusiveInteractive?.(payload.elementId); } catch {}
   });
   eventManager.on('text_continue', (_payload: any) => {
     blockingCount = Math.max(0, blockingCount - 1);
     flushChoices();
+    // 释放独占交互
+    try { (renderManager as any)?.clearExclusiveInteractive?.(); } catch {}
   });
 
   // 清理 UI（场景跳转/游戏停止/重置时）
-  eventManager.on('scene_redirect', () => clearAllUi('scene_redirect'));
+  eventManager.on('scene_redirect', () => { clearAllUi('scene_redirect'); try { (renderManager as any)?.clearExclusiveInteractive?.(); } catch {} });
+  eventManager.on('next_level_requested', () => clearAllUi('next_level'));
   eventManager.on('game_stopped', () => clearAllUi('game_stopped'));
   eventManager.on('game_reset', () => clearAllUi('game_reset'));
 }

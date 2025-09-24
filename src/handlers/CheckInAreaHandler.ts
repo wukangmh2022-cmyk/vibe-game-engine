@@ -11,16 +11,8 @@ export class CheckInAreaHandler extends BaseCommandHandler {
     try {
       const { area, commands, checkMode = 'center' } = command.parameters || {};
       const stateManager = context.stateManager as any;
+      // 仅根据 parameters.elementId 判断监听模式；不再从状态变量回退解析
       let elementId: string | undefined = command.parameters?.elementId;
-
-      if ((!elementId || typeof elementId !== 'string') && stateManager?.getVariable) {
-        try {
-          const fromState = stateManager.getVariable('last_drop_element_ID');
-          if (typeof fromState === 'string' && fromState) {
-            elementId = fromState;
-          }
-        } catch {}
-      }
 
       if (!elementId) {
         return {
@@ -36,7 +28,7 @@ export class CheckInAreaHandler extends BaseCommandHandler {
         };
       }
 
-      // 验证区域参数
+      // 验证区域参数（仅支持 x/y/width/height）
       if (!this.validateArea(area)) {
         return {
           success: false,
@@ -57,10 +49,15 @@ export class CheckInAreaHandler extends BaseCommandHandler {
       // 获取元素的位置和尺寸
       const rect = element.getBoundingClientRect();
       
+      const ax = Number(area.x);
+      const ay = Number(area.y);
+      const aw = Number(area.width);
+      const ah = Number(area.height);
+
       // 以元素中心点检测是否在区域内
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      const isInArea = (cx >= area.x && cx <= area.x + area.width && cy >= area.y && cy <= area.y + area.height);
+      const isInArea = (cx >= ax && cx <= ax + aw && cy >= ay && cy <= ay + ah);
 
       // 命中时设置系统变量，并执行子命令
       if (isInArea) {

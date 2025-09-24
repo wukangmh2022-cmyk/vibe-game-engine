@@ -10,7 +10,7 @@ export class LoopHandler extends BaseCommandHandler {
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
       const { 
-        loopType = 'for', 
+        loopType = 'while', 
         count = 1, 
         condition, 
         variable, 
@@ -18,7 +18,7 @@ export class LoopHandler extends BaseCommandHandler {
         end = 1, 
         step = 1,
         commands = [],
-        maxIterations = 1000 // 防止无限循环
+        maxIterations = 100000 // 防止无限循环
       } = command.parameters;
       
       if (commands.length === 0) {
@@ -37,8 +37,14 @@ export class LoopHandler extends BaseCommandHandler {
         context.audioManager,
         context.logger
       );
+      // 轻量日志辅助（可通过控制台过滤 [loop]）
+      const log = (...args: any[]) => { try { (context as any)?.logger?.info?.('[loop]', ...args); } catch { try { console.info('[loop]', ...args); } catch {} } };
+      const loopId = (command as any)?.id || 'loop';
       
-      switch (loopType) {
+      // 优先按条件驱动：若提供了 condition 且未显式声明 for/foreach，则强制走 while
+      const mode = (loopType === 'for' || loopType === 'foreach') ? loopType : (condition ? 'while' : loopType);
+
+      switch (mode) {
         case 'for':
           // for循环：指定次数或范围
           if (variable && typeof start === 'number' && typeof end === 'number') {
@@ -51,17 +57,22 @@ export class LoopHandler extends BaseCommandHandler {
               
               // 设置循环变量
               context.stateManager.setVariable(variable, i);
-              
+              log(loopId, 'for(var)', 'iter', iterations, 'i', i, 'begin');
               const results = await executor.executeCommands(commands);
               executionResults.push(...results);
               
               // 检查是否有break或continue指令
               if (this.shouldBreakLoop(results)) {
+                log(loopId, 'break', 'iter', iterations);
                 break;
               }
-              if (this.shouldContinueLoop(results)) {
-                 continue;
-               }
+              // 若本迭代内触发了 JUMP（JUMP_TO），立即结束当前循环并返回，由外部顺序恢复逻辑接管
+              if (this.shouldExitOnJump(results)) {
+                log(loopId, 'jump', 'iter', iterations);
+          return this.createSuccessResult({ loopType: mode, iterations: iterations + 1, commandsExecuted: (executionResults || []).length, childResults: executionResults });
+              }
+              if (this.shouldContinueLoop(results)) { log(loopId, 'continue', 'iter', iterations); iterations++; continue; }
+              log(loopId, 'end', 'iter', iterations);
               
               iterations++;
             }
@@ -76,13 +87,20 @@ export class LoopHandler extends BaseCommandHandler {
               if (variable) {
                 context.stateManager.setVariable(variable, i);
               }
-              
+              log(loopId, 'for(count)', 'iter', iterations, 'i', i, 'begin');
               const results = await executor.executeCommands(commands);
               executionResults.push(...results);
               
               if (this.shouldBreakLoop(results)) {
+                log(loopId, 'break', 'iter', iterations);
                 break;
               }
+              if (this.shouldExitOnJump(results)) {
+                log(loopId, 'jump', 'iter', iterations);
+          return this.createSuccessResult({ loopType: mode, iterations: iterations + 1, commandsExecuted: (executionResults || []).length, childResults: executionResults });
+              }
+              if (this.shouldContinueLoop(results)) { log(loopId, 'continue', 'iter', iterations); iterations++; continue; }
+              log(loopId, 'end', 'iter', iterations);
               
               iterations++;
             }
@@ -90,12 +108,8 @@ export class LoopHandler extends BaseCommandHandler {
           break;
           
         case 'while':
-          // while循环：基于条件
-          if (!condition) {
-            return this.createErrorResult('While loop requires a condition');
-          }
-          
-          while (this.evaluateCondition(condition, context)) {
+          // while循环：暂时忽略条件判断，强制进入循环体；仍保留最大轮次保护与 break/continue/jump 语义
+          while (true) {
             if (iterations >= maxIterations) {
               context.logger.warn(`While loop exceeded maximum iterations: ${maxIterations}`);
               break;
@@ -104,16 +118,20 @@ export class LoopHandler extends BaseCommandHandler {
             if (variable) {
               context.stateManager.setVariable(variable, iterations);
             }
-            
+            log(loopId, 'while', 'iter', iterations, 'begin');
             const results = await executor.executeCommands(commands);
             executionResults.push(...results);
             
             if (this.shouldBreakLoop(results)) {
+              log(loopId, 'break', 'iter', iterations);
               break;
             }
-            if (this.shouldContinueLoop(results)) {
-               continue;
-             }
+            if (this.shouldExitOnJump(results)) {
+              log(loopId, 'jump', 'iter', iterations);
+          return this.createSuccessResult({ loopType: mode, iterations: iterations + 1, commandsExecuted: (executionResults || []).length, childResults: executionResults });
+            }
+            if (this.shouldContinueLoop(results)) { log(loopId, 'continue', 'iter', iterations); iterations++; continue; }
+            log(loopId, 'end', 'iter', iterations);
             
             iterations++;
           }
@@ -147,13 +165,19 @@ export class LoopHandler extends BaseCommandHandler {
             if (command.parameters.indexVariable) {
               context.stateManager.setVariable(command.parameters.indexVariable, i);
             }
-            
+            log(loopId, 'foreach', 'iter', iterations, 'i', i, 'begin');
             const results = await executor.executeCommands(commands);
             executionResults.push(...results);
             
             if (this.shouldBreakLoop(results)) {
+              log(loopId, 'break', 'iter', iterations);
               break;
             }
+            if (this.shouldExitOnJump(results)) {
+              log(loopId, 'jump', 'iter', iterations);
+            return this.createSuccessResult({ loopType: mode, iterations: iterations + 1, commandsExecuted: (executionResults || []).length, childResults: executionResults });
+            }
+            log(loopId, 'end', 'iter', iterations);
             
             iterations++;
           }
@@ -167,7 +191,7 @@ export class LoopHandler extends BaseCommandHandler {
       const hasFailures = executionResults.some(result => !result.success);
       
       return this.createSuccessResult({
-        loopType,
+        loopType: mode,
         iterations,
         commandsExecuted: executionResults.length,
         childResults: executionResults
@@ -202,6 +226,14 @@ export class LoopHandler extends BaseCommandHandler {
       result.data && 
       result.data.action === 'continue'
     );
+  }
+
+  /**
+   * 检测本迭代是否触发了 JUMP（JUMP_TO）
+   * 触发后当前循环体应立即结束，交给运行时顺序恢复
+   */
+  private shouldExitOnJump(results: CommandResult[]): boolean {
+    return results.some(result => result?.success && (result as any)?.data?.action === 'jump');
   }
   
   /**

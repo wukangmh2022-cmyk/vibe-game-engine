@@ -26,6 +26,7 @@ export enum CommandType {
   
   // 状态控制
   SET_VARIABLE = 'SET_VARIABLE',
+  SET_USER_DATA = 'SET_USER_DATA',
   SET_SWITCH = 'SET_SWITCH',
   
   // 流程控制

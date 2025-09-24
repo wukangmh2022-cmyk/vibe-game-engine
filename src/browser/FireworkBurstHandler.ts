@@ -1,5 +1,6 @@
 import { CommandType, CommandContext, CommandResult, GameCommand } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 declare const PIXI: any;
 
@@ -8,10 +9,10 @@ declare const PIXI: any;
  * Parameters:
  * - x, y: number (origin, optional)
  * - elementId: string (target element; also used as attachment if attachToId omitted)
- * - elementIdVar?: string (variable holding target element id)
+ * (Deprecated) elementIdVar is no longer supported; use elementId: "{varName}" instead.
  * - attachToId?: string (parent to attach container under; defaults to elementId)
  * - parentId?: string (alias of attachToId)
- * - attachToIdVar?: string (variable containing parent id)
+ * Note: Use elementId/attachToId with braces syntax to reference variables, e.g. "{someVar}".
  * - count?: number (default 24)
  * - speedMin?: number (default 3)
  * - speedMax?: number (default 6)
@@ -36,15 +37,8 @@ export class FireworkBurstHandler extends BaseCommandHandler {
     const stage = rm?.getStage ? rm.getStage() : app?.stage;
     if (!stage) return this.createErrorResult('Pixi stage not available');
 
-    const sm: any = (context as any).stateManager;
-    const resolveId = (explicit?: string, varKey?: string): string | undefined => {
-      if (explicit) return explicit;
-      if (varKey && sm?.getVariable) { try { return sm.getVariable(varKey); } catch {} }
-      return undefined;
-    };
-
-    const elementId: string | undefined = resolveId(p.elementId, p.elementIdVar);
-    const attachToId: string | undefined = resolveId(p.attachToId || p.parentId || elementId, p.attachToIdVar || p.parentIdVar);
+    const elementId: string | undefined = resolveIdFromBraces(p.elementId, context) || p.elementId;
+    const attachToId: string | undefined = resolveIdFromBraces(p.attachToId || p.parentId || elementId, context) || p.attachToId || p.parentId || elementId;
     const attachNode = attachToId ? rm.getNode?.(attachToId) : undefined;
 
     let x = Number(p.x);

@@ -74,10 +74,9 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | 指令 type | 必填参数（写在 parameters 内） | 备注与常用默认值 |
 | --- | --- | --- |
 | SHOW_IMAGE | elementId, resourceId | 可选：position.{x,y}, size.{width,height}, zIndex, parentId, align, visible，以及动画：animation.entry.animId、animation.loop.animId |
-| SHOW_TEXT | elementId, text | 常用：style.fontSize（建议写字符串如 "16px"）、style.color、blocking(默认 false)、dismissOnContinue(默认 true)、skinId（九宫格皮肤ID）、padding |
+| SHOW_TEXT | elementId, text | 常用：style.fontSize（建议写字符串如 "16px"）、style.color、blocking(默认 false，开启将独占交互)、dismissOnContinue(默认 true)、skinId（九宫格皮肤ID）、padding |
 | UPDATE_TEXT | elementId, text | 更新已存在的文本元素内容 |
-| HIDE_ELEMENTS | elementIds | 批量隐藏元素（传逗号分隔的元素ID列表），或使用 SET_ELEMENT_STYLE 的 display: none |
-| SET_ELEMENT_STYLE | elementId | 通过 style.display 设置显隐（当前版本仅支持 display） |
+| SET_ELEMENT_STYLE | elementId | 通过 style.display = 'block|none'设置显(block)隐(none) |
 | SHOW_MEDIA | elementId, mediaType, resourceId | 可选：autoplay, loop, muted, controls |
 
 其中显示文本指令支持 \${gameState.gold} 这种嵌入变量，通常用于一些状态文字渲染如角色属性、倒计时等。
@@ -93,18 +92,18 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | ANIMATE_IN | elementId | preset（示例：scaleIn、fade）、duration |
 | ANIMATE_LOOP | elementId | loopType（如 hoverY、pulse）、duration |
 | FLIP_CARD | elementId, backResourceId | frontResourceId, showBack(true/false), duration, easing |
-| FIREWORK_BURST | （无必填） | 常用：elementId / elementIdVar, attachToId / attachToIdVar, resourceId, count, life, gravity, zIndex |
+| FIREWORK_BURST | （无必填） | 常用：elementId（支持"{var}"）/ attachToId（支持"{var}"）, resourceId, count, life, gravity, zIndex |
 | MOVE_TO | elementId, x, y | duration, easing |
 
 ### 3.4 交互与控件
 
 | 指令 type | 必填参数 | 说明 |
 | --- | --- | --- |
-| SET_CLICKABLE | elementId | 可选：clickable(默认 true)、onClick(commands/flip/toggle_selected)、frontResourceId, backResourceId, showBack, effect；若 onClick 为 commands，需提供 "commands": [ ...子指令... ] 子数组。|
+| SET_CLICKABLE | elementId | 可选：clickable(默认 true)、blocking(阻塞其他交互，直到子命令执行完)、onClick(commands/flip/toggle_selected)、frontResourceId, backResourceId, showBack, effect；若 onClick 为 commands，需提供 "commands": [ ...子指令... ] 子数组。|
 | SET_SELECTABLE | elementId | 可选：selectable、variableKey、overlayResourceId、effect，并可定义 onSelected / onCancelSelected 子命令。|
 | SET_DRAGGABLE | elementId | 可选：draggable（布尔）。拖拽落下后的逻辑通过 CHECK_IN_AREA 或自定义事件处理。|
 | CHECK_IN_AREA | area.x, area.y, area.width, area.height | 命中后写入 last_drop_element_ID / last_drop_resource_ID，并执行 commands 子数组。|
-| SHOW_CHOICES | elementId | 使用 options 数组定义按钮；每个选项包含 id, text, （可选）commands。parameters.ui 可设置按钮样式，如 rowMax, fontSize, buttonSkinId。|
+| SHOW_CHOICES | elementId | 使用 options 数组定义按钮；每个选项包含 id, text, （可选）commands。blocking(默认 true，开启将独占交互)。parameters.ui 可设置按钮样式，如 rowMax, fontSize, buttonSkinId。|
 
 ### 3.5 音频与系统
 
@@ -114,7 +113,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | BGM_STOP | （无） | fadeOut |
 | SE_PLAY | soundId | volume, loop, fadeIn, delay, interrupt |
 | NEXT_LEVEL | （无） | 用于主线推进 |
-| SCENE_REDIRECT | url | 目标 JSON 路径，如 scene/entry.json |
+| SCENE_REDIRECT | url | 目标 JSON 路径，如 entry.json（将自动加 scene/ 前缀）或 this（重启当前场景） |
 | SET_VARIABLE | key, value | op 默认 set，也支持 add / sub / mul / div；value 可为数字、字符串、布尔或 null |
 
 ### 3.6 流程控制
@@ -122,20 +121,24 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | 指令 type | 必填参数 | 写法要点 |
 | --- | --- | --- |
 | WAIT | duration(ms) |  |
-| IF_CONDITION | condition | condition 支持三种：type:"variable"（需 key、operator、value），type:"switch"（需 key、operator、value），或 type:"expression"（写在 expression 字段）。需提供 trueCommands、falseCommands 子数组（可为空数组）。|
-| LOOP | condition | 循环体写在 commands 子数组；如需跳出使用 BREAK。|
+| IF_CONDITION | condition | condition 支持两种：type:"variable"（需 key、operator、value），或 type:"expression"（写在 expression 字段）。需提供 trueCommands、falseCommands 子数组（可为空数组）。|
+| LOOP | （无） | 循环体写在 commands 子数组；退出请在体内用 IF_CONDITION+BREAK 或 JUMP_TO。|
 | BREAK | （可选）condition | 当条件满足时跳出最近的 LOOP；若省略 condition，立即跳出。|
 | EMIT_SIGNAL | signal | 可额外携带 data（字符串或对象）。事件通过 custom 触发器监听该信号。|
 | JUMP_TO | targetIndex | 指向主流程指令索引（从 0 开始）。|
 
 ### 3.7 补充规则（务必遵守）
 
-- IF_CONDITION.condition 使用规范结构：{ type:"variable"|"switch"|"expression", key, operator, value } 或 { type:"expression", expression }；不要混入 condition.variable。
- - IF_CONDITION 条件推荐：优先使用变量/开关型，不要把简单等值判断写成 expression。错误示例：{ type:"expression", expression:"last_drop_element_ID == 'veg4'" }；正确示例：{ type:"variable", key:"last_drop_element_ID", operator:"eq", value:"veg4" }。
+- IF_CONDITION.condition 使用规范结构：{ type:"variable"|"expression", key, operator, value } 或 { type:"expression", expression }；不要混入 condition.variable。
+- IF_CONDITION 条件推荐：优先使用变量型（布尔变量可作为“开关”使用），不要把简单等值判断写成 expression。错误示例：{ type:"expression", expression:"last_drop_element_ID == 'veg4'" }；正确示例：{ type:"variable", key:"last_drop_element_ID", operator:"eq", value:"veg4" }。
  - 如确需使用 expression：字符串判断支持 .includes()，例如 context.stateManager.getVariable('last_drop_element_ID').includes('veg')（本身已返回布尔值，可不写 === true）。在事件上下文中也可用 event.xxx。
  - 注意：expression 不会自动把裸变量名解析为状态变量，不能直接写 xxstring.includes('xx')；需通过 context.stateManager.getVariable('xxstring') 或 event.xxstring 获取再调用 includes。
 - operator 仅可为 eq/ne/gt/lt/gte/lte；若出现 ==/!=/>/</>=/<=，请映射为上述枚举。
 - SHOW_CHOICES 必须完整提供 parameters.ui 的关键字段：rowMax、gapX、gapY、fontSize、maxWidth、paddingX、paddingY、color、buttonSkinId（未指定请给出合理默认）。
+- 独占交互（顶层优先）：当下列任一成立时，将临时禁用其他元素的点击/拖拽，仅保留当前控件可交互，控件结束后恢复——
+  - SHOW_TEXT: parameters.blocking === true
+  - SHOW_CHOICES: parameters.blocking !== false（默认独占）
+  - SET_CLICKABLE: parameters.blocking === true（直到其子命令全部执行完毕）
 - SET_DRAGGABLE 仅接受 draggable（布尔）；不要输出未定义字段（如 dragType）。
 - CHECK_IN_AREA 的 commands 表示“命中时”的子流程：
   - 可放到提交按钮（SET_CLICKABLE：onClick=commands）的子命令里统一检查；

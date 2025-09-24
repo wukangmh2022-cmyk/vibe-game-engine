@@ -97,6 +97,21 @@ async function bootstrap() {
   } catch {}
 
   attachPixiUi(eventManager, resourceManager, renderManager, PIXI);
+  // Preserve original level ordering for NEXT_LEVEL across rewires within a single page session
+  try {
+    if (!(game as any).__originalLevels && Array.isArray(game?.levels)) {
+      (game as any).__originalLevels = (game.levels as any[]).slice();
+      (game as any).__currentOriginalIndex = 0;
+    }
+  } catch {}
+
+  // Track level-scoped event listeners so they can be removed on level switch
+  const levelDisposers: Array<() => void> = [];
+  const onLevel = (event: string, listener: any) => {
+    eventManager.on(event, listener);
+    levelDisposers.push(() => { try { eventManager.off(event, listener); } catch {} });
+  };
+  const clearLevelListeners = () => { while (levelDisposers.length) { const d = levelDisposers.pop(); try { d && d(); } catch {} } };
 
   // Load game config (support parent injection or external URL)
   let game: any = (window as any).__GAME_JSON;
@@ -125,18 +140,36 @@ async function bootstrap() {
       throw e;
     }
   }
+  // Best-effort: inject project-level skins from config.json if present (works when hosted alongside /scene/)
+  try {
+    const base: string = (window as any).__ASSET_BASE__ || (location.pathname.replace(/\/[^\/]*$/, '/'));
+    const cfgUrl = base.endsWith('/') ? (base + 'config.json') : (base + '/config.json');
+    const res = await fetch(cfgUrl);
+    if (res && res.ok) {
+      const cfg = await res.json();
+      const skins = (cfg && (cfg.skins || (cfg.resources && cfg.resources.skins))) || undefined;
+      if (skins) {
+        try { setSkins(skins); } catch {}
+        // Also attach to game so runtime handlers can access
+        try { (game as any).skins = (game as any).skins || skins; } catch {}
+      }
+    }
+  } catch {}
   // make skins available for handlers/UI
   setSkins(game.skins || game.resources?.skins || {});
-  const level = game.levels[0];
+  let levelIndex = 0;
+  let level = game.levels[levelIndex];
   // Build id -> command index for jump targets (top-level + events)
   const topIndex = new Map<string, any>();
   const allIndex = new Map<string, any>();
-  (level.commands || []).forEach((c: any) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); } });
+  const cmdPos = new Map<string, { arr: GameCommand[]; idx: number }>();
+  (level.commands || []).forEach((c: any, i: number) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); cmdPos.set(c.id, { arr: (level.commands as any), idx: i }); } });
   const indexCommands = (arr: any[]) => {
     if (!Array.isArray(arr)) return;
-    for (const c of arr) {
+    for (let i = 0; i < arr.length; i++) {
+      const c = arr[i];
       if (!c || typeof c !== 'object') continue;
-      if (c.id) allIndex.set(c.id, c);
+      if (c.id) { allIndex.set(c.id, c); try { cmdPos.set(c.id, { arr: arr as any, idx: i }); } catch {} }
       if (Array.isArray((c as any).commands)) indexCommands((c as any).commands);
       if (Array.isArray((c as any).trueCommands)) indexCommands((c as any).trueCommands);
       if (Array.isArray((c as any).falseCommands)) indexCommands((c as any).falseCommands);
@@ -168,7 +201,7 @@ async function bootstrap() {
   // 2) Load level-specific initial state (overrides globals when overlapping)
   Object.entries(level.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
 
-  // Register level events
+  // Register level events (tracked for cleanup)
   for (const ev of level.events || []) {
     indexCommands(ev.commands as any[]);
     for (const tr of ev.triggers || []) {
@@ -176,14 +209,14 @@ async function bootstrap() {
         (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
       }
       if (tr.type === 'custom' && (tr as any).target) {
-        eventManager.on((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
+        onLevel((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
       }
       if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
         const expr = (tr as any).condition.expression as string;
         const m = /event\.type\s*===\s*'([^']+)'/.exec(expr || '');
         if (m) {
           const name = m[1];
-          eventManager.on(name, async (eventData: any) => {
+          onLevel(name, async (eventData: any) => {
             const eventVar = { type: name, ...(eventData || {}) };
             try {
               if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
@@ -198,16 +231,76 @@ async function bootstrap() {
     }
   }
 
-  // Handle jump_to_requested: allow JSON to jump to any indexed command
+  // Handle jump_to_requested: resume execution from target within its original array
+  const executeFrom = async (targetId: string) => {
+    const pos = cmdPos.get(targetId);
+    if (!pos) { console.warn('jump target not indexed:', targetId); return; }
+    const { arr, idx } = pos;
+    for (let i = Math.max(0, idx); i < arr.length; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      await executor.executeCommand(arr[i] as GameCommand);
+    }
+  };
   eventManager.on('jump_to_requested', (payload: any) => {
-    const target = payload?.target;
-    if (!target) return;
-    const cmd = allIndex.get(target) || topIndex.get(target);
-    if (!cmd) { console.warn('jump target not found:', target); return; }
-    // 让当前子指令链先完成，再执行跳转，避免和当前链路竞争
-    setTimeout(() => {
-      executor.executeCommand(cmd);
-    }, 0);
+    const target = payload?.target; if (!target) return;
+    if (!cmdPos.has(target)) { console.warn('jump target not found:', target); return; }
+    setTimeout(() => { executeFrom(target); }, 0);
+  });
+
+  // Next level support: load next level within current JSON
+  const wireLevel = async (lvl: any) => {
+    // Clear indices and re-index
+    topIndex.clear(); allIndex.clear();
+    (lvl.commands || []).forEach((c: any) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); } });
+    // Reset stage content and renderer registries
+    try { (renderManager as any)?.clearAll?.(); } catch { try { app.stage.removeChildren(); } catch {} }
+    // Remove previous level custom trigger listeners
+    clearLevelListeners();
+    // Apply initial state overrides
+    Object.entries(lvl.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
+    // Register triggers
+    for (const ev of lvl.events || []) {
+      indexCommands(ev.commands as any[]);
+      for (const tr of ev.triggers || []) {
+        if (tr.type === 'auto' && (tr as any).start === 'immediate') {
+          (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
+        }
+        if (tr.type === 'custom' && (tr as any).target) {
+          onLevel((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
+        }
+        if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
+          const expr = (tr as any).condition.expression as string;
+          const m = /event\.type\s*===\s*'([^']+)'/.exec(expr || '');
+          if (m) {
+            const name = m[1];
+            onLevel(name, async (eventData: any) => {
+              const eventVar = { type: name, ...(eventData || {}) };
+              try {
+                if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
+                  executor.updateContext({ event: eventVar, lastEvent: eventVar } as any);
+                  await executor.executeCommands(ev.commands as GameCommand[]);
+                }
+              } catch {}
+            });
+          }
+        }
+      }
+    }
+    // Run top-level commands
+    for (const cmd of lvl.commands as GameCommand[]) {
+      // eslint-disable-next-line no-await-in-loop
+      await executor.executeCommand(cmd);
+    }
+  };
+
+  eventManager.on('next_level_requested', async () => {
+    const orig: any[] = Array.isArray((game as any).__originalLevels) ? (game as any).__originalLevels : (game.levels || []);
+    let curIdx: number = typeof (game as any).__currentOriginalIndex === 'number' ? (game as any).__currentOriginalIndex : Math.max(0, orig.findIndex(lv => lv?.id === level?.id));
+    const nextIdx = curIdx + 1;
+    if (!(nextIdx < orig.length)) { console.info('[Runtime] No more levels in current JSON'); return; }
+    game = { ...(game as any), levels: [ orig[nextIdx], ...orig.filter((_, i) => i !== nextIdx) ], __originalLevels: orig, __currentOriginalIndex: nextIdx } as any;
+    levelIndex = 0; level = game.levels[0];
+    await wireLevel(level);
   });
 
   // 配对检测改为 JSON 逻辑；此处不做运行时配对

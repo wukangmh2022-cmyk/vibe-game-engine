@@ -226,6 +226,17 @@ export class ShowTextHandler extends BaseCommandHandler {
         }
       } else {
         context.eventManager.emit('text_displayed', { elementId, blocking: false, dismissOnContinue: false, panelResourceId: (p.useBackgroundImage === true ? (p.backgroundResourceId || p.panel?.resourceId) : undefined) });
+        // 非阻塞文本应不拦截指针事件，允许点击穿透到下层元素
+        try {
+          const textNode: any = (context.renderManager as any)?.getNode?.(elementId);
+          if (textNode) { textNode.eventMode = 'none'; textNode.cursor = 'inherit'; }
+        } catch {}
+        try {
+          if (createdBgId) {
+            const bgNode: any = (context.renderManager as any)?.getNode?.(createdBgId);
+            if (bgNode) { bgNode.eventMode = 'none'; bgNode.cursor = 'inherit'; }
+          }
+        } catch {}
       }
       
       return this.createSuccessResult({ elementId, text, position: { x, y } });

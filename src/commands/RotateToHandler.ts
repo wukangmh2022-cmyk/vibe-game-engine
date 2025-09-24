@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 /**
  * 旋转动画指令处理器
@@ -9,7 +10,8 @@ export class RotateToHandler extends BaseCommandHandler {
   readonly type = CommandType.ROTATE_TO;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
-    const { elementId, rotation, duration, easing, relative, direction } = command.parameters;
+    const { rotation, duration, easing, relative, direction } = command.parameters;
+    const elementId = resolveIdFromBraces(command.parameters?.elementId, context);
     
     if (!elementId) {
       return this.createErrorResult('Missing required parameter: elementId');

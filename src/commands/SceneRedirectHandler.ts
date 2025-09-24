@@ -9,10 +9,11 @@ export class SceneRedirectHandler extends BaseCommandHandler {
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = (command.parameters || {}) as any;
     const url: string | undefined = p.url || p.scene || p.path;
-    try { context.logger?.info('SCENE_REDIRECT', { url, from: context?.stateManager?.getVariable?.('currentLevel') }); } catch {}
+    const levelIndex: number | undefined = (typeof p.levelIndex === 'number') ? p.levelIndex : (p.levelIndex != null ? Number(p.levelIndex) : undefined);
+    try { context.logger?.info('SCENE_REDIRECT', { url, levelIndex, from: context?.stateManager?.getVariable?.('currentLevel') }); } catch {}
     // 通过事件总线发出跳转请求，由浏览器壳层负责真正重载
-    context.eventManager.emit('scene_redirect', { url });
-    return this.createSuccessResult({ url });
+    context.eventManager.emit('scene_redirect', { url, levelIndex });
+    return this.createSuccessResult({ url, levelIndex });
   }
 
   validate(): { valid: boolean; errors: any[] } {

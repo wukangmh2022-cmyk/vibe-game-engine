@@ -172,9 +172,9 @@
                   { "id": "c1-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-1", "frontResourceId": "card-a", "backResourceId": "card-back", "showBack": false } },
                   { "id": "c1-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-a'" },
                     "trueCommands": [
-                      { "id": "c1-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c1-fireworks-a", "type": "firework_burst", "parameters": { "elementId": "{first_pick_id}", "attachToId": "{first_pick_id}", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
                       { "id": "c1-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-1", "attachToId": "card-1", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
-                      { "id": "c1-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c1-disable-first", "type": "set_clickable", "parameters": { "elementId": "{first_pick_id}", "clickable": false } },
                       { "id": "c1-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-1", "clickable": false } },
                       { "id": "c1-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
                       { "id": "c1-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
@@ -182,7 +182,7 @@
                     "falseCommands": [
                       { "id": "c1-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
                       { "id": "c1-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
-                        { "id": "c1-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                        { "id": "c1-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementId": "{first_pick_id}", "backResourceId": "card-back", "showBack": true } }
                       ], "falseCommands": [] } },
                       { "id": "c1-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-1", "backResourceId": "card-back", "showBack": true } },
                       { "id": "c1-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
@@ -207,9 +207,9 @@
                   { "id": "c2-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-2", "frontResourceId": "card-a", "backResourceId": "card-back", "showBack": false } },
                   { "id": "c2-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-a'" },
                     "trueCommands": [
-                      { "id": "c2-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c2-fireworks-a", "type": "firework_burst", "parameters": { "elementId": "{first_pick_id}", "attachToId": "{first_pick_id}", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
                       { "id": "c2-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-2", "attachToId": "card-2", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
-                      { "id": "c2-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c2-disable-first", "type": "set_clickable", "parameters": { "elementId": "{first_pick_id}", "clickable": false } },
                       { "id": "c2-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-2", "clickable": false } },
                       { "id": "c2-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
                       { "id": "c2-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
@@ -217,7 +217,7 @@
                     "falseCommands": [
                       { "id": "c2-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
                       { "id": "c2-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
-                        { "id": "c2-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                        { "id": "c2-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementId": "{first_pick_id}", "backResourceId": "card-back", "showBack": true } }
                       ], "falseCommands": [] } },
                       { "id": "c2-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-2", "backResourceId": "card-back", "showBack": true } },
                       { "id": "c2-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
@@ -243,9 +243,9 @@
                   { "id": "c3-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-3", "frontResourceId": "card-b", "backResourceId": "card-back", "showBack": false } },
                   { "id": "c3-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-b'" },
                     "trueCommands": [
-                      { "id": "c3-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c3-fireworks-a", "type": "firework_burst", "parameters": { "elementId": "{first_pick_id}", "attachToId": "{first_pick_id}", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
                       { "id": "c3-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-3", "attachToId": "card-3", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
-                      { "id": "c3-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c3-disable-first", "type": "set_clickable", "parameters": { "elementId": "{first_pick_id}", "clickable": false } },
                       { "id": "c3-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-3", "clickable": false } },
                       { "id": "c3-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
                       { "id": "c3-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
@@ -253,7 +253,7 @@
                     "falseCommands": [
                       { "id": "c3-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
                       { "id": "c3-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
-                        { "id": "c3-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                        { "id": "c3-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementId": "{first_pick_id}", "backResourceId": "card-back", "showBack": true } }
                       ], "falseCommands": [] } },
                       { "id": "c3-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-3", "backResourceId": "card-back", "showBack": true } },
                       { "id": "c3-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
@@ -279,9 +279,9 @@
                   { "id": "c4-flip-front-2", "type": "FLIP_CARD", "parameters": { "elementId": "card-4", "frontResourceId": "card-b", "backResourceId": "card-back", "showBack": false } },
                   { "id": "c4-if-match", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_key') === 'card-b'" },
                     "trueCommands": [
-                      { "id": "c4-fireworks-a", "type": "firework_burst", "parameters": { "elementIdVar": "first_pick_id", "attachToIdVar": "first_pick_id", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
+                      { "id": "c4-fireworks-a", "type": "firework_burst", "parameters": { "elementId": "{first_pick_id}", "attachToId": "{first_pick_id}", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
                       { "id": "c4-fireworks-b", "type": "firework_burst", "parameters": { "elementId": "card-4", "attachToId": "card-4", "count": 22, "zIndex": 60, "resourceId": "star", "life": 900, "gravity": 0.35 } },
-                      { "id": "c4-disable-first", "type": "set_clickable", "parameters": { "elementIdVar": "first_pick_id", "clickable": false } },
+                      { "id": "c4-disable-first", "type": "set_clickable", "parameters": { "elementId": "{first_pick_id}", "clickable": false } },
                       { "id": "c4-disable-self", "type": "set_clickable", "parameters": { "elementId": "card-4", "clickable": false } },
                       { "id": "c4-clear-1", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },
                       { "id": "c4-clear-2", "type": "set_variable", "parameters": { "key": "first_pick_key", "op": "set", "value": null } }
@@ -289,7 +289,7 @@
                     "falseCommands": [
                       { "id": "c4-wait-lose", "type": "WAIT", "parameters": { "duration": 500 } },
                       { "id": "c4-flip-back-first-if", "type": "if_condition", "parameters": { "condition": { "type": "expression", "expression": "context.stateManager.getVariable('first_pick_id') != null" }, "trueCommands": [
-                        { "id": "c4-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementIdVar": "first_pick_id", "backResourceId": "card-back", "showBack": true } }
+                        { "id": "c4-flip-back-first", "type": "FLIP_CARD", "parameters": { "elementId": "{first_pick_id}", "backResourceId": "card-back", "showBack": true } }
                       ], "falseCommands": [] } },
                       { "id": "c4-flip-back-self", "type": "FLIP_CARD", "parameters": { "elementId": "card-4", "backResourceId": "card-back", "showBack": true } },
                       { "id": "c4-clear-3", "type": "set_variable", "parameters": { "key": "first_pick_id", "op": "set", "value": null } },

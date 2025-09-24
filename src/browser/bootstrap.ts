@@ -35,6 +35,8 @@ export interface MountedRuntime {
   executor: CommandExecutor;
   app: any;
   setViewScale(scale: number): void;
+  eventManager: EventManager;
+  stateManager: StateManager;
 }
 
 export async function mountRuntime(
@@ -107,6 +109,14 @@ export async function mountRuntime(
   // UI Layer (buttons/choices/text blocking etc.)
   attachPixiUi(eventManager, resourceManager, renderManager, PIXIImpl);
 
+  // Preserve original level ordering across full-remount NEXT_LEVEL operations
+  try {
+    if (!(game as any).__originalLevels && Array.isArray(game?.levels)) {
+      (game as any).__originalLevels = (game.levels as any[]).slice();
+      (game as any).__currentOriginalIndex = 0;
+    }
+  } catch {}
+
   // Skins
   (resourceManager as any).setSkins?.(game?.skins || game?.resources?.skins || {});
 
@@ -141,7 +151,8 @@ export async function mountRuntime(
   (audioManager as any).setResolver?.((id: string) => (resourceManager as any).getResource?.(id)?.url);
 
   // Init state: load global variables/switches first, then level.initialState overrides
-  const level = game?.levels?.[0];
+  let levelIndex = 0;
+  let level = game?.levels?.[levelIndex];
   try {
     const gv = (game && (game.globalVariables || (game.config && game.config.globalVariables))) || {};
     const gs = (game && (game.globalSwitches || (game.config && game.config.globalSwitches))) || {};
@@ -153,52 +164,106 @@ export async function mountRuntime(
   // Register level events (auto/custom/expression)
   const allIndex = new Map<string, any>();
   const topIndex = new Map<string, any>();
-  (level?.commands || []).forEach((c: any) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); } });
+  const cmdPos = new Map<string, { arr: GameCommand[]; idx: number }>();
+  (level?.commands || []).forEach((c: any, i: number) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); cmdPos.set(c.id, { arr: (level?.commands as any) || [], idx: i }); } });
   const indexCommands = (arr: any[]) => {
     if (!Array.isArray(arr)) return;
-    for (const c of arr) {
+    for (let i = 0; i < arr.length; i++) {
+      const c = arr[i];
       if (!c || typeof c !== 'object') continue;
-      if (c.id) allIndex.set(c.id, c);
+      if (c.id) { allIndex.set(c.id, c); try { cmdPos.set(c.id, { arr: arr as any, idx: i }); } catch {} }
       if (Array.isArray((c as any).commands)) indexCommands((c as any).commands);
       if (Array.isArray((c as any).trueCommands)) indexCommands((c as any).trueCommands);
       if (Array.isArray((c as any).falseCommands)) indexCommands((c as any).falseCommands);
     }
   };
-  for (const ev of (level?.events || [])) {
-    indexCommands(ev.commands as any[]);
-    for (const tr of (ev.triggers || [])) {
-      if (tr.type === 'auto' && (tr as any).start === 'immediate') {
-        (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
-      }
-      if (tr.type === 'custom' && (tr as any).target) {
-        eventManager.on((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
-      }
-      if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
-        const expr = (tr as any).condition.expression as string;
-        const m = /event\.type\s*===\s*'([^']+)'/.exec(expr || '');
-        if (m) {
-          const name = m[1];
-          eventManager.on(name, async (eventData: any) => {
-            const eventVar = { type: name, ...(eventData || {}) };
-            try {
-              if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
-                executor.updateContext({ event: eventVar, lastEvent: eventVar } as any);
-                await executor.executeCommands(ev.commands as GameCommand[]);
-              }
-            } catch {}
-          });
+  // Track level-scoped listeners so we can remove them on level switch
+  const levelDisposers: Array<() => void> = [];
+  const onLevel = (event: string, listener: any) => { eventManager.on(event, listener); levelDisposers.push(() => { try { eventManager.off(event, listener); } catch {} }); };
+  const clearLevelListeners = () => { while (levelDisposers.length) { const d = levelDisposers.pop(); try { d && d(); } catch {} } };
+
+  const wireLevelTriggers = (lvl: any) => {
+    for (const ev of (lvl?.events || [])) {
+      indexCommands(ev.commands as any[]);
+      for (const tr of (ev.triggers || [])) {
+        if (tr.type === 'auto' && (tr as any).start === 'immediate') {
+          (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
+        }
+        if (tr.type === 'custom' && (tr as any).target) {
+          onLevel((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
+        }
+        if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
+          const expr = (tr as any).condition.expression as string;
+          const m = /event\.type\s*===\s*'([^']+)'/.exec(expr || '');
+          if (m) {
+            const name = m[1];
+            onLevel(name, async (eventData: any) => {
+              const eventVar = { type: name, ...(eventData || {}) };
+              try {
+                if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
+                  executor.updateContext({ event: eventVar, lastEvent: eventVar } as any);
+                  await executor.executeCommands(ev.commands as GameCommand[]);
+                }
+              } catch {}
+            });
+          }
         }
       }
     }
-  }
+  };
+  wireLevelTriggers(level);
 
-  // Jump support (optional)
+  // Jump support: execute sequentially from target command within its original array
+  const executeFrom = async (targetId: string) => {
+    const pos = cmdPos.get(targetId);
+    if (!pos) { console.warn('jump target not indexed:', targetId); return; }
+    const { arr, idx } = pos;
+    for (let i = Math.max(0, idx); i < arr.length; i++) {
+      // eslint-disable-next-line no-await-in-loop
+      await executor.executeCommand(arr[i] as GameCommand);
+    }
+  };
   eventManager.on('jump_to_requested', (payload: any) => {
     const target = payload?.target; if (!target) return;
-    const cmd = allIndex.get(target) || topIndex.get(target);
-    if (!cmd) { console.warn('jump target not found:', target); return; }
-    setTimeout(() => { executor.executeCommand(cmd as GameCommand); }, 0);
+    if (!cmdPos.has(target)) { console.warn('jump target not found:', target); return; }
+    setTimeout(() => { executeFrom(target); }, 0);
   });
+
+  // Next-level support: prefer full remount like scene redirect when editor hook exists
+  eventManager.on('next_level_requested', async () => {
+    try {
+      const orig: any[] = Array.isArray((game as any).__originalLevels) ? (game as any).__originalLevels : ((game?.levels || []) as any[]);
+      // Determine current original index by stored marker or by id lookup
+      let curIdx: number = typeof (game as any).__currentOriginalIndex === 'number' ? (game as any).__currentOriginalIndex : Math.max(0, orig.findIndex(lv => lv?.id === level?.id));
+      const nextIdx = curIdx + 1;
+      if (!(nextIdx < orig.length)) { (logger || console).info('[runtime] no more levels'); return; }
+      const hasEditorRedirect = typeof (window as any).__PIXICANVAS_REDIRECT__ === 'function';
+      if (hasEditorRedirect) {
+        // Reorder by original ordering so next original level becomes first
+        const reorderedLevels = [ orig[nextIdx], ...orig.filter((_, i) => i !== nextIdx) ];
+        const reordered = { ...(game as any), levels: reorderedLevels, __originalLevels: orig, __currentOriginalIndex: nextIdx } as any;
+        // Let editor perform a full runtime remount with the updated JSON
+        await eventManager.emit('scene_redirect', reordered);
+        return;
+      }
+      // Fallback: in-place switch (standalone browser runtime)
+      levelIndex = 0; level = orig[nextIdx];
+      try { (renderManager as any)?.clearAll?.(); } catch { try { app.stage.removeChildren(); } catch {} }
+      allIndex.clear(); topIndex.clear();
+      (level?.commands || []).forEach((c: any) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); } });
+      clearLevelListeners();
+      Object.entries(level?.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
+      wireLevelTriggers(level);
+      for (const cmd of (level?.commands || []) as GameCommand[]) {
+        // eslint-disable-next-line no-await-in-loop
+        await executor.executeCommand(cmd);
+      }
+      try { (game as any).__currentOriginalIndex = nextIdx; } catch {}
+    } catch (e) {
+      (logger || console).warn('[runtime] next_level handling failed', e);
+    }
+  });
+
 
   // Scene redirect: allow runtime to request loading another scene JSON
   const resolveUrl = (u?: string): string | undefined => {
@@ -212,11 +277,27 @@ export async function mountRuntime(
   eventManager.on('scene_redirect', (payload: any) => {
     try {
       const raw = payload && (payload.url || payload.scene || payload.path) || payload;
+      const levelIndex = (payload && typeof payload.levelIndex !== 'undefined') ? Number(payload.levelIndex) : undefined;
+      // Special token: 'this' means reload current scene
+      if (typeof raw === 'string' && raw.trim().toLowerCase() === 'this') {
+        (logger || console).info('[runtime] scene_redirect (reload current)', { raw });
+        const fn = (window as any).__PIXICANVAS_REDIRECT__;
+        if (typeof fn === 'function') {
+          try { fn({ reload: true, currentLevelId: level?.id }); } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT reload failed', e); }
+          return;
+        }
+      }
       const url = resolveUrl(raw);
-      (logger || console).info('[runtime] scene_redirect', { raw, url });
+      (logger || console).info('[runtime] scene_redirect', { raw, url, levelIndex });
       const fn = (window as any).__PIXICANVAS_REDIRECT__;
       if (typeof fn === 'function') {
-        try { fn(url); } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT failed', e); }
+        try {
+          if (typeof levelIndex === 'number' && !Number.isNaN(levelIndex)) {
+            fn({ url, levelIndex });
+          } else {
+            fn(url);
+          }
+        } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT failed', e); }
         return;
       }
       // fallback to postMessage for editor-runtime.html / web runtime
@@ -265,6 +346,8 @@ export async function mountRuntime(
     },
     executor,
     app,
-    setViewScale
+    setViewScale,
+    eventManager,
+    stateManager
   };
 }

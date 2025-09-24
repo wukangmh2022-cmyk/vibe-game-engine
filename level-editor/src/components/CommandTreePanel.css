@@ -12,6 +12,9 @@
 .ctp-row.selected { background:#dceeff; border-color:#4dabf7; }
 .ctp-row.in-range { background:#e2f0ff; border-color:#8ec5ff; }
 .ctp-row.branch { background:#f3f9ff; border-color:#d0ebff; }
+.ctp-row.exec-running { outline:2px solid rgba(40,167,69,0.8); outline-offset:-2px; }
+.ctp-row.exec-done { outline:2px solid rgba(40,167,69,0.5); outline-offset:-2px; }
+.ctp-row.exec-error { outline:2px solid rgba(220,53,69,0.8); outline-offset:-2px; }
 .ctp-row.placeholder { background:#f8fbff; border:2px dashed #74c0fc; color:#6c757d; }
 .ctp-row.placeholder:hover { background:#eef7ff; border-color:#4dabf7; }
 .ctp-row.placeholder.selected { background:#e2f0ff; border-color:#8ec5ff; }

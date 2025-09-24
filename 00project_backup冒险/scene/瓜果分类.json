@@ -1,0 +1,982 @@
+{
+  "id": "new-scene",
+  "name": "新场景",
+  "version": "1.0.0",
+  "globalVariables": {},
+  "globalSwitches": {},
+  "levels": [
+    {
+      "id": "level1",
+      "name": "关卡1",
+      "commands": [
+        {
+          "id": "init_cntveg",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntveg",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "init_cntfruit",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntfruit",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_1_h0nb",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "background",
+            "resourceId": "____1",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true,
+            "id": "cmd_mfuv240j_gg42_1_h0nb"
+          }
+        },
+        {
+          "id": "cmd_mfvul71f_xkqs_0_nv23",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "story-text",
+            "text": "请将蔬菜拖拽到对应的蔬菜篮中，\n完成后点击提交按钮。",
+            "position": {
+              "x": 200,
+              "y": 300
+            },
+            "style": {
+              "fontSize": 20,
+              "color": "#ffffff",
+              "fontFamily": "Arial, Helvetica, sans-serif",
+              "stroke": "#1e3a8a",
+              "strokeThickness": 3,
+              "dropShadow": true,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 2,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "lineHeight": 28,
+              "zIndex": 12,
+              "maxWidth": 999,
+              "textAlign": "center"
+            },
+            "blocking": true,
+            "skinId": "btn-primary-9slice",
+            "padding": 14,
+            "dismissOnContinue": true,
+            "id": "cmd_mfvul71f_xkqs_0_nv23"
+          }
+        },
+        {
+          "id": "emit_signal_1",
+          "type": "EMIT_SIGNAL",
+          "parameters": {
+            "signal": "gamestart",
+            "data": "该信号触发倒计时事件"
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_0_e1h1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg1",
+            "resourceId": "_12",
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "size": {
+              "width": 139,
+              "height": 142
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": "",
+            "id": "cmd_mfvtmst5_95xu_0_i7ja"
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_1_39nb",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg1",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_2_c4uh",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg2",
+            "resourceId": "_08",
+            "position": {
+              "x": 259,
+              "y": 100
+            },
+            "size": {
+              "width": 122,
+              "height": 122
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": "",
+            "id": "cmd_mfvtmst5_95xu_2_tyji"
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_3_czxz",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg2",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_4_ipba",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg3",
+            "resourceId": "_09",
+            "position": {
+              "x": 401,
+              "y": 100
+            },
+            "size": {
+              "width": "",
+              "height": ""
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": "",
+            "id": "cmd_mfvtmst5_95xu_4_o6bt"
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_5_fcp7",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg3",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_6_rpu3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg4",
+            "resourceId": "_06",
+            "position": {
+              "x": 617,
+              "y": 100
+            },
+            "size": {
+              "width": "",
+              "height": ""
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": "",
+            "id": "cmd_mfvtmst5_95xu_6_mvam"
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_7_w9qb",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg4",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_3_v2py",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg-basket",
+            "resourceId": "__01_1",
+            "position": {
+              "x": 50,
+              "y": 416
+            },
+            "size": {
+              "width": 273,
+              "height": 184
+            },
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": "_____2"
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true,
+            "id": "cmd_mfuv240j_gg42_3_v2py"
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_4_d5gd",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "fruit-basket",
+            "resourceId": "__02_1",
+            "position": {
+              "x": 518,
+              "y": 371
+            },
+            "size": {
+              "width": 232,
+              "height": 229
+            },
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": "_____2"
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true,
+            "id": "cmd_mfuv240j_gg42_4_d5gd"
+          }
+        },
+        {
+          "id": "cmd_mfvubiop_mdi9_0_ehc5",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "submit-btn",
+            "resourceId": "_____8",
+            "position": {
+              "x": 300,
+              "y": 500
+            },
+            "size": {
+              "width": 170,
+              "height": 40
+            },
+            "zIndex": 3,
+            "animation": {
+              "entry": {
+                "animId": "_____3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": "",
+            "id": "cmd_mfuv240j_gg42_13_3smw"
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_15_kveg",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "area": {
+              "x": 100,
+              "y": 416,
+              "width": 210,
+              "height": 100
+            },
+            "commands": [
+              {
+                "id": "veg_basket_check",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "expression",
+                    "expression": "context.stateManager.getVariable('last_drop_element_ID').includes('veg')"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "shrink_accepted_veg",
+                      "type": "SET_ELEMENT_STYLE",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "style": {
+                          "scale": 0.6
+                        }
+                      }
+                    },
+                    {
+                      "id": "disable_drag_accepted_veg",
+                      "type": "SET_DRAGGABLE",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "draggable": false
+                      }
+                    },
+                    {
+                      "id": "inc_cntveg",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "cntveg",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "move_to_1",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "x": -1,
+                        "y": 420,
+                        "duration": 100,
+                        "keepOnMinusOne": true
+                      }
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "cmd_mfxckg1r_nwsj_0_9ymm",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "x": 400,
+                        "y": 130,
+                        "duration": 200,
+                        "keepOnMinusOne": true
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_16_kfru",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "area": {
+              "x": 518,
+              "y": 371,
+              "width": 232,
+              "height": 229
+            },
+            "commands": [
+              {
+                "id": "fruit_basket_check",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "expression",
+                    "expression": "context.stateManager.getVariable('last_drop_element_ID').includes('fruit')"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "shrink_accepted_fruit",
+                      "type": "SET_ELEMENT_STYLE",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "style": {
+                          "scale": 0.6
+                        }
+                      }
+                    },
+                    {
+                      "id": "disable_drag_accepted_fruit",
+                      "type": "SET_DRAGGABLE",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "draggable": false
+                      }
+                    },
+                    {
+                      "id": "inc_cntfruit",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "cntfruit",
+                        "op": "add",
+                        "value": 1
+                      }
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "move_to_2",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "x": 400,
+                        "y": 130,
+                        "duration": 200,
+                        "keepOnMinusOne": true
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_14_p2m1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "submit-btn",
+            "clickable": true,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "cmd_mfuv240j_gg42_0_028p",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "variable",
+                    "key": "cntveg",
+                    "operator": "eq",
+                    "value": 4,
+                    "expression": ""
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "cmd_mfv5o7gj_itk7_0_otzz",
+                      "type": "IF_CONDITION",
+                      "parameters": {
+                        "condition": {
+                          "type": "variable",
+                          "key": "cntfruit",
+                          "operator": "eq",
+                          "value": 0,
+                          "expression": ""
+                        },
+                        "trueCommands": [
+                          {
+                            "id": "cmd_mfv5o7gj_itk7_0_drwx",
+                            "type": "SHOW_TEXT",
+                            "parameters": {
+                              "elementId": "success-text",
+                              "text": "分类正确！",
+                              "position": {
+                                "x": 300,
+                                "y": 200
+                              },
+                              "style": {
+                                "fontSize": 28,
+                                "color": "#00FF00",
+                                "stroke": "",
+                                "strokeThickness": 0,
+                                "dropShadow": false,
+                                "dropShadowColor": "#000000",
+                                "dropShadowBlur": 0,
+                                "dropShadowAngle": 1.2,
+                                "dropShadowDistance": 2,
+                                "maxWidth": 999,
+                                "textAlign": "left"
+                              },
+                              "blocking": true,
+                              "dismissOnContinue": true,
+                              "padding": 20,
+                              "skinId": "dialog-default-9slice",
+                              "id": "cmd_mfv5o7gj_itk7_0_drwx"
+                            }
+                          },
+                          {
+                            "id": "cmd_mfv5o7gj_itk7_1_7t5d",
+                            "type": "NEXT_LEVEL",
+                            "parameters": {}
+                          }
+                        ],
+                        "falseCommands": [
+                          {
+                            "id": "cmd_mfv5o7gj_itk7_0_rw1v",
+                            "type": "SHOW_TEXT",
+                            "parameters": {
+                              "elementId": "fail-text",
+                              "text": "分类错误，请重试。",
+                              "position": {
+                                "x": 300,
+                                "y": 200
+                              },
+                              "style": {
+                                "fontSize": 28,
+                                "color": "#FF0000",
+                                "stroke": "",
+                                "strokeThickness": 0,
+                                "dropShadow": false,
+                                "dropShadowColor": "#000000",
+                                "dropShadowBlur": 0,
+                                "dropShadowAngle": 1.2,
+                                "dropShadowDistance": 2,
+                                "maxWidth": 999,
+                                "textAlign": "left"
+                              },
+                              "blocking": true,
+                              "dismissOnContinue": true,
+                              "padding": 20,
+                              "skinId": ""
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "cmd_mfuv240j_gg42_0_4v9x",
+                      "type": "SHOW_TEXT",
+                      "parameters": {
+                        "elementId": "fail-text",
+                        "text": "分类错误，请重试。",
+                        "position": {
+                          "x": 300,
+                          "y": 200
+                        },
+                        "style": {
+                          "fontSize": 28,
+                          "color": "#FF0000",
+                          "stroke": "",
+                          "strokeThickness": 0,
+                          "dropShadow": false,
+                          "dropShadowColor": "#000000",
+                          "dropShadowBlur": 0,
+                          "dropShadowAngle": 1.2,
+                          "dropShadowDistance": 2,
+                          "maxWidth": 999,
+                          "textAlign": "left"
+                        },
+                        "blocking": true,
+                        "dismissOnContinue": true,
+                        "padding": 20,
+                        "skinId": ""
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "resources": [
+        "___3",
+        "btn-org",
+        "btn-orange",
+        "btn-blue",
+        "____",
+        "___4",
+        "_____1",
+        "___5",
+        "_____2",
+        "_____3",
+        "_____4",
+        "_____5",
+        "_____6",
+        "async_game_life_1002_item--02_1",
+        "intro-____",
+        "____1",
+        "____2",
+        "_____7",
+        "______",
+        "_______1",
+        "_________",
+        "_____8",
+        "__01_1",
+        "__02_1",
+        "_____9",
+        "intro-_____1",
+        "_06",
+        "_08",
+        "_09",
+        "_12",
+        "____04",
+        "____10",
+        "__01",
+        "__02",
+        "_01",
+        "_07",
+        "_02",
+        "_03",
+        "_05",
+        "_11",
+        "_____10"
+      ],
+      "events": [
+        {
+          "id": "event_mfwej30b",
+          "name": "倒计时",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "gamestart"
+            }
+          ],
+          "commands": [
+            {
+              "id": "cmd_mfxd9vnd_uwnx_0_cgaq",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "countdown",
+                "op": "set",
+                "value": 60
+              }
+            },
+            {
+              "id": "cmd_mfxd9vnd_uwnx_1_ohg3",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "countdown-text",
+                "text": "⏳ ${gameState.countdown}s",
+                "position": {
+                  "x": 740,
+                  "y": 10
+                },
+                "style": {
+                  "fontSize": 16,
+                  "color": "#ffffff",
+                  "fill": "#ffffff",
+                  "stroke": "#000000",
+                  "strokeThickness": 3,
+                  "textAlign": "right",
+                  "maxWidth": 80,
+                  "dropShadow": false,
+                  "zIndex": 100
+                }
+              }
+            },
+            {
+              "id": "cmd_mfxd9vnd_uwnx_2_qgph",
+              "type": "IF_CONDITION",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "context.stateManager.getVariable('countdown') > 0"
+                },
+                "trueCommands": [
+                  {
+                    "id": "cmd_mfxd9vnd_uwnx_0_btwu",
+                    "type": "WAIT",
+                    "parameters": {
+                      "duration": 1000
+                    }
+                  },
+                  {
+                    "id": "cmd_mfxd9vnd_uwnx_1_awgq",
+                    "type": "SET_VARIABLE",
+                    "parameters": {
+                      "key": "countdown",
+                      "op": "sub",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "id": "cmd_mfxd9vnd_uwnx_2_gy3s",
+                    "type": "UPDATE_TEXT",
+                    "parameters": {
+                      "elementId": "countdown-text",
+                      "text": "⏳ ${gameState.countdown}s"
+                    }
+                  },
+                  {
+                    "id": "cmd_mfxd9vnd_uwnx_3_963y",
+                    "type": "JUMP_TO",
+                    "parameters": {
+                      "target": "tick"
+                    }
+                  }
+                ],
+                "falseCommands": [
+                  {
+                    "id": "cmd_mfxd9vnd_uwnx_0_y1rp",
+                    "type": "SHOW_TEXT",
+                    "parameters": {
+                      "elementId": "timeout-msg",
+                      "text": "⏳ 60秒已到，故事进入尾声。",
+                      "position": {
+                        "x": 60,
+                        "y": 520
+                      },
+                      "style": {
+                        "fontSize": 18,
+                        "color": "#000000",
+                        "stroke": "#ffffff",
+                        "strokeThickness": 3
+                      },
+                      "blocking": true,
+                      "dismissOnContinue": true,
+                      "skinId": "btn-primary-9slice"
+                    }
+                  },
+                  {
+                    "id": "cmd_mfxd9vnd_uwnx_1_56vq",
+                    "type": "BGM_STOP",
+                    "parameters": {}
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level_mfx9wxpt",
+      "name": "新关卡",
+      "commands": [],
+      "resources": [],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    }
+  ],
+  "resources": {
+    "images": [
+      {
+        "id": "btn-org",
+        "src": "images/btn-org.png",
+        "name": "btn-org"
+      },
+      {
+        "id": "btn-orange",
+        "src": "images/btn-orange.svg",
+        "name": "btn-orange"
+      },
+      {
+        "id": "btn-blue",
+        "src": "images/btn-blue.svg",
+        "name": "btn-blue"
+      },
+      {
+        "id": "intro-____",
+        "src": "images/G1002-瓜果分类达人/intro-瓜果分类.png",
+        "name": "intro-瓜果分类"
+      },
+      {
+        "id": "____1",
+        "src": "images/标题背景1.png",
+        "name": "标题背景1"
+      },
+      {
+        "id": "____2",
+        "src": "images/标题背景2.png",
+        "name": "标题背景2"
+      },
+      {
+        "id": "_____7",
+        "src": "images/old/时钟组件.png",
+        "name": "时钟组件"
+      },
+      {
+        "id": "______",
+        "src": "images/old/通用继续按钮.png",
+        "name": "通用继续按钮"
+      },
+      {
+        "id": "_______1",
+        "src": "images/old/通用确认按钮.png",
+        "name": "通用确认按钮"
+      },
+      {
+        "id": "_________",
+        "src": "images/old/总排行页面开始按钮.png",
+        "name": "总排行页面开始按钮"
+      },
+      {
+        "id": "_____8",
+        "src": "images/old/继续按钮.png",
+        "name": "继续按钮"
+      },
+      {
+        "id": "__01_1",
+        "src": "images/G1002-瓜果分类达人/篮子01.png",
+        "name": "篮子01"
+      },
+      {
+        "id": "__02_1",
+        "src": "images/G1002-瓜果分类达人/篮子02.png",
+        "name": "篮子02"
+      },
+      {
+        "id": "_____9",
+        "src": "images/G1002-瓜果分类达人/问题文本.png",
+        "name": "问题文本"
+      },
+      {
+        "id": "_06",
+        "src": "images/G1002-瓜果分类达人/果06.png",
+        "name": "果06"
+      },
+      {
+        "id": "_08",
+        "src": "images/G1002-瓜果分类达人/果08.png",
+        "name": "果08"
+      },
+      {
+        "id": "_09",
+        "src": "images/G1002-瓜果分类达人/果09.png",
+        "name": "果09"
+      },
+      {
+        "id": "_12",
+        "src": "images/G1002-瓜果分类达人/果12.png",
+        "name": "果12"
+      },
+      {
+        "id": "____04",
+        "src": "images/G1002-瓜果分类达人/可蔬可果04.png",
+        "name": "可蔬可果04"
+      },
+      {
+        "id": "____10",
+        "src": "images/G1002-瓜果分类达人/可蔬可果10.png",
+        "name": "可蔬可果10"
+      },
+      {
+        "id": "_01",
+        "src": "images/G1002-瓜果分类达人/肉01.png",
+        "name": "肉01"
+      },
+      {
+        "id": "_07",
+        "src": "images/G1002-瓜果分类达人/肉07.png",
+        "name": "肉07"
+      },
+      {
+        "id": "_02",
+        "src": "images/G1002-瓜果分类达人/蔬02.png",
+        "name": "蔬02"
+      },
+      {
+        "id": "_03",
+        "src": "images/G1002-瓜果分类达人/蔬03.png",
+        "name": "蔬03"
+      },
+      {
+        "id": "_05",
+        "src": "images/G1002-瓜果分类达人/蔬05.png",
+        "name": "蔬05"
+      },
+      {
+        "id": "_11",
+        "src": "images/G1002-瓜果分类达人/蔬11.png",
+        "name": "蔬11"
+      }
+    ],
+    "audios": [],
+    "animations": [
+      {
+        "id": "____",
+        "src": "animations/基础效果/从零放大.json",
+        "name": "从零放大"
+      },
+      {
+        "id": "___3",
+        "src": "animations/基础效果/弹入.json",
+        "name": "弹入"
+      },
+      {
+        "id": "___4",
+        "src": "animations/基础效果/淡入.json",
+        "name": "淡入"
+      },
+      {
+        "id": "_____1",
+        "src": "animations/基础效果/放大入场.json",
+        "name": "放大入场"
+      },
+      {
+        "id": "___5",
+        "src": "animations/基础效果/呼吸.json",
+        "name": "呼吸"
+      },
+      {
+        "id": "_____2",
+        "src": "animations/基础效果/上下悬浮.json",
+        "name": "上下悬浮"
+      },
+      {
+        "id": "_____3",
+        "src": "animations/基础效果/向上滑入.json",
+        "name": "向上滑入"
+      },
+      {
+        "id": "_____4",
+        "src": "animations/基础效果/向下滑入.json",
+        "name": "向下滑入"
+      },
+      {
+        "id": "_____5",
+        "src": "animations/基础效果/向右滑入.json",
+        "name": "向右滑入"
+      },
+      {
+        "id": "_____6",
+        "src": "animations/基础效果/向左滑入.json",
+        "name": "向左滑入"
+      }
+    ],
+    "videos": []
+  }
+}

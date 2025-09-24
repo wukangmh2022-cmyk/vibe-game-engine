@@ -1,5 +1,6 @@
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { CommandType, CommandContext, CommandResult, GameCommand } from '../types';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 declare const PIXI: any;
 
@@ -8,11 +9,7 @@ export class SetSelectableHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p: any = command.parameters || {};
-    let id: string | undefined = p.elementId;
-    const sm: any = (context as any).stateManager;
-    if (!id && p.elementIdVar && sm?.getVariable) {
-      try { id = sm.getVariable(p.elementIdVar); } catch {}
-    }
+    let id: string | undefined = resolveIdFromBraces(p.elementId, context) || p.elementId;
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
 
     const rm: any = (context as any).renderManager;

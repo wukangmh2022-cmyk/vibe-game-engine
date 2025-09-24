@@ -41,22 +41,28 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
       cur[segs[segs.length - 1]] = val;
       return root;
     };
-    const fallbackByType = (t: string | undefined) => {
-      switch (t) {
-        case 'number': return 0;
-        case 'boolean': return false;
-        default: return '';
-      }
-    };
+    // Do not auto-fill type-based defaults; only apply explicit defaultValue from template.
+    const fallbackByType = (_t: string | undefined) => undefined as any;
 
     let merged: any = { ...(initialParams || {}) };
     (template.parameters || []).forEach(p => {
       const cur = getByPath(merged, p.name);
       if (cur === undefined) {
-        const v = (p as any).defaultValue !== undefined ? (p as any).defaultValue : fallbackByType(p.type);
-        merged = setByPath(merged, p.name, v);
+        if ((p as any).defaultValue !== undefined) {
+          merged = setByPath(merged, p.name, (p as any).defaultValue);
+        }
       }
     });
+    // 动态默认：仅对会生成元素的指令(spawnsElement)默认 elementId=commandId
+    try {
+      if ((template as any).spawnsElement) {
+        const curEid = getByPath(merged, 'elementId');
+        if ((!curEid || String(curEid).trim() === '') && commandId) {
+          merged = setByPath(merged, 'elementId', commandId);
+        }
+      }
+    } catch {}
+    // CHECK_IN_AREA 现已改为使用 (x1,y1,x2,y2) 直接保存；无需转换
     setParams(merged);
   }, [initialParams, template]);
 
@@ -67,6 +73,40 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
       value: key,
       label: `${key} (${typeof project.globalVariables![key]})`
     }));
+  };
+
+  // Merge global + inferred variables, with type labels
+  const getAllVariableOptions = () => {
+    const seen = new Set<string>();
+    const out: { value: string; label: string }[] = [];
+    const push = (k: string, t?: string) => {
+      if (!k || seen.has(k)) return; seen.add(k); out.push({ value: k, label: t ? `${k} (${t})` : k });
+    };
+    // 1) globals
+    try {
+      const gv = project?.globalVariables as any;
+      if (gv) Object.keys(gv).forEach(k => push(k, typeof gv[k]));
+    } catch {}
+    // 2) infer from commands
+    try {
+      const levels = (project?.levels || []) as any[];
+      const visit = (list: any[]) => {
+        for (const node of list || []) {
+          const t = String((node?.type || '')).toUpperCase();
+          const p = (node?.parameters || {}) as any;
+          if (t === 'SET_VARIABLE' && p?.key) push(p.key, typeof p.value === 'number' ? 'number' : typeof p.value === 'boolean' ? 'boolean' : undefined);
+          if (t === 'SET_SWITCH' && p?.key) push(p.key, 'boolean');
+          const nested: any[][] = [];
+          if (Array.isArray(p.commands)) nested.push(p.commands);
+          if (Array.isArray(p.trueCommands)) nested.push(p.trueCommands);
+          if (Array.isArray(p.falseCommands)) nested.push(p.falseCommands);
+          if (Array.isArray(node.children)) nested.push(node.children);
+          nested.forEach(visit);
+        }
+      };
+      for (const lv of levels) visit((lv as any).rawCommands || (lv as any).commands || []);
+    } catch {}
+    return out;
   };
 
   const getSwitchOptions = () => {
@@ -101,6 +141,52 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     }
     cur[segs[segs.length - 1]] = val;
     return root;
+  };
+
+  // Infer variable type from project: prefer globalVariables; fallback to scanning level commands
+  const inferVariableType = (key: string): 'number' | 'boolean' | 'string' | undefined => {
+    try {
+      // 1) Prefer explicit globalVariables typing
+      const gv = project?.globalVariables as any;
+      if (gv && Object.prototype.hasOwnProperty.call(gv, key)) {
+        const t = typeof gv[key];
+        if (t === 'number' || t === 'boolean') return t;
+        return 'string';
+      }
+      // 2) Fallback: scan all levels' commands to infer
+      const levels = (project?.levels || []) as any[];
+      const visitList = (list: any[]): 'number' | 'boolean' | 'string' | undefined => {
+        for (const node of list || []) {
+          if (!node) continue;
+          const t = String((node.type || '')).toUpperCase();
+          const p = (node.parameters || {}) as any;
+          if (t === 'SET_VARIABLE' && p && p.key === key) {
+            if (typeof p.value === 'number') return 'number';
+            if (typeof p.value === 'boolean') return 'boolean';
+            const op = String(p.op || 'set').toLowerCase();
+            if (op === 'add' || op === 'sub' || op === 'mul' || op === 'div') return 'number';
+          }
+          if (t === 'SET_SWITCH' && p && p.key === key) return 'boolean';
+          // Recurse into known nested arrays
+          const nestedArrays: any[][] = [];
+          if (Array.isArray(p.commands)) nestedArrays.push(p.commands);
+          if (Array.isArray(p.trueCommands)) nestedArrays.push(p.trueCommands);
+          if (Array.isArray(p.falseCommands)) nestedArrays.push(p.falseCommands);
+          if (Array.isArray(node.children)) nestedArrays.push(node.children);
+          for (const arr of nestedArrays) {
+            const r = visitList(arr);
+            if (r) return r;
+          }
+        }
+        return undefined;
+      };
+      for (const lv of levels) {
+        const cmds = (lv as any).rawCommands || (lv as any).commands || [];
+        const r = visitList(cmds);
+        if (r) return r;
+      }
+    } catch {}
+    return undefined;
   };
 
   const handleParamChange = (paramName: string, value: any) => {
@@ -171,6 +257,34 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     const opTokenMap: Record<string, string> = { '==': 'eq', '!=': 'ne', '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte' };
     const tokenToSymbol: Record<string, string> = { eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' };
     let normalized = { ...params };
+    // 若 elementId 为空字符串，则删除它，交由运行时走全局多次触发逻辑
+    try {
+      const typeUp = String((template as any).type || '').toUpperCase();
+      if (typeUp === 'CHECK_IN_AREA') {
+        const eidRaw = getByPath(normalized, 'elementId');
+        const eid = (eidRaw == null ? '' : String(eidRaw)).trim();
+        if (!eid) {
+          const cloned = { ...(normalized as any) } as any;
+          delete cloned.elementId;
+          normalized = cloned;
+        }
+      }
+    } catch {}
+    try {
+      // SCENE_REDIRECT: auto-prefix scene/ for relative paths; allow special token 'this'
+      const typeUp = String((template as any).type || '').toUpperCase();
+      if (typeUp === 'SCENE_REDIRECT') {
+        const raw = (getByPath(normalized, 'url') ?? '').toString().trim();
+        if (raw && raw.toLowerCase() !== 'this') {
+          // Keep absolute URLs and absolute paths; otherwise ensure it starts with scene/
+          const isAbsoluteUrl = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(raw);
+          const isAbsolutePath = raw.startsWith('/');
+          const hasScenePrefix = raw.startsWith('scene/');
+          const val = (isAbsoluteUrl || isAbsolutePath || hasScenePrefix) ? raw : `scene/${raw}`;
+          normalized = setByPath(normalized, 'url', val);
+        }
+      }
+    } catch {}
     try {
       const coerce = (val: any) => {
         if (typeof val !== 'string') return val;
@@ -220,6 +334,38 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
       if ((template as any).spawnsElement && commandId) {
         const curId = getByPath(normalized, 'id');
         if (!curId) normalized = setByPath(normalized, 'id', commandId);
+      }
+    } catch {}
+    // IF_CONDITION 值类型规范化：按变量/开关真实类型落盘（运行时不再做隐式转换）
+    try {
+      const typeUp = String((template as any).type || '').toUpperCase();
+      if (typeUp === 'IF_CONDITION') {
+        const ctype = getByPath(normalized, 'condition.type');
+        const key = getByPath(normalized, 'condition.key');
+        const raw = getByPath(normalized, 'condition.value');
+        let out = raw;
+        if (ctype === 'switch') {
+          const s = String(raw).trim().toLowerCase();
+          out = (s === 'true' || s === '1' || s === 'yes' || s === 'on');
+        } else if (ctype === 'variable' && key) {
+          // Decide target type: prefer globalVariables; else infer from commands
+          let targetType: 'number' | 'boolean' | 'string' | undefined;
+          if (project?.globalVariables && (key in (project.globalVariables as any))) {
+            const sample = (project.globalVariables as any)[key];
+            targetType = typeof sample as any;
+          } else {
+            targetType = inferVariableType(String(key));
+          }
+          const text = raw == null ? '' : String(raw).trim();
+          if (targetType === 'number') {
+            out = /^-?\d+(?:\.\d+)?$/.test(text) ? Number(text) : raw;
+          } else if (targetType === 'boolean') {
+            out = (text.toLowerCase() === 'true' || text === '1' || text.toLowerCase() === 'yes' || text.toLowerCase() === 'on');
+          } else {
+            out = text; // 目标类型为字符串
+          }
+        }
+        normalized = setByPath(normalized, 'condition.value', out);
       }
     } catch {}
     onSave(normalized);
@@ -286,14 +432,27 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         );
       }
     }
+    const isCheckInArea = String((template as any).type || '').toUpperCase() === 'CHECK_IN_AREA';
+    const areaHintNeeded = isCheckInArea && (param.name === 'area.height');
     switch (param.type) {
       case 'text':
-        return (
-          <input
-            type="text"
-            {...commonProps}
-          />
-        );
+        // 在 IF_CONDITION.condition.key 以及 SET_VARIABLE/SET_SWITCH.key 提供变量下拉/自动完成（datalist，不限制新建）
+        if (
+          param.name === 'condition.key' ||
+          (param.name === 'key' && ['SET_VARIABLE','SET_SWITCH'].includes(String((template as any).type || '').toUpperCase()))
+        ) {
+          const listId = `varlist-${param.name}`;
+          const options = getAllVariableOptions();
+          return (
+            <>
+              <input type="text" list={listId} {...commonProps} />
+              <datalist id={listId}>
+                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </datalist>
+            </>
+          );
+        }
+        return (<input type="text" {...commonProps} />);
         
       case 'textarea':
         return (
@@ -305,18 +464,25 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         
       case 'number':
         return (
-          <div style={{ display:'flex', alignItems:'center', gap:4 }}>
-            <input
-              type="number"
-              {...commonProps}
-              min={param.min}
-              max={param.max}
-              step={1}
-              onChange={(e) => handleParamChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
-              style={{ flex:1 }}
-            />
-            <button type="button" onClick={() => handleParamChange(param.name, Number(value||0) - 1)} style={{ padding:'2px 6px' }}>-</button>
-            <button type="button" onClick={() => handleParamChange(param.name, Number(value||0) + 1)} style={{ padding:'2px 6px' }}>+</button>
+          <div style={{ display:'flex', flexDirection:'column', gap:4, width:'100%' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:4 }}>
+              <input
+                type="number"
+                {...commonProps}
+                min={param.min}
+                max={param.max}
+                step={1}
+                onChange={(e) => handleParamChange(param.name, e.target.value === '' ? '' : Number(e.target.value))}
+                style={{ flex:1 }}
+              />
+              <button type="button" onClick={() => handleParamChange(param.name, Number(value||0) - 1)} style={{ padding:'2px 6px' }}>-</button>
+              <button type="button" onClick={() => handleParamChange(param.name, Number(value||0) + 1)} style={{ padding:'2px 6px' }}>+</button>
+            </div>
+            {areaHintNeeded && (
+              <div className="parameter-description" style={{ color:'#888' }}>
+                右下坐标 ≈ ({Number(getByPath(params,'area.x')||0) + Number(getByPath(params,'area.width')||0)}, {Number(getByPath(params,'area.y')||0) + Number(getByPath(params,'area.height')||0)})
+              </div>
+            )}
           </div>
         );
         
@@ -463,33 +629,41 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           <div className="condition-input">
             <select
               className="condition-type"
-              value={(v.type === 'expression') ? 'script' : (v.type || 'variable')}
+              value={(v.type === 'expression' || v.type === 'script') ? 'script' : 'variable'}
               onChange={(e) => {
                 const t = e.target.value;
-                if (t === 'variable') handleParamChange(param.name, { type: 'variable', variable: v.variable || '', operator: v.operator || 'eq', value: v.value ?? '' });
-                else if (t === 'switch') handleParamChange(param.name, { type: 'switch', switch: v.switch || v.key || '', state: String(v.state ?? v.value ?? 'true') });
+                if (t === 'variable') handleParamChange(param.name, { type: 'variable', variable: v.variable || v.key || '', key: v.variable || v.key || '', operator: v.operator || 'eq', value: v.value ?? '' });
                 else handleParamChange(param.name, { type: 'script', expression: v.expression || '' });
               }}
             >
               <option value="variable">变量条件</option>
-              <option value="switch">开关条件</option>
               <option value="script">脚本表达式</option>
             </select>
             
             {v.type === 'variable' && (
               <div className="variable-condition">
-                <select
-                  className="variable-name"
-                  value={v.variable || ''}
-                  onChange={(e) => handleParamChange(param.name, { ...v, variable: e.target.value })}
-                >
-                  <option value="">选择变量...</option>
-                  {getVariableOptions().map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
+                {/* 改为带提示的输入框（datalist），既可下拉选择也可手输新变量名 */}
+                {(() => {
+                  const listId = `varlist-${param.name}`;
+                  const opts = getVariableOptions();
+                  return (
+                    <>
+                      <input
+                        type="text"
+                        className="variable-name"
+                        list={listId}
+                        value={v.variable || v.key || ''}
+                        onChange={(e) => handleParamChange(param.name, { ...v, variable: e.target.value, key: e.target.value })}
+                        placeholder="变量名"
+                      />
+                      <datalist id={listId}>
+                        {opts.map(option => (
+                          <option key={option.value} value={option.value}>{option.label}</option>
+                        ))}
+                      </datalist>
+                    </>
+                  );
+                })()}
                 <select
                   className="comparison-operator"
                   value={((): string => {
@@ -520,30 +694,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               </div>
             )}
             
-            {v.type === 'switch' && (
-              <div className="switch-condition">
-                <select
-                  className="switch-name"
-                  value={v.switch || v.key || ''}
-                  onChange={(e) => handleParamChange(param.name, { ...v, switch: e.target.value, key: e.target.value })}
-                >
-                  <option value="">选择开关...</option>
-                  {getSwitchOptions().map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="switch-state"
-                  value={String(v.state ?? v.value ?? 'true')}
-                  onChange={(e) => handleParamChange(param.name, { ...v, state: e.target.value })}
-                >
-                  <option value="true">开启时</option>
-                  <option value="false">关闭时</option>
-                </select>
-              </div>
-            )}
+            {/* 移除开关型条件，统一使用变量/脚本 */}
             
             {(v.type === 'script' || v.type === 'expression') && (
               <textarea
@@ -599,8 +750,11 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               const getParam = (n: string) => template.parameters.find(p => p.name === n)!;
               const tUpper = String(template.type).toUpperCase();
               const suppressed = new Set<string>();
-              // 统一处理：若模板声明 spawnsElement，则隐藏 elementId 字段，避免与指令ID混淆
-              if ((template as any).spawnsElement) suppressed.add('elementId');
+              // 若模板明确标记 elementId 为 editorHidden，则隐藏（否则允许编辑 elementId）
+              try {
+                const eidParam = (template.parameters || []).find(p => p.name === 'elementId') as any;
+                if (eidParam && eidParam.editorHidden === true) suppressed.add('elementId');
+              } catch {}
               const isSimple = (p: CommandParameterDef) => {
                 const n = p.name;
                 const type = String(p.type);
@@ -666,6 +820,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                   }
                   continue;
                 }
+                // 角点输入已撤回，继续默认渲染
                 // size group
                 if (param.name === 'size.width' && hasParam('size.height')) {
                   const vw = shouldShow(getParam('size.width') as any);

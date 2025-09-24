@@ -27,6 +27,8 @@ import { SePlayHandler } from './audio/SePlayHandler';
 import { SetVolumeHandler } from './audio/SetVolumeHandler';
 import SceneRedirectHandler from './SceneRedirectHandler';
 import { SetElementStyleHandler } from './SetElementStyleHandler';
+import { MoveToHandler } from './MoveToHandler';
+import { SetUserDataHandler } from './SetUserDataHandler';
 
 /**
  * 创建默认的指令处理器集合
@@ -36,6 +38,8 @@ export function createDefaultHandlers(): ICommandHandler[] {
     new SetVariableHandler(),
     new SetSwitchHandler(),
     new WaitHandler(),
+    new MoveToHandler(),
+    new SetUserDataHandler(),
     new ShowImageHandler(),
     new ShowTextHandler(),
     new UpdateTextHandler(),
@@ -82,6 +86,7 @@ export function createBasicHandlers(): ICommandHandler[] {
  */
 export function createRenderHandlers(): ICommandHandler[] {
   return [
+    new MoveToHandler(),
     new ShowImageHandler(),
     new ShowTextHandler(),
     new UpdateTextHandler(),

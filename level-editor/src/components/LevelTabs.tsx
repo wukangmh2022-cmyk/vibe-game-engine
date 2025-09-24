@@ -13,13 +13,16 @@ interface LevelTabsProps {
 
 const barStyle: React.CSSProperties = {
   display: 'flex', alignItems: 'center', gap: 6, padding: '4px 8px',
-  borderBottom: '2px solid #d8e8f9ff', background: '#e7f3ffff', color: '#ecf0f1'
+  borderBottom: '2px solid #dde7f0', background: '#f3f7fb', color: '#1f2937'
 };
 const tabStyle = (active: boolean): React.CSSProperties => ({
-  padding: '4px 10px', borderRadius: 4, cursor: 'pointer',
-  background: active ? '#3b556e' : '#34495e',
-  border: '1px solid #415b76',
-  color: '#ecf0f1',
+  padding: '6px 12px', borderRadius: 6, cursor: 'pointer',
+  background: active ? '#1f6feb' : '#e5ecf3',
+  border: active ? '2px solid #0b4fb3' : '1px solid #c9d6e2',
+  color: active ? '#ffffff' : '#1f2937',
+  fontWeight: active ? 700 : 500,
+  boxShadow: active ? '0 0 0 2px rgba(31,111,235,0.15)' : 'none',
+  transition: 'all .12s ease',
   fontSize: 12, lineHeight: '16px', userSelect: 'none'
 });
 

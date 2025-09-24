@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 /**
  * 缩放动画指令处理器
@@ -9,7 +10,8 @@ export class ScaleToHandler extends BaseCommandHandler {
   readonly type = CommandType.SCALE_TO;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
-    const { elementId, scaleX, scaleY, scale, duration, easing, relative } = command.parameters;
+    const { scaleX, scaleY, scale, duration, easing, relative } = command.parameters;
+    const elementId = resolveIdFromBraces(command.parameters?.elementId, context);
     
     if (!elementId) {
       return this.createErrorResult('Missing required parameter: elementId');

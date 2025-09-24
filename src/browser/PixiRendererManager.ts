@@ -8,11 +8,37 @@ export class PixiRendererManager implements IRendererManager {
   private elements = new Map<string, any>();
   private dropZones = new Map<string, { x: number; y: number; w: number; h: number; accept?: string[] }>();
   private pixi: any;
+  public animationAdapter: any;
+  // Exclusive interaction guard: when set, only this element remains interactive
+  private exclusiveInteractiveId: string | null = null;
+  private savedInteraction = new Map<string, { mode?: any; interactive?: boolean; interactiveChildren?: boolean; hitArea?: any }>();
 
   constructor(app: any, pixiRef?: any) {
     this.app = app;
     this.pixi = pixiRef || (typeof PIXI !== 'undefined' ? PIXI : undefined);
     if (this.app?.stage) this.app.stage.sortableChildren = true;
+    // Provide a simple animation adapter for commands like MOVE_TO
+    const self = this;
+    this.animationAdapter = {
+      moveTo(cfg: { from: { x: number; y: number }; to: { x: number; y: number }; duration: number; onUpdate?: (t:number, cur:{x:number;y:number})=>void; onComplete?:()=>void; elementId?: string }) {
+        const start = Date.now();
+        const dur = Math.max(0, Number(cfg.duration) || 0);
+        const id = `move_${Date.now()}_${Math.random().toString(36).slice(2,6)}`;
+        const ticker = self.app?.ticker;
+        const step = () => {
+          const t = dur === 0 ? 1 : Math.min(1, (Date.now() - start) / dur);
+          const x = cfg.from.x + (cfg.to.x - cfg.from.x) * t;
+          const y = cfg.from.y + (cfg.to.y - cfg.from.y) * t;
+          try { cfg.onUpdate && cfg.onUpdate(t, { x, y }); } catch {}
+          if (t >= 1) {
+            try { cfg.onComplete && cfg.onComplete(); } catch {}
+            if (ticker) ticker.remove(step);
+          }
+        };
+        if (ticker) { ticker.add(step); } else { const raf = () => { step(); if ((Date.now() - start) < dur) requestAnimationFrame(raf); }; requestAnimationFrame(raf); }
+        return Promise.resolve(id);
+      }
+    };
   }
 
   createElement(config: ElementConfig): RenderElement {
@@ -82,11 +108,14 @@ export class PixiRendererManager implements IRendererManager {
 
     node.x = config.position?.x || 0;
     node.y = config.position?.y || 0;
+    // size: only apply when valid finite numbers; ignore empty strings
     if (config.size && node.width !== undefined && node.height !== undefined) {
-      const w = Math.round(config.size.width || 0);
-      const h = Math.round(config.size.height || 0);
-      node.width = w > 0 ? w : config.size.width;
-      node.height = h > 0 ? h : config.size.height;
+      const rw: any = (config.size as any).width;
+      const rh: any = (config.size as any).height;
+      const w = Number(rw);
+      const h = Number(rh);
+      if (Number.isFinite(w) && w > 0) node.width = Math.round(w);
+      if (Number.isFinite(h) && h > 0) node.height = Math.round(h);
     }
     node.visible = config.visible !== false;
     if (config.style?.zIndex != null) node.zIndex = config.style.zIndex;
@@ -111,6 +140,17 @@ export class PixiRendererManager implements IRendererManager {
     } else {
       this.app.stage.addChild(node);
     }
+    // If explicit size provided, apply and mark as size-locked to help animations respect current size
+    try {
+      if (config.size && (config.size as any).width && (config.size as any).height && (node as any).width !== undefined) {
+        const w = Number((config.size as any).width);
+        const h = Number((config.size as any).height);
+        if (Number.isFinite(w) && w > 0) (node as any).width = Math.round(w);
+        if (Number.isFinite(h) && h > 0) (node as any).height = Math.round(h);
+        (node as any).__sizeLocked = true;
+        (node as any).__baseScale = { x: (node as any).scale?.x ?? 1, y: (node as any).scale?.y ?? 1 };
+      }
+    } catch {}
     this.elements.set(config.id, node);
 
     const self = this;
@@ -135,11 +175,15 @@ export class PixiRendererManager implements IRendererManager {
   updateElement(id: string, updates: Partial<ElementConfig>): void {
     const node = this.elements.get(id);
     if (!node) return;
-    if (updates.position) { node.x = updates.position.x ?? node.x; node.y = updates.position.y ?? node.y; }
+    if (updates.position) { node.x = (updates.position.x ?? node.x); node.y = (updates.position.y ?? node.y); }
     if (updates.size && node.width !== undefined) {
-      const w = updates.size.width != null ? Math.round(updates.size.width) : undefined;
-      const h = updates.size.height != null ? Math.round(updates.size.height) : undefined;
-      node.width = w ?? node.width; node.height = h ?? node.height;
+      const rw: any = (updates.size as any).width;
+      const rh: any = (updates.size as any).height;
+      const w = (rw != null) ? Number(rw) : undefined;
+      const h = (rh != null) ? Number(rh) : undefined;
+      if (Number.isFinite(w as any) && (w as any) > 0) node.width = Math.round(w as any);
+      if (Number.isFinite(h as any) && (h as any) > 0) node.height = Math.round(h as any);
+      try { (node as any).__sizeLocked = true; (node as any).__baseScale = { x: (node as any).scale?.x ?? 1, y: (node as any).scale?.y ?? 1 }; } catch {}
     }
     if (updates.visible != null) node.visible = updates.visible;
     if (updates.rotation != null) node.rotation = updates.rotation;
@@ -181,6 +225,10 @@ export class PixiRendererManager implements IRendererManager {
   removeElement(id: string): void {
     const node = this.elements.get(id);
     if (!node) return;
+    // If removing current exclusive node, clear guard
+    if (this.exclusiveInteractiveId === id) {
+      try { this.clearExclusiveInteractive(id); } catch {}
+    }
     try { this.app.stage.removeChild(node); node.destroy?.({ children: true, texture: false, baseTexture: false }); } catch {}
     this.elements.delete(id);
   }
@@ -192,6 +240,50 @@ export class PixiRendererManager implements IRendererManager {
   // Pixi-specific helpers for handlers
   getNode(id: string): any | undefined {
     return this.elements.get(id);
+  }
+  // Alias for generic handlers
+  getElement(id: string): any | undefined { return this.getNode(id); }
+
+  // Clear stage and internal registries when switching levels/scenes
+  clearAll(): void {
+    try {
+      // remove and destroy all created nodes
+      for (const [id, node] of this.elements.entries()) {
+        // Detach any per-node ticker watchers (e.g., CHECK_IN_AREA)
+        try {
+          const watchers = (node as any).__checkAreaWatchers as Map<string, any> | undefined;
+          if (watchers && this.app?.ticker) {
+            watchers.forEach((w: any) => { try { this.app.ticker.remove(w.fn); } catch {} });
+          }
+        } catch {}
+        // Remove window-level drag listeners if present
+        try {
+          const dh = (node as any).__dragHandlers;
+          if (dh?.winUp) { window.removeEventListener('pointerup', dh.winUp as any); }
+        } catch {}
+        try { this.app.stage.removeChild(node); } catch {}
+        try { node.destroy?.({ children: true, texture: false, baseTexture: false }); } catch {}
+      }
+    } catch {}
+    try { this.app.stage.removeChildren(); } catch {}
+    this.elements.clear();
+    this.dropZones.clear();
+    // Remove stage-level pointer listeners possibly registered by drag handlers
+    try {
+      const st: any = this.getStage?.();
+      st?.removeAllListeners?.('pointermove');
+      st?.removeAllListeners?.('pointerup');
+      st?.removeAllListeners?.('pointerupoutside');
+    } catch {}
+    try { (this.app?.renderer as any)?.textureGC?.run?.(); } catch {}
+    // Best-effort: clear texture caches to avoid accumulating blob textures across level switches
+    try {
+      const utils: any = this.pixi?.utils;
+      const BT = utils?.BaseTextureCache || {};
+      const TC = utils?.TextureCache || {};
+      for (const k in BT) { try { BT[k]?.destroy?.(true); } catch {} delete (BT as any)[k]; }
+      for (const k in TC) { try { TC[k]?.destroy?.(true); } catch {} delete (TC as any)[k]; }
+    } catch {}
   }
 
   // Expose Pixi app/stage for custom effects
@@ -205,5 +297,49 @@ export class PixiRendererManager implements IRendererManager {
 
   getDropZones(): Array<{ id: string; x: number; y: number; w: number; h: number; accept?: string[] }> {
     return Array.from(this.dropZones.entries()).map(([id, r]) => ({ id, ...r }));
+  }
+
+  // Make only the specified element interactive; disable all others (pointer-wise)
+  setExclusiveInteractive(id: string | null): void {
+    if (!id) { this.clearExclusiveInteractive(); return; }
+    // No-op if already exclusive to the same id
+    if (this.exclusiveInteractiveId === id) return;
+    this.exclusiveInteractiveId = id;
+    // disable all others, preserve their states
+    for (const [eid, node] of this.elements.entries()) {
+      if (eid === id) continue;
+      try {
+        if (!this.savedInteraction.has(eid)) {
+          this.savedInteraction.set(eid, {
+            mode: (node as any).eventMode,
+            interactive: (node as any).interactive,
+            interactiveChildren: (node as any).interactiveChildren,
+            hitArea: (node as any).hitArea
+          });
+        }
+        if ('eventMode' in (node as any)) (node as any).eventMode = 'none';
+        if ('interactive' in (node as any)) (node as any).interactive = false;
+        if ('interactiveChildren' in (node as any)) (node as any).interactiveChildren = false;
+        if ('hitArea' in (node as any)) (node as any).hitArea = null;
+      } catch {}
+    }
+  }
+
+  // Clear exclusive interaction if matches current; restores saved states
+  clearExclusiveInteractive(idIfKnown?: string): void {
+    if (idIfKnown && this.exclusiveInteractiveId && idIfKnown !== this.exclusiveInteractiveId) return;
+    this.exclusiveInteractiveId = null;
+    // restore
+    for (const [eid, saved] of this.savedInteraction.entries()) {
+      const node = this.elements.get(eid);
+      if (!node) { this.savedInteraction.delete(eid); continue; }
+      try {
+        if ('eventMode' in (node as any)) (node as any).eventMode = saved.mode ?? (node as any).eventMode;
+        if ('interactive' in (node as any)) (node as any).interactive = (saved.interactive ?? (node as any).interactive);
+        if ('interactiveChildren' in (node as any)) (node as any).interactiveChildren = (saved.interactiveChildren ?? (node as any).interactiveChildren);
+        if ('hitArea' in (node as any)) (node as any).hitArea = (saved.hitArea ?? (node as any).hitArea);
+      } catch {}
+    }
+    this.savedInteraction.clear();
   }
 }

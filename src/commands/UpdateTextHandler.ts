@@ -1,12 +1,13 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 export class UpdateTextHandler extends BaseCommandHandler {
   readonly type = CommandType.UPDATE_TEXT;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const elementId: string = p.elementId || p.id;
+    const elementId: string = (resolveIdFromBraces(p.elementId, context) || p.id) as any;
     if (!elementId) return this.createErrorResult('Missing required parameter: elementId');
 
     const pos = p.position || {};

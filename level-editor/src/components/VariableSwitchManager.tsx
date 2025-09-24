@@ -40,6 +40,47 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
   const [editingSwitch, setEditingSwitch] = useState<Switch | null>(null);
   const [editingIndex, setEditingIndex] = useState<number>(-1);
   const [formData, setFormData] = useState<any>({});
+  const [liveVars, setLiveVars] = useState<Record<string, any>>({});
+  const [liveSwitches, setLiveSwitches] = useState<Record<string, boolean>>({});
+
+  // 监听运行时变量/开关变更（预览时生效）
+  useEffect(() => {
+    const onVar = (e: any) => {
+      try {
+        const { key, newValue } = (e as CustomEvent).detail || {};
+        if (!key) return;
+        setLiveVars(prev => ({ ...prev, [key]: newValue }));
+      } catch {}
+    };
+    const onSw = (e: any) => {
+      try {
+        const { key, newValue } = (e as CustomEvent).detail || {};
+        if (!key) return;
+        setLiveSwitches(prev => ({ ...prev, [key]: !!newValue }));
+      } catch {}
+    };
+    window.addEventListener('editor:variable_changed', onVar as any);
+    window.addEventListener('editor:switch_changed', onSw as any);
+    // 初始快照：当 runtime 刚挂载时，拉取一次全部变量/开关，保证不需要切换到该面板也能看到最新值
+    const onMounted = () => {
+      try {
+        const sm: any = (window as any).__RUNTIME_STATE_MANAGER__;
+        const st = sm?.saveState?.();
+        if (st) {
+          if (st.variables && typeof st.variables === 'object') setLiveVars({ ...(st.variables as any) });
+          if (st.switches && typeof st.switches === 'object') setLiveSwitches({ ...(st.switches as any) });
+        }
+      } catch {}
+    };
+    window.addEventListener('editor:runtime_mounted', onMounted);
+    // 组件挂载后也尝试拉一次（例如首次进入预览时）
+    setTimeout(onMounted, 0);
+    return () => {
+      window.removeEventListener('editor:variable_changed', onVar as any);
+      window.removeEventListener('editor:switch_changed', onSw as any);
+      window.removeEventListener('editor:runtime_mounted', onMounted);
+    };
+  }, []);
 
   // 扫描工程：从原始命令与事件中推导新增变量/开关键；并合并内建键
   const collectDerivedKeys = (proj: any) => {
@@ -305,6 +346,11 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                       <div className="item-name">{variable.key}</div>
                       <div className="item-value">
                         {formatValue(variable.value, variable.type)}
+                        {liveVars.hasOwnProperty(variable.key) && (
+                          <span style={{ marginLeft: 8, fontSize: 12, color: '#17a2b8' }} title="运行时当前值">
+                            → {formatValue(liveVars[variable.key], variable.type)}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div 
@@ -398,6 +444,11 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                       <div className="item-name">{switchItem.key}</div>
                       <div className="item-value">
                         {switchItem.value ? '开启' : '关闭'}
+                        {liveSwitches.hasOwnProperty(switchItem.key) && (
+                          <span style={{ marginLeft: 8, fontSize: 12, color: '#17a2b8' }} title="运行时当前值">
+                            → {liveSwitches[switchItem.key] ? '开启' : '关闭'}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="item-actions">

@@ -17,6 +17,7 @@ interface EventListPanelProps {
   onAddEvent?: () => void;
   onDeleteEvent?: (eventId: string) => void;
   onRenameEvent?: (eventId: string, newName: string) => void;
+  onPasteEvent?: (eventData: any) => void;
 }
 
 export const EventListPanel: React.FC<EventListPanelProps> = ({
@@ -26,7 +27,8 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
   onOpenTriggerEditor,
   onAddEvent,
   onDeleteEvent,
-  onRenameEvent
+  onRenameEvent,
+  onPasteEvent
 }) => {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; eventId: string } | null>(null);
@@ -102,6 +104,20 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
     }
   };
 
+  // Clipboard helpers for event copy/paste (scoped type to avoid pasting into other panels)
+  const CLIP_KEY = 'vibe_editor_event_clipboard';
+  const writeClipboard = (obj: any) => {
+    try { localStorage.setItem(CLIP_KEY, JSON.stringify({ kind: 'vibe:event', schema: 'v1', payload: obj })); } catch {}
+  };
+  const readClipboard = (): any | null => {
+    try {
+      const raw = localStorage.getItem(CLIP_KEY); if (!raw) return null;
+      const o = JSON.parse(raw);
+      if (o && o.kind === 'vibe:event' && o.payload && typeof o.payload === 'object') return o.payload;
+    } catch {}
+    return null;
+  };
+
   // 获取按钮事件关联信息
   const getButtonEventInfo = (commands: GameCommand[]): { hasButton: boolean; buttonAction?: string } => {
     // 查找是否有 SHOW_BUTTON 指令（兼容大小写）
@@ -141,6 +157,12 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
                     ? 'selected' : ''
                 }`}
                 onClick={() => onEventSelect(event.id === 'main-flow' ? null : event.id)}
+                onDoubleClick={() => {
+                  // 双击事件条，直达触发器编辑（非主流程）。优先编辑第一个触发器，没有则给出一个默认的 custom 触发器
+                  if (event.id === 'main-flow') return;
+                  const trig = (Array.isArray(event.triggers) && event.triggers.length) ? event.triggers[0] : { type: 'custom', target: '' };
+                  handleEditTrigger(event.id, 0, trig);
+                }}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   setCtxMenu({ x: e.clientX, y: e.clientY, eventId: event.id });
@@ -213,6 +235,30 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
             style={{ position: 'fixed', left: ctxMenu.x, top: ctxMenu.y, background: '#fff', border: '1px solid #e9ecef', borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 2000, overflow: 'hidden', minWidth: 140 }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* 复制 */}
+            <div
+              style={{ padding: '6px 10px', fontSize: 12, cursor: ctxMenu.eventId === 'main-flow' ? 'not-allowed' : 'pointer', color: ctxMenu.eventId === 'main-flow' ? '#adb5bd' : '#212529' }}
+              onClick={() => {
+                const ev = (extractEvents(level as any) || []).find(e => e.id === ctxMenu.eventId);
+                if (ev && ev.id !== 'main-flow') {
+                  const copy = { id: ev.id, name: ev.name, triggers: ev.triggers || [], commands: ev.commands || [] };
+                  writeClipboard(copy);
+                }
+                setCtxMenu(null);
+              }}
+            >复制事件</div>
+            {/* 粘贴 */}
+            <div
+              style={{ padding: '6px 10px', fontSize: 12, cursor: readClipboard() ? 'pointer' : 'not-allowed', color: readClipboard() ? '#212529' : '#adb5bd' }}
+              onClick={() => {
+                const data = readClipboard();
+                if (!data) { setCtxMenu(null); return; }
+                // 仅允许在事件面板粘贴事件
+                try { onPasteEvent?.(data); } catch {}
+                setCtxMenu(null);
+              }}
+            >粘贴为新事件</div>
+            <div style={{ height: 1, background: '#f1f3f5' }} />
             <div
               style={{ padding: '6px 10px', fontSize: 12, cursor: 'pointer' }}
               onClick={() => {

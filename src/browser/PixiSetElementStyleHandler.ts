@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 /**
  * Pixi 版 SET_ELEMENT_STYLE
@@ -10,7 +11,7 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const id: string = p.elementId;
+    let id: string | undefined = resolveIdFromBraces(p.elementId, context);
     const style = (p.style || {}) as any;
     if (!id || typeof style !== 'object') {
       return this.createErrorResult('Missing required parameter: elementId/style');
@@ -34,14 +35,40 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
           const node = rm.getNode ? rm.getNode(id) : null;
           if (node) node.alpha = Number(style.opacity);
         }
-        // position (optional)
-        if (style.left !== undefined || style.top !== undefined) {
-          const x = style.left !== undefined ? Number(style.left) : undefined;
-          const y = style.top !== undefined ? Number(style.top) : undefined;
-          (updates as any).position = { x, y };
+        // 移除通过 style.left/top 设置位置的支持（请改用 MOVE_TO 或专用移动指令）
+        // scale (optional): support scale or scaleX/scaleY
+        if (style.scale !== undefined || style.scaleX !== undefined || style.scaleY !== undefined) {
+          let sx: number | undefined;
+          let sy: number | undefined;
+          if (style.scale !== undefined) {
+            const s = Number(style.scale);
+            if (!Number.isNaN(s)) { sx = s; sy = s; }
+          }
+          if (style.scaleX !== undefined) { const v = Number(style.scaleX); if (!Number.isNaN(v)) sx = v; }
+          if (style.scaleY !== undefined) { const v = Number(style.scaleY); if (!Number.isNaN(v)) sy = v; }
+          if (sx != null || sy != null) {
+            (updates as any).scale = { x: sx ?? 1, y: sy ?? 1 } as any;
+          }
         }
 
-        rm.updateElement(id, updates);
+        // If it's a regular element, apply via updateElement; otherwise try UI node fallback
+        const node0 = rm.getNode ? rm.getNode(id) : null;
+        if (node0) {
+          rm.updateElement(id, updates);
+        } else {
+          // Try UI node registry (choices/text overlays)
+          const uiMap: Map<string, any> | undefined = rm.__uiNodes as any;
+          const uiNode = uiMap && (uiMap as any).get ? (uiMap as any).get(id) : undefined;
+          if (uiNode) {
+            try {
+              if (updates.visible != null) uiNode.visible = !!(updates as any).visible;
+              if ((updates as any).scale) {
+                const sc = (updates as any).scale; uiNode.scale && uiNode.scale.set(sc.x ?? 1, sc.y ?? 1);
+              }
+              if (style.opacity !== undefined) uiNode.alpha = Number(style.opacity);
+            } catch {}
+          }
+        }
         // Also apply to paired background (nine-slice) if exists: `${id}__bg`
         const bgId = `${id}__bg`;
         const bgNode = rm.getNode ? rm.getNode(bgId) : null;

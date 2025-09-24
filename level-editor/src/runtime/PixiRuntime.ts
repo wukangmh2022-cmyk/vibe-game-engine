@@ -90,9 +90,6 @@ export class PixiRuntime {
       case 'rotate_to':
         await this.rotateTo(command);
         break;
-      case 'hide_elements':  // 修改为复数形式，匹配实际使用
-        this.hideElement(command);
-        break;
       case 'wait':
         await this.wait(command);
         break;

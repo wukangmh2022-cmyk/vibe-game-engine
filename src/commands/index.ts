@@ -14,11 +14,17 @@ export { NextLevelHandler } from './NextLevelHandler';
 export { IfConditionHandler } from './IfConditionHandler';
 export { JumpToHandler } from './JumpToHandler';
 export { ShowChoicesHandler } from './ShowChoicesHandler';
+export { InputHandler } from './InputHandler';
 export { EmitSignalHandler } from './EmitSignalHandler';
+export { ClickHandler } from './ClickHandler';
 export { ContinueHandler } from './ContinueHandler';
 export { BreakHandler } from './BreakHandler';
 export { ReturnHandler } from './ReturnHandler';
 export { LoopHandler } from './LoopHandler';
+export { MoveToHandler } from './MoveToHandler';
+export { RotateToHandler } from './RotateToHandler';
+export { ScaleToHandler } from './ScaleToHandler';
+export { SetDraggableHandler } from './SetDraggableHandler';
 
 // 音频指令处理器
 export { BgmPlayHandler } from './audio/BgmPlayHandler';
@@ -27,7 +33,8 @@ export { BgmStopHandler } from './audio/BgmStopHandler';
 export { SePlayHandler } from './audio/SePlayHandler';
 export { SetVolumeHandler } from './audio/SetVolumeHandler';
 
-// 游戏结束指令处理器（如需启用请新增 ./GameOverHandler 并导出）
+// 游戏结束指令处理器
+export { GameOverHandler } from './GameOverHandler';
 
 // 基础类
 export { BaseCommandHandler } from '../core/CommandExecutor';

@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 import { Animator } from '../browser/Animator';
 
 export class FlipCardHandler extends BaseCommandHandler {
@@ -8,10 +9,7 @@ export class FlipCardHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    let elementId: string | undefined = p.elementId;
-    if (!elementId && p.elementIdVar && (context as any).stateManager?.getVariable) {
-      try { elementId = (context as any).stateManager.getVariable(p.elementIdVar); } catch {}
-    }
+    let elementId: string | undefined = resolveIdFromBraces(p.elementId, context);
     if (!elementId) return this.createErrorResult('Missing required parameter: elementId');
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(elementId) : null;

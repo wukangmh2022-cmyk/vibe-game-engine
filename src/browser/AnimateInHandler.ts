@@ -2,6 +2,7 @@ import { CommandType, GameCommand, CommandContext, CommandResult } from '../type
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { Animator } from './Animator';
 import { Easings } from './anim/Easings';
+import { resolveIdFromBraces } from '../utils/ParamResolver';
 
 export class AnimateInHandler extends BaseCommandHandler {
   readonly type = CommandType.ANIMATE_IN;
@@ -9,7 +10,7 @@ export class AnimateInHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const id: string = p.elementId;
+    const id: string = resolveIdFromBraces(p.elementId, context) as any;
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(id) : null;

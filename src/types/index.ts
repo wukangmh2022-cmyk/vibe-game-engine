@@ -33,7 +33,6 @@ export enum CommandType {
   UPDATE_TEXT = 'update_text',
   SHOW_BUTTON = 'show_button',
   SET_ELEMENT_STYLE = 'set_element_style',
-  HIDE_ELEMENT = 'hide_element',
   SHOW_MEDIA = 'show_media',
   
   // 移动动画
@@ -72,30 +71,19 @@ export enum CommandType {
   // 元素交互
   SET_DRAGGABLE = 'set_draggable',
   SET_CLICKABLE = 'set_clickable',
-  SET_SELECTED = 'set_selected',
   SET_SELECTABLE = 'set_selectable',
-
-  // 拖拽控制
-  DRAG_START = 'drag_start',
-  DRAG_END = 'drag_end',
-  CHECK_DROP_ZONE = 'check_drop_zone',
-  CREATE_DROP_ZONE = 'create_drop_zone',
-  
-  // 位置控制
-  SET_POSITION = 'set_position',
-  GET_POSITION = 'get_position',
   CHECK_IN_AREA = 'check_in_area',
+  
   ANIMATE_IN = 'animate_in',
   ANIMATE_LOOP = 'animate_loop',
   STOP_ANIMATION = 'stop_animation',
-  SET_SIZE = 'set_size',
-  SET_ROTATION = 'set_rotation',
   
   // 特效动画
   FADE_IN = 'fade_in',
   FADE_OUT = 'fade_out',
   SHAKE = 'shake',
   FIREWORK_BURST = 'firework_burst',
+  SET_USER_DATA = 'set_user_data',
   
   // 游戏逻辑
   CHECK_ANSWER = 'check_answer',
