@@ -79,6 +79,8 @@ export class Animator {
     if (props.alpha !== undefined) node.alpha = props.alpha;
     if (props.x !== undefined) node.x = props.x;
     if (props.y !== undefined) node.y = props.y;
+    if (props.rotation !== undefined) { try { node.rotation = props.rotation; } catch {} }
+    if (props.angle !== undefined) { try { (node as any).angle = props.angle; } catch {} }
     if (props.scale !== undefined) {
       const sx = props.scale.x ?? props.scale; const sy = props.scale.y ?? props.scale;
       if (node.scale) { node.scale.x = sx; node.scale.y = sy; }
@@ -91,6 +93,15 @@ export class Animator {
     if (to.alpha !== undefined) node.alpha = this.lerp(from?.alpha ?? node.alpha ?? 1, to.alpha, k);
     if (to.x !== undefined) node.x = this.lerp(from?.x ?? node.x ?? 0, to.x, k);
     if (to.y !== undefined) node.y = this.lerp(from?.y ?? node.y ?? 0, to.y, k);
+    if (to.angle !== undefined) {
+      const fa = from?.angle ?? (node as any).angle ?? 0;
+      const ta = to.angle;
+      try { (node as any).angle = this.lerp(fa, ta, k); } catch {}
+    } else if (to.rotation !== undefined) {
+      const fr = from?.rotation ?? node.rotation ?? 0;
+      const tr = to.rotation;
+      try { node.rotation = this.lerp(fr, tr, k); } catch {}
+    }
     if (to.scale !== undefined && node.scale) {
       const fx = from?.scale?.x ?? from?.scale ?? node.scale.x ?? 1;
       const fy = from?.scale?.y ?? from?.scale ?? node.scale.y ?? 1;

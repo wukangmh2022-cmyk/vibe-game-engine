@@ -73,6 +73,14 @@ export enum CommandType {
   SET_CLICKABLE = 'set_clickable',
   SET_SELECTABLE = 'set_selectable',
   CHECK_IN_AREA = 'check_in_area',
+  SET_SELECTED = 'set_selected',
+  // 拖拽/投放 与 位置
+  DRAG_START = 'drag_start',
+  DRAG_END = 'drag_end',
+  CREATE_DROP_ZONE = 'create_drop_zone',
+  CHECK_DROP_ZONE = 'check_drop_zone',
+  GET_POSITION = 'get_position',
+  SET_POSITION = 'set_position',
   
   ANIMATE_IN = 'animate_in',
   ANIMATE_LOOP = 'animate_loop',

@@ -1,5 +1,4 @@
-// 导出所有拖拽相关的处理器
-export { SetDraggableHandler } from './SetDraggableHandler';
+// 导出所有拖拽相关的处理器（注意：SetDraggableHandler 已在 commands 中导出，避免重复导出）
 export { DragStartHandler } from './DragStartHandler';
 export { DragEndHandler } from './DragEndHandler';
 export { CreateDropZoneHandler } from './CreateDropZoneHandler';

@@ -142,6 +142,8 @@ export class SetSelectedHandler extends BaseCommandHandler {
     if (props.alpha != null) out.alpha = props.alpha;
     if (props.x != null) out.x = props.x;
     if (props.y != null) out.y = props.y;
+    if (props.angle != null) out.angle = props.angle;
+    if (props.rotation != null) out.rotation = props.rotation;
     if (props.scaleX != null || props.scaleY != null) {
       out.scale = { x: props.scaleX ?? 1, y: props.scaleY ?? 1 };
     }
@@ -153,6 +155,8 @@ export class SetSelectedHandler extends BaseCommandHandler {
     if (props.alpha != null) (node as any).alpha = props.alpha;
     if (props.x != null) (node as any).x = props.x;
     if (props.y != null) (node as any).y = props.y;
+    if (props.angle != null) { try { (node as any).angle = props.angle; } catch {} }
+    if (props.rotation != null) { try { (node as any).rotation = props.rotation; } catch {} }
     if (props.scale && (node as any).scale) {
       (node as any).scale.x = props.scale.x ?? (node as any).scale.x;
       (node as any).scale.y = props.scale.y ?? (node as any).scale.y;
@@ -164,6 +168,7 @@ export class SetSelectedHandler extends BaseCommandHandler {
     if ((node as any).alpha != null) st.alpha = (node as any).alpha;
     if ((node as any).x != null) st.x = (node as any).x;
     if ((node as any).y != null) st.y = (node as any).y;
+    try { if ((node as any).angle != null) st.angle = (node as any).angle; else if ((node as any).rotation != null) st.rotation = (node as any).rotation; } catch {}
     if ((node as any).scale) st.scale = { x: (node as any).scale.x ?? 1, y: (node as any).scale.y ?? 1 };
     return st;
   }

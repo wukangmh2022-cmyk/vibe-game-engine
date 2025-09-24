@@ -1191,7 +1191,7 @@ const App: React.FC = () => {
             } catch {}
             if (prev.unsaved || levelsChanged) {
               try {
-                const ok = window.confirm('当前有未保存的修改，是否保存后返回初始页？');
+                const ok = window.confirm('当前有未保存的修改，是否保存？');
                 if (ok) { setTimeout(() => handleSaveJson(), 0); }
               } catch {}
             }
@@ -1253,7 +1253,7 @@ const App: React.FC = () => {
           defaultX={830}
           defaultY={100}
           defaultWidth={640}
-          defaultHeight={480}
+          defaultHeight={520}
         >
           <PixiCanvas
             commands={currentCommands}

@@ -33,8 +33,8 @@ export { BgmStopHandler } from './audio/BgmStopHandler';
 export { SePlayHandler } from './audio/SePlayHandler';
 export { SetVolumeHandler } from './audio/SetVolumeHandler';
 
-// 游戏结束指令处理器
-export { GameOverHandler } from './GameOverHandler';
+// 游戏结束指令处理器（暂未实现）
+// export { GameOverHandler } from './GameOverHandler';
 
 // 基础类
 export { BaseCommandHandler } from '../core/CommandExecutor';

@@ -78,22 +78,18 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
     // If no container, do nothing
     if (!canvasRef.current) return;
 
-    // Always clear container before (re)mount
-    // Also detach any previous listeners/observers bound to the container
-    try {
-      const c: any = canvasRef.current;
-      // detach mouse overlays
-      if (c?.__onMove) { c.removeEventListener('mousemove', c.__onMove); delete c.__onMove; }
-      if (c?.__onLeave) { c.removeEventListener('mouseleave', c.__onLeave); delete c.__onLeave; }
-      // detach auto-scale observers
-      if (c?.__scaleRO && c.__scaleRO.disconnect) { c.__scaleRO.disconnect(); delete c.__scaleRO; }
-      if (c?.__onWin) { window.removeEventListener('resize', c.__onWin); delete c.__onWin; }
-    } catch {}
+    // Always clear container before (re)mount; disposal of listeners/observers is centralized in runtime.dispose
     canvasRef.current.innerHTML = '';
 
-    // Dispose previous instance
+    // Dispose previous instance (hard when not playing; soft during re-mount while playing)
     if (runtimeRef.current) {
-      try { runtimeRef.current.dispose(); } catch {}
+      try {
+        if (!isPlaying) {
+          (runtimeRef.current as any).hardDispose?.();
+        } else {
+          runtimeRef.current.dispose();
+        }
+      } catch {}
       runtimeRef.current = null;
     }
 
@@ -275,6 +271,7 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
               try { vfs.rewriteResourceURLs(data); } catch {}
               // re-mount
               const prev = runtimeRef.current; runtimeRef.current = null;
+              // Soft dispose on redirect to preserve BGM across scenes
               if (prev) { try { prev.dispose(); } catch {} }
               if (canvasRef.current) canvasRef.current.innerHTML = '';
               const container2 = canvasRef.current as HTMLElement;
@@ -307,19 +304,14 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
   useEffect(() => {
     return () => {
       try { delete (window as any).__PIXICANVAS_REDIRECT__; } catch {}
-      // Dispose mounted runtime on unmount to stop audio and free GPU
-      try { runtimeRef.current?.dispose?.(); } catch {}
+      // Hard dispose on unmount to stop BGM and free GPU
+      try { (runtimeRef.current as any)?.hardDispose?.(); } catch {}
       runtimeRef.current = null;
-      // Detach resize observers if any
-      try {
-        const container = canvasRef.current as any;
-        const onMove = container?.__onMove; if (onMove) container.removeEventListener('mousemove', onMove);
-        const onLeave = container?.__onLeave; if (onLeave) container.removeEventListener('mouseleave', onLeave);
-        const ro = container?.__scaleRO; if (ro && ro.disconnect) ro.disconnect();
-        if (container) { delete container.__scaleRO; }
-        const onWin = container?.__onWin; if (onWin) window.removeEventListener('resize', onWin);
-        if (container) { delete container.__onWin; }
-      } catch {}
+      // Clear global bridges to allow GC
+      try { delete (window as any).__RUNTIME_EVENT_MANAGER__; } catch {}
+      try { delete (window as any).__RUNTIME_STATE_MANAGER__; } catch {}
+      try { delete (window as any).__VFS_GET_URL__; } catch {}
+      // Container-level listeners/observers are cleaned in runtime.dispose
     };
   }, []);
 

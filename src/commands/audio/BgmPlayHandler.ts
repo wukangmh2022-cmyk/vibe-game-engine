@@ -25,16 +25,13 @@ export class BgmPlayHandler extends BaseCommandHandler {
     }
 
     try {
-      // 停止当前播放的BGM
-      const currentBgm = context.stateManager.getVariable('current_bgm');
-      if (currentBgm) {
-        try {
-          context.audioManager.stopAudio(currentBgm);
-        } catch (error) {
-          // 忽略停止错误，可能没有正在播放的BGM
-          context.logger.debug('停止当前BGM时出现错误（可忽略）', error);
-        }
-      }
+      // 停止现有BGM：优先调用音频管理器的全量音乐停止（跨场景时 state 可能被重置）
+      try { (context.audioManager as any).stopAllMusic?.(); } catch {}
+      // 兼容旧逻辑：如果 state 中记录了当前 BGM，也尝试按 id 停止一次
+      try {
+        const currentBgm = context.stateManager.getVariable('current_bgm');
+        if (currentBgm) context.audioManager.stopAudio(currentBgm);
+      } catch {}
 
       // 播放新的BGM
       const options = { volume, loop, fadeIn };

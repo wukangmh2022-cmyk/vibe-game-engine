@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vibe Runtime</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #0e0f12; color: #e6edf3; font-family: -apple-system, system-ui, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif; }
+    .wrap { position: fixed; inset: 0; display: grid; place-items: center; }
+    #app { position: relative; width: 800px; height: 600px; background: #000; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; }
+    .hint { position: fixed; left: 8px; bottom: 6px; font-size: 12px; opacity: 0.6; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="app"></div>
+  </div>
+  <div class="hint">Vibe Runtime — 自动从当前目录读取 config.json 与 scene/*</div>
+
+  <script>
+    // 以 run.html 所在目录作为项目根：假定与 config.json 同目录，场景在 scene/ 下
+    (function() {
+      function dirOf(pathname) { return pathname.replace(/[^\/]*$/, ''); }
+      const here = dirOf(location.pathname);
+      // 提供给运行时资源解析
+      window.__ASSET_BASE__ = here;
+    })();
+  </script>
+
+  <script>
+    // 计算要加载的场景 JSON：优先 config.json 中的 scene-tree.curnode；其次尝试 scene/entry.json、scene/hello-world.json
+    (async function pickScene() {
+      const base = window.__ASSET_BASE__ || (location.pathname.replace(/[^\/]*$/, ''));
+      const cfgUrl = base + 'config.json';
+      let rel = null;
+      try {
+        const res = await fetch(cfgUrl, { cache: 'no-cache' });
+        if (res.ok) {
+          const cfg = await res.json();
+          const root = cfg && cfg['scene-tree'] && cfg['scene-tree'].curnode;
+          if (root) rel = root;
+        }
+      } catch {}
+      const candidates = [ rel, 'scene/entry.json', 'scene/hello-world.json' ].filter(Boolean);
+      // 简单探测第一个可用
+      for (const r of candidates) {
+        try { const u = base + r; const ping = await fetch(u, { method: 'HEAD' }); if (ping.ok) { window.__GAME_JSON_URL__CANDIDATE__ = u; break; } } catch {}
+      }
+      // 若 HEAD 检测失败，仍使用第一个候选（由后续 fetch 兜底错误）
+      if (!window.__GAME_JSON_URL__CANDIDATE__) window.__GAME_JSON_URL__CANDIDATE__ = base + (candidates[0] || 'scene/entry.json');
+    })();
+  </script>
+
+  <script>
+    // 加载 Pixi（CDN），然后通过 mountRuntime 挂载并做自适应缩放
+    (async function start() {
+      const PIXI_CDNS = [
+        'https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js',
+        'https://unpkg.com/pixi.js@7/dist/pixi.min.js'
+      ];
+      async function loadPixi() {
+        if (window.PIXI) return;
+        for (const url of PIXI_CDNS) {
+          try {
+            await new Promise((resolve, reject) => { const s = document.createElement('script'); s.src = url; s.onload = resolve; s.onerror = reject; document.head.appendChild(s); });
+            if (window.PIXI) return;
+          } catch {}
+        }
+        throw new Error('Pixi.js 加载失败');
+      }
+
+      await loadPixi();
+      const { mountRuntime } = await import('/web/dist/browser/bootstrap.js');
+
+      const appEl = document.getElementById('app');
+      let mounted = null;
+
+      async function loadGame(url) {
+        try {
+          if (mounted) { try { mounted.dispose(); } catch {} mounted = null; appEl.innerHTML = ''; }
+          // 先拉取 JSON，读取 canvas 宽高决定初始容器尺寸
+          const res = await fetch(url, { cache: 'no-cache' });
+          const game = await res.json();
+          const w = (game?.levels?.[0]?.canvasWidth) || 800;
+          const h = (game?.levels?.[0]?.canvasHeight) || 600;
+          appEl.style.width = w + 'px'; appEl.style.height = h + 'px';
+          mounted = await mountRuntime(appEl, game, { width: w, height: h, pixi: window.PIXI });
+          // 自适应：按容器居中缩放，保持等比
+          const fit = () => {
+            try {
+              const vw = window.innerWidth; const vh = window.innerHeight;
+              const s = Math.max(0.1, Math.min(vw / w, vh / h));
+              mounted.setViewScale?.(s);
+            } catch {}
+          };
+          window.addEventListener('resize', fit);
+          fit();
+        } catch (e) {
+          console.error('[runtime] 加载失败:', e);
+          const box = document.createElement('div');
+          Object.assign(box.style, { position: 'absolute', left: '12px', top: '12px', padding: '10px 12px', background: 'rgba(0,0,0,0.7)', color: '#f88', borderRadius: '6px', zIndex: 9999 });
+          box.textContent = '加载失败: ' + (e && e.message ? e.message : String(e));
+          document.body.appendChild(box);
+        }
+      }
+
+      const url = window.__GAME_JSON_URL__CANDIDATE__ || (window.__ASSET_BASE__ + 'scene/entry.json');
+      await loadGame(url);
+    })();
+  </script>
+</body>
+</html>
+

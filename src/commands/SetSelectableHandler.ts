@@ -31,6 +31,7 @@ export class SetSelectableHandler extends BaseCommandHandler {
     node.cursor = 'pointer';
 
     const overlayResId: string | undefined = p.overlayResourceId || p.selectedResourceId;
+    const sm: any = (context as any).stateManager;
     const effect: string | undefined = p.effect; // 'pulse'
     // persist configuration on node for later SetSelectedHandler / reapply
     try { (node as any).__overlayResId = overlayResId; (node as any).__selectEffect = effect; } catch {}

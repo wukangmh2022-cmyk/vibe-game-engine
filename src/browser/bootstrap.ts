@@ -32,6 +32,7 @@ export interface MountOptions {
 
 export interface MountedRuntime {
   dispose(): void;
+  hardDispose(): void;
   executor: CommandExecutor;
   app: any;
   setViewScale(scale: number): void;
@@ -65,7 +66,9 @@ export async function mountRuntime(
   const stateManager = new StateManager(eventManager);
   const resourceManager = new BrowserResourceManager();
   const renderManager = new PixiRendererManager(app, PIXIImpl);
-  const audioManager = new BrowserAudioManager();
+  // Keep a singleton audio manager across mounts to let BGM persist between scenes/levels
+  const audioManager: any = (window as any).__AUDIO_MANAGER__ || new BrowserAudioManager();
+  try { (window as any).__AUDIO_MANAGER__ = audioManager; } catch {}
   const logger = console as any;
 
   const executor = new CommandExecutor(
@@ -329,20 +332,41 @@ export async function mountRuntime(
     }
   })();
 
+  const commonTearDown = () => {
+    try { app.destroy(true, true); } catch {}
+    // Clear global Pixi texture caches to avoid leaking blob URLs across re-mounts
+    try {
+      const utils: any = (PIXIImpl as any)?.utils;
+      const BT = utils?.BaseTextureCache || {};
+      const TC = utils?.TextureCache || {};
+      for (const k in BT) { try { BT[k]?.destroy?.(true); } catch {} delete (BT as any)[k]; }
+      for (const k in TC) { try { TC[k]?.destroy?.(true); } catch {} delete (TC as any)[k]; }
+      (app.renderer as any)?.textureGC?.run?.();
+    } catch {}
+    // Detach any listeners/observers that may have been attached to the container by the editor wrapper
+    try {
+      const c: any = container as any;
+      const onMove = c?.__onMove; if (onMove) { try { c.removeEventListener('mousemove', onMove); } catch {} }
+      const onLeave = c?.__onLeave; if (onLeave) { try { c.removeEventListener('mouseleave', onLeave); } catch {} }
+      if (onMove) { try { delete c.__onMove; } catch {} }
+      if (onLeave) { try { delete c.__onLeave; } catch {} }
+      const ro = c?.__scaleRO; if (ro && ro.disconnect) { try { ro.disconnect(); } catch {} }
+      if (ro) { try { delete c.__scaleRO; } catch {} }
+      const onWin = c?.__onWin; if (onWin) { try { window.removeEventListener('resize', onWin); } catch {} }
+      if (onWin) { try { delete c.__onWin; } catch {} }
+    } catch {}
+  };
+
   return {
+    // Soft dispose: keep BGM/music, stop only SFX
     dispose() {
+      try { (audioManager as any)?.stopAllSounds?.(); } catch {}
+      commonTearDown();
+    },
+    // Hard dispose: stop everything including BGM/music
+    hardDispose() {
       try { (audioManager as any)?.stopAll?.(); } catch {}
-      try { (audioManager as any)?.dispose?.(); } catch {}
-      try { app.destroy(true, true); } catch {}
-      // Clear global Pixi texture caches to avoid leaking blob URLs across re-mounts
-      try {
-        const utils: any = (PIXIImpl as any)?.utils;
-        const BT = utils?.BaseTextureCache || {};
-        const TC = utils?.TextureCache || {};
-        for (const k in BT) { try { BT[k]?.destroy?.(true); } catch {} delete (BT as any)[k]; }
-        for (const k in TC) { try { TC[k]?.destroy?.(true); } catch {} delete (TC as any)[k]; }
-        (app.renderer as any)?.textureGC?.run?.();
-      } catch {}
+      commonTearDown();
     },
     executor,
     app,

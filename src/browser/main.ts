@@ -97,13 +97,7 @@ async function bootstrap() {
   } catch {}
 
   attachPixiUi(eventManager, resourceManager, renderManager, PIXI);
-  // Preserve original level ordering for NEXT_LEVEL across rewires within a single page session
-  try {
-    if (!(game as any).__originalLevels && Array.isArray(game?.levels)) {
-      (game as any).__originalLevels = (game.levels as any[]).slice();
-      (game as any).__currentOriginalIndex = 0;
-    }
-  } catch {}
+  // (moved below after 'game' is loaded)
 
   // Track level-scoped event listeners so they can be removed on level switch
   const levelDisposers: Array<() => void> = [];
@@ -157,6 +151,13 @@ async function bootstrap() {
   } catch {}
   // make skins available for handlers/UI
   setSkins(game.skins || game.resources?.skins || {});
+  // Preserve original level ordering for NEXT_LEVEL across rewires within a single page session
+  try {
+    if (!(game as any).__originalLevels && Array.isArray(game?.levels)) {
+      (game as any).__originalLevels = (game.levels as any[]).slice();
+      (game as any).__currentOriginalIndex = 0;
+    }
+  } catch {}
   let levelIndex = 0;
   let level = game.levels[levelIndex];
   // Build id -> command index for jump targets (top-level + events)

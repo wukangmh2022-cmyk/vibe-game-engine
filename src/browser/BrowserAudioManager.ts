@@ -111,6 +111,40 @@ export class BrowserAudioManager implements IAudioManager {
     } catch {}
   }
 
+  // Stop only SFX, keep BGM (music) playing. Useful when switching scenes.
+  stopAllSounds(): void {
+    try {
+      for (const [key, it] of Array.from(this.playing.entries())) {
+        if (it.type !== 'sound') continue;
+        try {
+          if (it.source instanceof OscillatorNode) it.source.stop();
+          if (it.source instanceof HTMLAudioElement) {
+            it.source.pause();
+            try { (it.source as any).currentTime = 0; } catch {}
+          }
+        } catch {}
+        this.playing.delete(key);
+      }
+    } catch {}
+  }
+
+  // Stop only BGM/music. Useful when starting a new track across scenes.
+  stopAllMusic(): void {
+    try {
+      for (const [key, it] of Array.from(this.playing.entries())) {
+        if (it.type !== 'music') continue;
+        try {
+          if (it.source instanceof OscillatorNode) it.source.stop();
+          if (it.source instanceof HTMLAudioElement) {
+            it.source.pause();
+            try { (it.source as any).currentTime = 0; } catch {}
+          }
+        } catch {}
+        this.playing.delete(key);
+      }
+    } catch {}
+  }
+
   dispose(): void {
     try { this.stopAll(); } catch {}
     try { this.ctx?.close?.(); } catch {}

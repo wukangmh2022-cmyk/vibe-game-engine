@@ -28,13 +28,15 @@ export class AnimateLoopHandler extends BaseCommandHandler {
         if (p.alpha != null) out.alpha = p.alpha;
         if (p.x != null) out.x = p.x;
         if (p.y != null) out.y = p.y;
+        if (p.angle != null) out.angle = p.angle;
+        if (p.rotation != null) out.rotation = p.rotation;
         if (p.scaleX != null || p.scaleY != null || p.scale != null) {
           const sx = p.scale?.x ?? p.scaleX; const sy = p.scale?.y ?? p.scaleY;
           if (sx != null || sy != null) out.scale = { x: sx ?? 1, y: sy ?? 1 };
         }
         return out;
       };
-      const getState = () => ({ alpha: (node as any).alpha ?? 1, x: (node as any).x ?? 0, y: (node as any).y ?? 0, scale: { x: (node as any).scale?.x ?? 1, y: (node as any).scale?.y ?? 1 } });
+      const getState = () => ({ alpha: (node as any).alpha ?? 1, x: (node as any).x ?? 0, y: (node as any).y ?? 0, angle: (node as any).angle ?? undefined, rotation: (node as any).rotation ?? undefined, scale: { x: (node as any).scale?.x ?? 1, y: (node as any).scale?.y ?? 1 } });
       const runLoop = async () => {
         let stopped = false;
         const cancel = () => { stopped = true; };
@@ -55,15 +57,30 @@ export class AnimateLoopHandler extends BaseCommandHandler {
               } catch {}
             }
             if (!data || !Array.isArray(data.timeline) || data.timeline.length === 0) break;
+            try { if ((data as any).origin === 'center' && (node as any).anchor) (node as any).anchor.set(0.5); } catch {}
             const relative = !!data.relative; const tl = data.timeline.slice().sort((a: any, b: any) => (a.time||0)-(b.time||0));
             // apply first frame then tween segments
-            const first = toProps(relative ? (() => { const s = toProps(first?.props||{}); const b = getState(); if (s.x!=null) s.x = (b.x||0)+s.x; if (s.y!=null) s.y=(b.y||0)+s.y; if (s.scale){ if (s.scale.x!=null) s.scale.x=(b.scale?.x||1)+s.scale.x; if (s.scale.y!=null) s.scale.y=(b.scale?.y||1)+s.scale.y;} return s; })() : toProps(tl[0].props||{}));
-            await this.animator.animate(node, getState(), first, Math.max(0, (tl[0].time||0)), (tl[0].ease||'easeOutQuad'));
+            const base0 = getState();
+            const firstProps0 = toProps(tl[0].props || {});
+            const first = ((): any => {
+              if (!relative) return firstProps0;
+              const s = { ...firstProps0 } as any;
+              if (s.x != null) s.x = (base0.x || 0) + s.x;
+              if (s.y != null) s.y = (base0.y || 0) + s.y;
+              if (s.angle != null) s.angle = ((base0.angle ?? ((base0.rotation ?? 0) * 180 / Math.PI)) || 0) + s.angle;
+              if (s.rotation != null) s.rotation = ((base0.rotation ?? ((base0.angle ?? 0) * Math.PI / 180)) || 0) + s.rotation;
+              if (s.scale) {
+                if (s.scale.x != null) s.scale.x = (base0.scale?.x || 1) + s.scale.x;
+                if (s.scale.y != null) s.scale.y = (base0.scale?.y || 1) + s.scale.y;
+              }
+              return s;
+            })();
+            await this.animator.animate(node, base0, first, Math.max(0, (tl[0].time||0)), (tl[0].ease||'easeOutQuad'));
             for (let i=0;i<tl.length-1 && !stopped;i++) {
               const cur = tl[i], nxt = tl[i+1];
               const from = getState();
               const rawTo = toProps(nxt.props||{});
-              const to = relative ? (()=>{ const b=getState(); if(rawTo.x!=null) rawTo.x=(b.x||0)+rawTo.x; if(rawTo.y!=null) rawTo.y=(b.y||0)+rawTo.y; if(rawTo.scale){ if(rawTo.scale.x!=null) rawTo.scale.x=(b.scale?.x||1)+rawTo.scale.x; if(rawTo.scale.y!=null) rawTo.scale.y=(b.scale?.y||1)+rawTo.scale.y;} return rawTo; })() : rawTo;
+              const to = relative ? (()=>{ const b=getState(); if(rawTo.x!=null) rawTo.x=(b.x||0)+rawTo.x; if(rawTo.y!=null) rawTo.y=(b.y||0)+rawTo.y; if(rawTo.angle!=null) rawTo.angle=((b.angle ?? ((b.rotation ?? 0) * 180/Math.PI))||0)+rawTo.angle; if(rawTo.rotation!=null) rawTo.rotation=((b.rotation ?? ((b.angle ?? 0) * Math.PI/180))||0)+rawTo.rotation; if(rawTo.scale){ if(rawTo.scale.x!=null) rawTo.scale.x=(b.scale?.x||1)+rawTo.scale.x; if(rawTo.scale.y!=null) rawTo.scale.y=(b.scale?.y||1)+rawTo.scale.y;} return rawTo; })() : rawTo;
               const dur = Math.max(0, (nxt.time||0)-(cur.time||0));
               await this.animator.animate(node, from, to, dur, (nxt.ease||'easeOutQuad') as any);
             }
