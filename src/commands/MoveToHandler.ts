@@ -58,13 +58,13 @@ export class MoveToHandler extends BaseCommandHandler {
         to: { x: targetX, y: targetY },
         duration: duration || 1000, // 默认1秒
         easing: easing || 'ease-out',
-        onUpdate: (progress: number, currentPos: { x: number; y: number }) => {
-          // 更新元素位置
-          element.x = currentPos.x;
-          element.y = currentPos.y;
-          
-          // 触发渲染更新
-          renderManager.render?.();
+        onUpdate: (_progress: number, currentPos: { x: number; y: number }) => {
+          try {
+            (renderManager as any).updateElement?.(elementId, { position: { x: currentPos.x, y: currentPos.y } });
+          } catch {
+            element.x = currentPos.x;
+            element.y = currentPos.y;
+          }
         },
         onComplete: () => {
           context.logger.debug(`Move animation completed for element: ${elementId}`);

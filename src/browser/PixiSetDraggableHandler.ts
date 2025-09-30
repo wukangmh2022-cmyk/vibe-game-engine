@@ -16,6 +16,7 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
     const state = (context as any).stateManager;
     const node = rm?.getNode ? rm.getNode(id) : undefined;
     if (!node) return this.createErrorResult(`Element not found: ${id}`);
+    const elementNode: any = (node as any).__elementNode;
 
     // Clear previous handlers
     if (node.__dragHandlers) {
@@ -61,12 +62,18 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
       try { if (typeof (node as any).__animToken !== 'number') (node as any).__animToken = 0; (node as any).__animToken++; } catch {}
       dragging = true; node.cursor = 'grabbing'; (node as any).__dragging = true;
       const pos = e.data.getLocalPosition(node.parent);
-      offset.x = pos.x - node.x; offset.y = pos.y - node.y;
-      context.eventManager.emit('drag_start', { elementId: id, startPosition: { x: node.x, y: node.y }, timestamp: Date.now() });
+      const basePos = elementNode?.getBaseSnapshot?.();
+      const currentX = basePos?.x ?? node.x;
+      const currentY = basePos?.y ?? node.y;
+      offset.x = pos.x - currentX; offset.y = pos.y - currentY;
+      context.eventManager.emit('drag_start', { elementId: id, startPosition: { x: currentX, y: currentY }, timestamp: Date.now() });
     };
     const up = () => {
       if (!dragging) return; dragging = false; node.cursor = 'grab'; (node as any).__dragging = false;
-      context.eventManager.emit('drag_end', { elementId: id, endPosition: { x: node.x, y: node.y }, timestamp: Date.now() });
+      const basePos = elementNode?.getBaseSnapshot?.();
+      const endX = basePos?.x ?? node.x;
+      const endY = basePos?.y ?? node.y;
+      context.eventManager.emit('drag_end', { elementId: id, endPosition: { x: endX, y: endY }, timestamp: Date.now() });
       // Robust hit test: use global bounds rectangle intersection
       const zones = rm.getDropZones ? rm.getDropZones() : [];
       const b = node.getBounds();
@@ -95,7 +102,19 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
       }
     };
     const upOutside = () => { dragging = false; node.cursor = 'grab'; (node as any).__dragging = false; };
-    const move = (e: any) => { if (!dragging) return; const pos = e.data.getLocalPosition(node.parent); node.x = pos.x - offset.x; node.y = pos.y - offset.y; };
+    const move = (e: any) => {
+      if (!dragging) return;
+      const pos = e.data.getLocalPosition(node.parent);
+      const nx = pos.x - offset.x;
+      const ny = pos.y - offset.y;
+      if (elementNode?.setBasePosition) {
+        elementNode.setBasePosition(nx, ny);
+        elementNode.update(0);
+      } else {
+        node.x = nx;
+        node.y = ny;
+      }
+    };
     // Global handlers bound to stage so drag doesn't break when pointer leaves the sprite
     const stage = rm.getStage?.();
     const stageMove = (e: any) => move(e);
