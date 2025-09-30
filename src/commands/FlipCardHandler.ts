@@ -14,6 +14,7 @@ export class FlipCardHandler extends BaseCommandHandler {
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(elementId) : null;
     if (!node) return this.createErrorResult(`Element not found: ${elementId}`);
+    const animTarget: any = (node as any).__animLayer || node;
 
     // 解析前/后贴图 URL
     const resolveUrl = (idOrUrl?: string): string | undefined => {
@@ -49,9 +50,9 @@ export class FlipCardHandler extends BaseCommandHandler {
     }
 
     // 第一半：缩到 0
-    const from1 = { ...this.stateToAnim(node) };
-    const to1   = { scale: { x: 0.001, y: node.scale?.y ?? 1 } };
-    await animator.animate(node as any, from1, to1, half, easing);
+    const from1 = { ...this.stateToAnim(animTarget) };
+    const to1   = { scale: { x: 0.001, y: animTarget.scale?.y ?? 1 } };
+    await animator.animate(animTarget as any, from1, to1, half, easing);
 
     // 中点：切贴图
     const prevRenderable = (node as any).renderable ?? true;
@@ -60,9 +61,9 @@ export class FlipCardHandler extends BaseCommandHandler {
     await new Promise<void>(resolve => requestAnimationFrame(() => { (node as any).renderable = prevRenderable; resolve(); }));
 
     // 第二半：从 0 回到 1
-    const from2 = { ...this.stateToAnim(node) };
-    const to2   = { scale: { x: 1, y: node.scale?.y ?? 1 } };
-    await animator.animate(node as any, from2, to2, total - half, easing);
+    const from2 = { ...this.stateToAnim(animTarget) };
+    const to2   = { scale: { x: 1, y: animTarget.scale?.y ?? 1 } };
+    await animator.animate(animTarget as any, from2, to2, total - half, easing);
 
     // 记录当前面（便于下次翻回）
     (node as any).__frontSrc = frontUrl;
@@ -83,12 +84,12 @@ export class FlipCardHandler extends BaseCommandHandler {
     return this.createSuccessResult({ elementId, showBack, duration: total });
   }
 
-  private stateToAnim(node: any) {
+  private stateToAnim(target: any) {
     return {
-      alpha: node.alpha ?? 1,
-      x: node.x ?? 0,
-      y: node.y ?? 0,
-      scale: { x: node.scale?.x ?? 1, y: node.scale?.y ?? 1 }
+      alpha: target.alpha ?? 1,
+      x: target.x ?? 0,
+      y: target.y ?? 0,
+      scale: { x: target.scale?.x ?? 1, y: target.scale?.y ?? 1 }
     };
   }
 

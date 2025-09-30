@@ -15,6 +15,8 @@ export class SetSelectedHandler extends BaseCommandHandler {
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(id) : undefined;
     if (!node) return this.createErrorResult(`Element not found: ${id}`);
+    const animTarget: any = (node as any).__animLayer || node;
+    const elementNode: any = (node as any).__elementNode;
 
     const selected = !!p.selected;
     // 记录最近变更选中状态的元素ID，便于后续指令或事件引用
@@ -59,7 +61,7 @@ export class SetSelectedHandler extends BaseCommandHandler {
              if (ratio > 0 && ratio < 1e3) s.scale?.set?.(ratio);
            }
          } catch {}
-         (node as any).addChild?.(s);
+         (animTarget as any).addChild?.(s);
          (node as any).__selectOverlay = s;
          return s;
         };
@@ -74,60 +76,26 @@ export class SetSelectedHandler extends BaseCommandHandler {
     if (selected) {
       const eff = p.effect || (node as any).__selectEffect || 'pulse';
       if (eff === 'pulse') {
-        this.animator.loopPulseScale(node, 0.95, 1.05, 900);
+        this.animator.loopPulseScale(animTarget, 0.95, 1.05, 900);
       } else if (typeof eff === 'string' && eff.trim()) {
-        // 播放资源动画时间轴（非阻塞，一次性）
-        this.playTimeline(node, eff.trim(), context).catch(() => {});
+        try { await elementNode?.setEntryTimeline?.(eff.trim(), { resolver: (spec: string) => this.loadAnimationData(spec, context) }); } catch {}
       }
     } else {
-      try { this.animator.stop(node); } catch {}
-      if ((node as any).scale) { (node as any).scale.x = 1; (node as any).scale.y = 1; }
+      try { this.animator.stop(animTarget); } catch {}
+      if ((animTarget as any).scale) { (animTarget as any).scale.x = 1; (animTarget as any).scale.y = 1; }
+      try { elementNode?.clearLoopTimeline?.(); } catch {}
     }
     return this.createSuccessResult({ elementId: id, selected });
   }
 
-  private async playTimeline(node: any, specIdOrUrl: string, context: CommandContext): Promise<void> {
+  private async loadAnimationData(specIdOrUrl: string, context: CommandContext): Promise<any | null> {
     try {
       const url = await this.resolveAnimationUrl(specIdOrUrl, context);
-      if (!url || typeof (globalThis as any).fetch !== 'function') return;
-      const startToken = ((node as any).__animToken || 0);
+      if (!url || typeof (globalThis as any).fetch !== 'function') return null;
       const res = await fetch(url);
-      const data = await res.json();
-      const timeline = (data.timeline || []).slice().sort((a: any, b: any) => (a.time || 0) - (b.time || 0));
-      const relative = !!data.relative;
-      const origin = data.origin;
-      if (origin === 'center' && (node as any).anchor) (node as any).anchor.set(0.5);
-      if (timeline.length === 0) return;
-
-      const toAbs = (props: any) => this.toAnimatorProps(props);
-      const base = { x: (node as any).x || 0, y: (node as any).y || 0, alpha: (node as any).alpha ?? 1, scaleX: (node as any).scale?.x ?? 1, scaleY: (node as any).scale?.y ?? 1 };
-      const resolveWithBase = (props: any) => {
-        const out = { ...props };
-        if (relative) {
-          if (out.x != null) out.x = (base.x ?? 0) + out.x;
-          if (out.y != null) out.y = (base.y ?? 0) + out.y;
-          if (out.scaleX != null) out.scaleX = (base.scaleX ?? 1) + out.scaleX;
-          if (out.scaleY != null) out.scaleY = (base.scaleY ?? 1) + out.scaleY;
-        }
-        return out;
-      };
-
-      if (((node as any).__animToken || 0) !== startToken) return;
-      const first = timeline[0];
-      this.applyAnimatorProps(node, toAbs(resolveWithBase(first.props || {})));
-
-      for (let i = 0; i < timeline.length - 1; i++) {
-        const cur = timeline[i];
-        const nxt = timeline[i + 1];
-        if (((node as any).__animToken || 0) !== startToken) return;
-        const from = this.getAnimatorState(node);
-        const to = toAbs(resolveWithBase(nxt.props || {}));
-        const duration = Math.max(0, (nxt.time || 0) - (cur.time || 0));
-        const easing = nxt.ease || 'easeOutQuad';
-        await this.animator.animate(node, from, to, duration, easing as any);
-        if (((node as any).__animToken || 0) !== startToken) return;
-      }
-    } catch {}
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
   }
 
   private async resolveAnimationUrl(spec: string, context: CommandContext): Promise<string | null> {
@@ -137,39 +105,4 @@ export class SetSelectedHandler extends BaseCommandHandler {
     return res?.url || (typeof spec === 'string' ? spec : null);
   }
 
-  private toAnimatorProps(props: any): any {
-    const out: any = {};
-    if (props.alpha != null) out.alpha = props.alpha;
-    if (props.x != null) out.x = props.x;
-    if (props.y != null) out.y = props.y;
-    if (props.angle != null) out.angle = props.angle;
-    if (props.rotation != null) out.rotation = props.rotation;
-    if (props.scaleX != null || props.scaleY != null) {
-      out.scale = { x: props.scaleX ?? 1, y: props.scaleY ?? 1 };
-    }
-    return out;
-  }
-
-  private applyAnimatorProps(node: any, props: any) {
-    if (!props) return;
-    if (props.alpha != null) (node as any).alpha = props.alpha;
-    if (props.x != null) (node as any).x = props.x;
-    if (props.y != null) (node as any).y = props.y;
-    if (props.angle != null) { try { (node as any).angle = props.angle; } catch {} }
-    if (props.rotation != null) { try { (node as any).rotation = props.rotation; } catch {} }
-    if (props.scale && (node as any).scale) {
-      (node as any).scale.x = props.scale.x ?? (node as any).scale.x;
-      (node as any).scale.y = props.scale.y ?? (node as any).scale.y;
-    }
-  }
-
-  private getAnimatorState(node: any) {
-    const st: any = {};
-    if ((node as any).alpha != null) st.alpha = (node as any).alpha;
-    if ((node as any).x != null) st.x = (node as any).x;
-    if ((node as any).y != null) st.y = (node as any).y;
-    try { if ((node as any).angle != null) st.angle = (node as any).angle; else if ((node as any).rotation != null) st.rotation = (node as any).rotation; } catch {}
-    if ((node as any).scale) st.scale = { x: (node as any).scale.x ?? 1, y: (node as any).scale.y ?? 1 };
-    return st;
-  }
 }
