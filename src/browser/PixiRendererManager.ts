@@ -79,8 +79,9 @@ export class PixiRendererManager implements IRendererManager {
         wordWrapWidth: wrapWidth,
         align: rawStyle.textAlign || rawStyle.align || 'left',
         lineHeight,
-      fontFamily: rawStyle.fontFamily || rawStyle.font || 'Arial, Helvetica, sans-serif',
-      dropShadow: rawStyle.dropShadow === true,
+        fontFamily: rawStyle.fontFamily || rawStyle.font || 'Arial, Helvetica, sans-serif',
+        dropShadow: rawStyle.dropShadow === true,
+        fontWeight: rawStyle.fontWeight || rawStyle.bold === true ? 'bold' : (rawStyle.fontWeight || 'normal'),
       };
       // For Pixi v6 compatibility, provide leading
       (textStyle as any).leading = Math.max(0, lineHeight - fontSize);
@@ -99,8 +100,108 @@ export class PixiRendererManager implements IRendererManager {
         if (rawStyle.dropShadowAngle != null) textStyle.dropShadowAngle = Number(rawStyle.dropShadowAngle);
         if (rawStyle.dropShadowDistance != null) textStyle.dropShadowDistance = Number(rawStyle.dropShadowDistance);
       }
-      const text = new P.Text(config.content || '', textStyle);
-      node = text;
+      const hasMarkup = (s: any) => {
+        try { const t = String(s || ''); return /<\/?(b|color|c|span|br)\b/i.test(t); } catch { return false; }
+      };
+      const parseColorVal = (raw: string | undefined): any => {
+        if (!raw) return undefined;
+        const s = String(raw).trim();
+        if (s.startsWith('#')) {
+          const hex = s.length === 4 ? ('#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3]) : s;
+          return parseInt('0x' + hex.slice(1));
+        }
+        if (/^0x/i.test(s)) { try { return parseInt(s); } catch { return s; } }
+        return s;
+      };
+      const buildRichText = (content: string, baseStyle: any): any => {
+        const cont = new P.Container();
+        (cont as any).__isRichText = true;
+        (cont as any).__richBaseStyle = { ...baseStyle };
+        (cont as any).__wrapWidth = wrapWidth;
+        (cont as any).__rawText = content;
+        const tokens: Array<{ t: 'text'|'br'; text?: string; style?: any }> = [];
+        const stack: Array<{ bold?: boolean; color?: any }> = [];
+        const cur = () => ({ bold: stack.some(s => s.bold), color: (() => { for (let i = stack.length - 1; i >= 0; i--) { if (stack[i].color != null) return stack[i].color; } return undefined; })() });
+        const pushText = (s: string) => { if (!s) return; tokens.push({ t: 'text', text: s, style: cur() }); };
+        const src = String(content || '');
+        const re = /<\/?(b|color|c|span|br)([^>]*)>/ig;
+        let last = 0; let m: RegExpExecArray | null;
+        while ((m = re.exec(src))) {
+          if (m.index > last) pushText(src.slice(last, m.index));
+          const closing = src[m.index + 1] === '/';
+          const tag = m[1].toLowerCase();
+          const attrs = m[2] || '';
+          if (tag === 'br' && !closing) { tokens.push({ t: 'br' }); last = re.lastIndex; continue; }
+          if (!closing) {
+            if (tag === 'b') stack.push({ bold: true });
+            else if (tag === 'color' || tag === 'c') {
+              const m1 = attrs.match(/=\s*(['"]?)(#[0-9a-fA-F]{3,8}|0x[0-9a-fA-F]+|[a-zA-Z]+)\1/);
+              const col = parseColorVal(m1 ? m1[2] : undefined);
+              stack.push({ color: col });
+            } else if (tag === 'span') {
+              let col: any;
+              const m2 = attrs.match(/\bcolor\s*=\s*['"]([^'\"]+)['"]/i);
+              if (m2) col = parseColorVal(m2[1]);
+              const m3 = attrs.match(/style\s*=\s*['"][^'\"]*color\s*:\s*([^;'\"]+)/i);
+              if (!col && m3) col = parseColorVal(m3[1]);
+              stack.push({ color: col });
+            }
+          } else {
+            // pop until matching tag type or stack empty
+            if (tag === 'b') {
+              for (let i = stack.length - 1; i >= 0; i--) { if (stack[i].bold) { stack.splice(i, 1); break; } }
+            } else {
+              for (let i = stack.length - 1; i >= 0; i--) { if (stack[i].color != null) { stack.splice(i, 1); break; } }
+            }
+          }
+          last = re.lastIndex;
+        }
+        if (last < src.length) pushText(src.slice(last));
+        // Split tokens by explicit newlines
+        const expanded: Array<{ t: 'text'|'br'; text?: string; style?: any }> = [];
+        tokens.forEach(tok => {
+          if (tok.t === 'br') { expanded.push(tok); return; }
+          const parts = String(tok.text || '').split(/\n/);
+          for (let i = 0; i < parts.length; i++) {
+            if (i > 0) expanded.push({ t: 'br' });
+            if (parts[i]) expanded.push({ t: 'text', text: parts[i], style: tok.style });
+          }
+        });
+        // Layout lines without auto word-wrap (respect explicit breaks)
+        let x = 0, y = 0, lineH = Math.ceil(baseStyle.lineHeight || baseStyle.fontSize || 16);
+        const align = String(baseStyle.align || 'left');
+        const lines: Array<Array<any>> = [[]];
+        expanded.forEach(tok => {
+          if (tok.t === 'br') { lines.push([]); return; }
+          const st = { ...baseStyle };
+          if (tok.style?.bold) st.fontWeight = 'bold';
+          if (tok.style?.color != null) st.fill = tok.style.color;
+          const t = new P.Text(tok.text || '', st);
+          (t as any).__segment = true;
+          lines[lines.length - 1].push(t);
+        });
+        // measure and place
+        y = 0;
+        lines.forEach((arr) => {
+          x = 0; lineH = 0;
+          // total line width for alignment
+          let lineW = 0; arr.forEach((t: any) => { lineW += Math.ceil(t.width); lineH = Math.max(lineH, Math.ceil(t.height)); });
+          let startX = 0;
+          if (align === 'center' && wrapWidth != null) startX = Math.max(0, Math.round((wrapWidth - lineW) / 2));
+          else if (align === 'right' && wrapWidth != null) startX = Math.max(0, Math.round((wrapWidth - lineW)));
+          x = startX;
+          arr.forEach((t: any) => { t.x = x; t.y = y; cont.addChild(t); x += Math.ceil(t.width); });
+          y += (lineH > 0 ? lineH : (baseStyle.lineHeight || baseStyle.fontSize || 16));
+        });
+        return cont;
+      };
+      const contentText = String((config as any).content || '');
+      if (hasMarkup(contentText)) {
+        node = buildRichText(contentText, textStyle);
+      } else {
+        const text = new P.Text(contentText, textStyle);
+        node = text;
+      }
     } else {
       // fallback container
       node = new P.Container();
@@ -153,6 +254,25 @@ export class PixiRendererManager implements IRendererManager {
     } catch {}
     this.elements.set(config.id, node);
 
+    // If an exclusive interactive lock is active for another id,
+    // immediately disable interactivity for this newly created node
+    if (this.exclusiveInteractiveId && this.exclusiveInteractiveId !== config.id) {
+      try {
+        if (!this.savedInteraction.has(config.id)) {
+          this.savedInteraction.set(config.id, {
+            mode: (node as any).eventMode,
+            interactive: (node as any).interactive,
+            interactiveChildren: (node as any).interactiveChildren,
+            hitArea: (node as any).hitArea
+          });
+        }
+        if ('eventMode' in (node as any)) (node as any).eventMode = 'none';
+        if ('interactive' in (node as any)) (node as any).interactive = false;
+        if ('interactiveChildren' in (node as any)) (node as any).interactiveChildren = false;
+        if ('hitArea' in (node as any)) (node as any).hitArea = null;
+      } catch {}
+    }
+
     const self = this;
     return {
       id: config.id,
@@ -175,20 +295,82 @@ export class PixiRendererManager implements IRendererManager {
   updateElement(id: string, updates: Partial<ElementConfig>): void {
     const node = this.elements.get(id);
     if (!node) return;
+    // Apply anchor-related style first to avoid visual shift after position is set
+    if (updates.style && (node as any).anchor) {
+      const st: any = updates.style;
+      if (st.anchorCenter) (node as any).anchor.set(0.5);
+      const ax = st.anchorX; const ay = st.anchorY;
+      if (ax != null || ay != null) (node as any).anchor.set(ax ?? (node as any).anchor.x ?? 0, ay ?? (node as any).anchor.y ?? 0);
+    }
     if (updates.position) { node.x = (updates.position.x ?? node.x); node.y = (updates.position.y ?? node.y); }
     if (updates.size && node.width !== undefined) {
       const rw: any = (updates.size as any).width;
       const rh: any = (updates.size as any).height;
       const w = (rw != null) ? Number(rw) : undefined;
       const h = (rh != null) ? Number(rh) : undefined;
-      if (Number.isFinite(w as any) && (w as any) > 0) node.width = Math.round(w as any);
-      if (Number.isFinite(h as any) && (h as any) > 0) node.height = Math.round(h as any);
-      try { (node as any).__sizeLocked = true; (node as any).__baseScale = { x: (node as any).scale?.x ?? 1, y: (node as any).scale?.y ?? 1 }; } catch {}
+      let applied = false;
+      if (Number.isFinite(w as any) && (w as any) > 0) { node.width = Math.round(w as any); applied = true; }
+      if (Number.isFinite(h as any) && (h as any) > 0) { node.height = Math.round(h as any); applied = true; }
+      if (applied) { try { (node as any).__sizeLocked = true; (node as any).__baseScale = { x: (node as any).scale?.x ?? 1, y: (node as any).scale?.y ?? 1 }; } catch {} }
     }
     if (updates.visible != null) node.visible = updates.visible;
     if (updates.rotation != null) node.rotation = updates.rotation;
     if (updates.scale && node.scale) { node.scale.x = updates.scale.x ?? node.scale.x; node.scale.y = updates.scale.y ?? node.scale.y; }
-    if (updates.type === 'text' && (updates as any).content !== undefined) { node.text = (updates as any).content; }
+    if (updates.type === 'text' && (updates as any).content !== undefined) {
+      const content = (updates as any).content;
+      if ((node as any).__isRichText) {
+        try {
+          const base = (node as any).__richBaseStyle || {};
+          const wrapWidth = (node as any).__wrapWidth;
+          const P = this.pixi;
+          // rebuild children
+          while (node.children?.length) { try { node.removeChild(node.children[node.children.length - 1]); } catch {} }
+          const builder = (contentText: string, baseStyle: any) => {
+            // reuse same simple builder as in createElement
+            const hasMarkup = (s: any) => { try { const t = String(s || ''); return /<\/?(b|color|c|span|br)\b/i.test(t); } catch { return false; } };
+            const parseColorVal = (raw: string | undefined): any => {
+              if (!raw) return undefined; const s = String(raw).trim();
+              if (s.startsWith('#')) { const hex = s.length === 4 ? ('#' + s[1]+s[1]+s[2]+s[2]+s[3]+s[3]) : s; return parseInt('0x' + hex.slice(1)); }
+              if (/^0x/i.test(s)) { try { return parseInt(s); } catch { return s; } }
+              return s;
+            };
+            const tokens: Array<{ t: 'text'|'br'; text?: string; style?: any }> = [];
+            const stack: Array<{ bold?: boolean; color?: any }> = [];
+            const cur = () => ({ bold: stack.some(s => s.bold), color: (() => { for (let i = stack.length - 1; i >= 0; i--) { if (stack[i].color != null) return stack[i].color; } return undefined; })() });
+            const pushText = (s: string) => { if (!s) return; tokens.push({ t: 'text', text: s, style: cur() }); };
+            const src = String(contentText || '');
+            const re = /<\/?(b|color|c|span|br)([^>]*)>/ig; let last = 0; let m: RegExpExecArray | null;
+            while ((m = re.exec(src))) {
+              if (m.index > last) pushText(src.slice(last, m.index));
+              const closing = src[m.index + 1] === '/'; const tag = m[1].toLowerCase(); const attrs = m[2] || '';
+              if (tag === 'br' && !closing) { tokens.push({ t: 'br' }); last = re.lastIndex; continue; }
+              if (!closing) {
+                if (tag === 'b') stack.push({ bold: true });
+                else if (tag === 'color' || tag === 'c') { const m1 = attrs.match(/=\s*(['"]?)(#[0-9a-fA-F]{3,8}|0x[0-9a-fA-F]+|[a-zA-Z]+)\1/); const col = parseColorVal(m1 ? m1[2] : undefined); stack.push({ color: col }); }
+                else if (tag === 'span') { let col: any; const m2 = attrs.match(/\bcolor\s*=\s*['"]([^'\"]+)['"]/i); if (m2) col = parseColorVal(m2[1]); const m3 = attrs.match(/style\s*=\s*['"][^'\"]*color\s*:\s*([^;'\"]+)/i); if (!col && m3) col = parseColorVal(m3[1]); stack.push({ color: col }); }
+              } else {
+                if (tag === 'b') { for (let i = stack.length - 1; i >= 0; i--) { if (stack[i].bold) { stack.splice(i, 1); break; } } }
+                else { for (let i = stack.length - 1; i >= 0; i--) { if (stack[i].color != null) { stack.splice(i, 1); break; } } }
+              }
+              last = re.lastIndex;
+            }
+            if (last < src.length) pushText(src.slice(last));
+            const expanded: Array<{ t: 'text'|'br'; text?: string; style?: any }> = [];
+            tokens.forEach(tok => { if (tok.t === 'br') { expanded.push(tok); return; } const parts = String(tok.text || '').split(/\n/); for (let i=0;i<parts.length;i++){ if(i>0) expanded.push({t:'br'}); if(parts[i]) expanded.push({t:'text', text: parts[i], style: tok.style}); } });
+            // lay out again
+            let x = 0, y = 0, lineH = Math.ceil(base.lineHeight || base.fontSize || 16);
+            const align = String(base.align || 'left');
+            const lines: Array<Array<any>> = [[]];
+            expanded.forEach(tok => { if (tok.t==='br'){ lines.push([]); return;} const st = { ...base }; if (tok.style?.bold) st.fontWeight = 'bold'; if (tok.style?.color != null) st.fill = tok.style.color; const t = new P.Text(tok.text || '', st); (t as any).__segment = true; lines[lines.length-1].push(t); });
+            y = 0; lines.forEach((arr) => { x = 0; lineH = 0; let lineW = 0; arr.forEach((t:any)=>{ lineW += Math.ceil(t.width); lineH = Math.max(lineH, Math.ceil(t.height)); }); let startX = 0; if (align==='center' && wrapWidth != null) startX = Math.max(0, Math.round((wrapWidth - lineW)/2)); else if (align==='right' && wrapWidth != null) startX = Math.max(0, Math.round((wrapWidth - lineW))); x = startX; arr.forEach((t:any)=>{ t.x = x; t.y = y; node.addChild(t); x += Math.ceil(t.width); }); y += (lineH>0? lineH : (base.lineHeight || base.fontSize || 16)); });
+          };
+          (node as any).__rawText = content;
+          builder(String(content ?? ''), base);
+        } catch {}
+      } else {
+        node.text = content;
+      }
+    }
     if (updates.style && node.style) {
       const st: any = updates.style;
       if (st.fill || st.color) node.style.fill = (st.fill || st.color);
@@ -213,13 +395,42 @@ export class PixiRendererManager implements IRendererManager {
       if (st.dropShadowAngle != null) node.style.dropShadowAngle = Number(st.dropShadowAngle);
       if (st.dropShadowDistance != null) node.style.dropShadowDistance = Number(st.dropShadowDistance);
     }
-    // allow sprite anchor updates via style
-    if (updates.style && (node as any).anchor) {
+    // Apply generic style.zIndex even for non-text nodes
+    if (updates.style) {
       const st: any = updates.style;
-      if (st.anchorCenter) (node as any).anchor.set(0.5);
-      const ax = st.anchorX; const ay = st.anchorY;
-      if (ax != null || ay != null) (node as any).anchor.set(ax ?? (node as any).anchor.x ?? 0, ay ?? (node as any).anchor.y ?? 0);
+      if (st.zIndex != null) {
+        try { (node as any).zIndex = Number(st.zIndex); (node as any).parent?.sortChildren?.(); } catch {}
+      }
     }
+    // Update rich text base style if applicable
+    if (updates.style && (node as any).__isRichText) {
+      try {
+        const base = (node as any).__richBaseStyle || {};
+        const next = { ...base };
+        const st: any = updates.style;
+        if (st.fill || st.color) next.fill = (st.fill || st.color);
+        if (st.fontSize) next.fontSize = parseInt(String(st.fontSize));
+        if (st.textAlign || st.align) next.align = st.textAlign || st.align;
+        if (st.lineHeight) next.lineHeight = parseInt(String(st.lineHeight));
+        if (st.fontFamily || st.font) next.fontFamily = st.fontFamily || st.font;
+        if (st.stroke || st.strokeColor || st.strokeThickness != null) {
+          if (st.stroke || st.strokeColor) next.stroke = st.stroke || st.strokeColor;
+          if (st.strokeThickness != null) next.strokeThickness = parseInt(String(st.strokeThickness));
+        }
+        if (st.dropShadow != null) next.dropShadow = !!st.dropShadow;
+        if (st.dropShadowColor) next.dropShadowColor = st.dropShadowColor;
+        if (st.dropShadowBlur != null) next.dropShadowBlur = parseInt(String(st.dropShadowBlur));
+        if (st.dropShadowAngle != null) next.dropShadowAngle = Number(st.dropShadowAngle);
+        if (st.dropShadowDistance != null) next.dropShadowDistance = Number(st.dropShadowDistance);
+        (node as any).__richBaseStyle = next;
+        // re-render with current raw text
+        const raw = (node as any).__rawText;
+        if (raw != null) {
+          this.updateElement(id, { type: 'text', content: raw } as any);
+        }
+      } catch {}
+    }
+    // note: anchor updates handled before position
   }
 
   removeElement(id: string): void {

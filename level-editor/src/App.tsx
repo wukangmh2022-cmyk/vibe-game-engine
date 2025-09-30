@@ -1169,7 +1169,13 @@ const App: React.FC = () => {
         onLoadJson={handleLoadJson}
         onSaveJson={handleSaveJson}
         isPlaying={appState.isPlaying}
-        onPlayToggle={(playing: boolean) => setAppState(prev => ({ ...prev, isPlaying: playing }))}
+        onPlayToggle={(playing: boolean) => {
+          // Auto-save whenever preview starts playing (or re-playing)
+          if (playing) {
+            try { handleSaveJson(); } catch {}
+          }
+          setAppState(prev => ({ ...prev, isPlaying: playing }));
+        }}
         onLoadTestData={handleLoadTestData}
         onShowAIGenerate={openAIGenerate}
         onExitToHome={() => {
@@ -1447,6 +1453,16 @@ const App: React.FC = () => {
         isOpen={!!appState.isAIGenerateOpen}
         currentLevel={(currentLevel as any) || { id: 'level1', name: '关卡1', commands: [], resources: [] }}
         project={appState.currentProject}
+        currentViewRawCommands={(() => {
+          try {
+            const lv: any = currentLevel as any;
+            if (appState.selectedEventId && lv && Array.isArray(lv.events)) {
+              const ev = lv.events.find((e: any) => (e?.id || '') === appState.selectedEventId);
+              if (ev && Array.isArray(ev.commands)) return ev.commands;
+            }
+            return (lv && Array.isArray(lv.rawCommands)) ? lv.rawCommands : [];
+          } catch { return []; }
+        })()}
         onCancel={closeAIGenerate}
         onApplyCommands={(cmds) => {
           // AI 生成的 commands JSON → 写回当前关卡（替换 commands 列表）

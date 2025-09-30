@@ -57,9 +57,10 @@ export class ShowImageHandler extends BaseCommandHandler {
             if (P) {
               const oldTex: any = (existing as any).texture;
               const newTex = P.Texture.from(src);
-              (existing as any).texture = newTex;
-              // Proactively destroy previous texture to release GPU/VRAM
-              try { oldTex?.destroy?.(true); } catch {}
+              // If it's the same cached Texture instance, skip reassigning/destroying
+              if (oldTex !== newTex) {
+                (existing as any).texture = newTex;
+              }
             }
           }
         } catch {}
@@ -71,17 +72,62 @@ export class ShowImageHandler extends BaseCommandHandler {
         // position (only when provided)
         if (params.position && (params.position.x != null || params.position.y != null)) {
           updates.position = { x: params.position.x, y: params.position.y } as any;
-        } else if (params.x != null || params.y != null) {
+        } else if (params.x != null || params.y != null || (parentId && align === 'center')) {
           updates.position = { x, y } as any;
         }
-        // size
-        if (width != null || height != null) {
-          updates.size = { width, height } as any;
+        // size (ignore 0/negatives)
+        const wEff = (width != null && Number(width) > 0) ? Number(width) : undefined;
+        const hEff = (height != null && Number(height) > 0) ? Number(height) : undefined;
+        if (wEff != null || hEff != null) updates.size = { width: wEff as any, height: hEff as any } as any;
+        // visibility: 默认让 SHOW_IMAGE 让元素可见（若未显式传 false）
+        (updates as any).visible = (params.visible != null) ? !!params.visible : true;
+        // 恢复 scale/alpha（若之前被用于隐藏）
+        const hasScaleFromStyle = mergedStyle && (mergedStyle.scale != null || mergedStyle.scaleX != null || mergedStyle.scaleY != null);
+        if ((updates as any).visible === true && !hasScaleFromStyle) {
+          try {
+            const sx = (existing as any).scale?.x; const sy = (existing as any).scale?.y;
+            if (typeof sx === 'number' && typeof sy === 'number' && (Math.abs(sx) < 1e-3 || Math.abs(sy) < 1e-3)) {
+              (updates as any).scale = { x: 1, y: 1 } as any;
+            }
+            const a = (existing as any).alpha;
+            if (typeof a === 'number' && a <= 1e-3 && (mergedStyle == null || (mergedStyle as any).opacity == null)) {
+              (existing as any).alpha = 1;
+            }
+          } catch {}
         }
-        // visibility
-        if (params.visible != null) (updates as any).visible = !!params.visible;
         if (Object.keys(mergedStyle).length) (updates as any).style = mergedStyle;
-        rm.updateElement?.(elementId, updates);
+        // Apply updates; if renderer throws (rare), fallback to safe recreate
+        try {
+          rm.updateElement?.(elementId, updates);
+        } catch (e) {
+          try {
+            context.logger?.warn?.('updateElement failed, fallback to recreate', { elementId, updates, error: (e as any)?.message || String(e) });
+          } catch {}
+          try { rm.removeElement?.(elementId); } catch {}
+          const visibleParam2 = (params.hidden === true) ? false : (params.visible != null ? !!params.visible : true);
+          const recreate: ElementConfig = {
+            id: elementId,
+            type: 'image',
+            position: { x, y },
+            src,
+            visible: visibleParam2,
+            parentId,
+            style: Object.keys(mergedStyle).length ? mergedStyle : undefined
+          };
+          if (width && height && Number(width) > 0 && Number(height) > 0) recreate.size = { width, height } as any;
+          try { context.renderManager.createElement(recreate); } catch {}
+        }
+        // 记录对齐信息：若 align=center 且指定了 parentId，保存偏移用于后续显示/隐藏切换时保持居中
+        try {
+          if (parentId && align === 'center') {
+            const node2 = rm?.getNode ? rm.getNode(elementId) : null;
+            if (node2) {
+              (node2 as any).__alignCenterParentId = parentId;
+              (node2 as any).__alignOffsetX = (params.x ?? (params.position?.x ?? 0)) || 0;
+              (node2 as any).__alignOffsetY = (params.y ?? (params.position?.y ?? 0)) || 0;
+            }
+          }
+        } catch {}
         // Non-blocking animations (entry/loop) still apply if provided
         await this.applyAnimationsIfAny(elementId, params, context);
         return this.createSuccessResult({ elementId, updated: true, position: updates.position || { x: existing.x, y: existing.y } });
@@ -139,6 +185,17 @@ export class ShowImageHandler extends BaseCommandHandler {
       }
 
       const element = context.renderManager.createElement(elementConfig);
+      // 记录对齐信息（用于后续显示/隐藏切换时维持居中偏移）
+      try {
+        if (parentId && align === 'center') {
+          const node0 = (context.renderManager as any)?.getNode?.(elementId);
+          if (node0) {
+            (node0 as any).__alignCenterParentId = parentId;
+            (node0 as any).__alignOffsetX = (params.x ?? (params.position?.x ?? 0)) || 0;
+            (node0 as any).__alignOffsetY = (params.y ?? (params.position?.y ?? 0)) || 0;
+          }
+        }
+      } catch {}
       // 播放基于资源脚本的入场/循环动画（可选）
       await this.applyAnimationsIfAny(elementId, params, context);
       return this.createSuccessResult({ elementId, src: src || null, resourceId: resourceId || null, position: { x, y } });

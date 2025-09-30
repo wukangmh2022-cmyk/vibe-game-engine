@@ -24,6 +24,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'style.display', label: '显示(display)', type: 'select', required: false, defaultValue: '', options: [
         { value: '', label: '不修改' }, { value: 'block', label: 'block' }, { value: 'none', label: 'none' }
       ], description: '是否显示该元素' },
+      { name: 'style.zIndex', label: '层级(zIndex)', type: 'number', required: false, description: '显示层级，数值越大越靠上' },
       { name: 'style.scale', label: '缩放(scale)', type: 'number', required: false, description: '统一缩放（例如 0.6）' }
     ]
   },
@@ -147,6 +148,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'elementId', label: '元素ID', type: 'text', required: true },
       { name: 'selectable', label: '启用可选中', type: 'boolean', required: false, defaultValue: true },
       { name: 'variableKey', label: '绑定变量名', type: 'text', required: false, description: '自动把选中状态写入此变量(true/false)' },
+      { name: 'singleSelect', label: '单选', type: 'boolean', required: false, defaultValue: false, description: '开启后，新的选中会自动取消上一个元素的选中（基于上次变更的元素ID）' },
       { name: 'overlayResourceId', label: '选中覆盖图', type: 'resource', required: false, resourceKind: 'image' },
       { name: 'effect', label: '选中特效动画', type: 'resource', required: false, resourceKind: 'animation', description: '可选：选中时播放的动画资源（不选则为内置“呼吸”效果）' }
       // 子命令 onSelected/onCancelSelected 在指令树中编辑
@@ -335,7 +337,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#3F51B5',
     spawnsElement: true,
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（默认等于指令ID，可修改）' },
       { name: 'blocking', label: '阻塞后续', type: 'boolean', required: false, defaultValue: true },
       { name: 'position.x', label: 'X坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'position.y', label: 'Y坐标', type: 'number', required: false, defaultValue: 0 },
@@ -376,7 +378,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#9C27B0',
     spawnsElement: true,
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（默认等于指令ID，可修改）' },
       { name: 'mediaType', label: '媒体类型', type: 'select', required: true, defaultValue: 'video', options: [
         { value: 'video', label: '视频' }
       ], description: '媒体类型' },
@@ -401,7 +403,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#2196F3',
     spawnsElement: true,
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（编辑器自动填充）', ...( { editorHidden: true } as any) },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（默认等于指令ID，可修改）' },
       {
         name: 'text',
         label: '文本内容',

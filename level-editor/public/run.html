@@ -18,12 +18,22 @@
   <div class="hint">Vibe Runtime — 自动从当前目录读取 config.json 与 scene/*</div>
 
   <script>
-    // 以 run.html 所在目录作为项目根：假定与 config.json 同目录，场景在 scene/ 下
+    // 设置项目根：默认用 run.html 所在目录；支持通过 ?base= 指定（可相对/绝对）
     (function() {
       function dirOf(pathname) { return pathname.replace(/[^\/]*$/, ''); }
+      function ensureSlashEnd(s) { return s.endsWith('/') ? s : (s + '/'); }
       const here = dirOf(location.pathname);
-      // 提供给运行时资源解析
-      window.__ASSET_BASE__ = here;
+      const params = new URLSearchParams(location.search);
+      let base = params.get('base');
+      if (base && base.trim()) {
+        // 相对路径相对于 run.html 所在目录
+        if (!/^\//.test(base)) base = here + base.replace(/^\.\//,'');
+        window.__ASSET_BASE__ = ensureSlashEnd(base);
+      } else {
+        // 默认加载当前仓库根下的 00project
+        // 若不存在可用，再手动改 ?base= 指定
+        window.__ASSET_BASE__ = '/00project/';
+      }
     })();
   </script>
 
@@ -81,6 +91,36 @@
           // 先拉取 JSON，读取 canvas 宽高决定初始容器尺寸
           const res = await fetch(url, { cache: 'no-cache' });
           const game = await res.json();
+          // 预处理：从 config.json 注入 skins，并规范化资源 URL；暴露 __VFS_GET_URL__
+          try {
+            const ensureSlashEnd = (s) => s.endsWith('/') ? s : (s + '/');
+            const base = ensureSlashEnd(window.__ASSET_BASE__ || (location.pathname.replace(/[^\/]*$/, '')));
+            try {
+              const cfgRes = await fetch(base + 'config.json', { cache: 'no-cache' });
+              if (cfgRes.ok) {
+                const cfg = await cfgRes.json();
+                const skins = (cfg && (cfg.skins || (cfg.resources && cfg.resources.skins))) || [];
+                if (Array.isArray(skins) && skins.length) game.skins = skins;
+              }
+            } catch {}
+            const ensureAbs = (u) => {
+              if (!u) return u;
+              if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(u) || u.startsWith('/') || u.startsWith('../')) return u;
+              const clean = String(u).replace(/^\.\//, '').replace(/^\/+/, '');
+              return base + clean;
+            };
+            const normArr = (arr) => { if (Array.isArray(arr)) arr.forEach(r => { if (r && (r.url || r.src)) r.url = ensureAbs(r.url || r.src); }); };
+            if (Array.isArray(game.resources)) {
+              game.resources.forEach(r => { if (r && (r.url || r.src)) r.url = ensureAbs(r.url || r.src); });
+            } else if (game.resources && typeof game.resources === 'object') {
+              normArr(game.resources.images);
+              normArr(game.resources.animations);
+              normArr(game.resources.audios);
+              normArr(game.resources.videos);
+            }
+            if (Array.isArray(game.skins)) game.skins.forEach(s => { if (s && s.url) s.url = ensureAbs(s.url); });
+            window.__VFS_GET_URL__ = async (rel) => { const clean = String(rel||'').replace(/^\.\//,'').replace(/^\/+/, ''); return base + clean; };
+          } catch {}
           const w = (game?.levels?.[0]?.canvasWidth) || 800;
           const h = (game?.levels?.[0]?.canvasHeight) || 600;
           appEl.style.width = w + 'px'; appEl.style.height = h + 'px';
@@ -106,8 +146,25 @@
 
       const url = window.__GAME_JSON_URL__CANDIDATE__ || (window.__ASSET_BASE__ + 'scene/entry.json');
       await loadGame(url);
+
+      // 接收运行时触发的场景跳转（bootstrap 会用 postMessage 通知）
+      window.addEventListener('message', (ev) => {
+        try {
+          const msg = ev?.data || {};
+          if (msg && msg.type === 'LOAD_GAME_JSON') {
+            const raw = msg.payload;
+            if (!raw) return;
+            let next = String(raw);
+            // 相对路径时以 __ASSET_BASE__ 作为根
+            if (!/^([a-zA-Z][a-zA-Z0-9+.-]*:|\/)/.test(next)) {
+              const base = window.__ASSET_BASE__ || '/';
+              next = base.endsWith('/') ? (base + next.replace(/^\.\//, '')) : (base + '/' + next.replace(/^\.\//, ''));
+            }
+            loadGame(next);
+          }
+        } catch {}
+      });
     })();
   </script>
 </body>
 </html>
-

@@ -10,6 +10,8 @@ interface AIGenerateModalProps {
   project: GameProject | null;
   onCancel: () => void;
   onApplyCommands: (commandsJson: any[]) => void; // 将生成的 JSON 写回当前关卡
+  // 新增：引用“当前视图”（主流程或事件页）的原始命令
+  currentViewRawCommands?: any[];
 }
 
 // 填入你的 OpenRouter API Key（临时硬编码，稍后可替换）
@@ -22,6 +24,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
   project,
   onCancel,
   onApplyCommands,
+  currentViewRawCommands,
 }) => {
   const [prompt, setPrompt] = useState('');
   const [includeExisting, setIncludeExisting] = useState<boolean>(false);
@@ -33,12 +36,15 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
   const [copied, setCopied] = useState<boolean>(false);
   const [guideCache, setGuideCache] = useState<string>('');
 
-  // 当前关卡可用资源（以文本显示：id, path/src）
+  // 当前关卡可用资源（以文本显示：id, path/src）。
+  // 修复：当关卡未配置 resources 时，回退为项目全量资源列表（避免仅第一个关卡生效的问题）。
   const levelResources = useMemo(() => {
-    const ids = (currentLevel?.resources || []) as string[];
     const all = (project?.resources || []) as any[];
     const map = new Map(all.map((r: any) => [r.id, r]));
-    return ids
+    const levelIds = Array.isArray((currentLevel as any)?.resources) && (currentLevel as any).resources.length > 0
+      ? ((currentLevel as any).resources as string[])
+      : all.map((r: any) => r.id);
+    return levelIds
       .map((id) => map.get(id))
       .filter(Boolean)
       .map((r: any) => ({ id: r.id, path: r.path || r.src || '', type: r.type || 'resource', url: r.src || r.path || '' }));
@@ -48,12 +54,13 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     if (isOpen) {
       setError(null);
       setLastOutput('');
-      // 默认：如果当前有指令则勾选“引用当前关卡指令”
-      const has = Array.isArray((currentLevel as any)?.rawCommands) && (currentLevel as any).rawCommands.length > 0;
+      // 默认：如果当前视图有指令则勾选“引用当前关卡指令”（支持事件页或主流程）
+      const cur = Array.isArray(currentViewRawCommands) ? currentViewRawCommands : (currentLevel as any)?.rawCommands;
+      const has = Array.isArray(cur) && cur.length > 0;
       setIncludeExisting(has);
       setSelectedResIds([]);
     }
-  }, [isOpen, currentLevel]);
+  }, [isOpen, currentLevel, currentViewRawCommands]);
 
   // 选中的图片资源：预加载以获取宽高
   useEffect(() => {
@@ -146,22 +153,19 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
       userParts.push(selectedResourceTexts());
     }
 
-    // 附：列出当前关卡全部可用资源（类型/ID/路径），便于模型全局参考
-    if ((project?.resources || []).length > 0 && (currentLevel?.resources || []).length > 0) {
-      const allLines = (currentLevel.resources as string[])
-        .map((rid) => levelResources.find(r => r.id === rid))
-        .filter(Boolean)
+    // 附：列出当前可用资源（若关卡未配置 resources，则展示项目全量，已在 levelResources 处理过）
+    if (levelResources.length > 0) {
+      const allLines = levelResources
         .map((r: any) => `- [${typeToZh(r.type)}] id: ${r.id} | path: ${r.path}`)
         .join('\n');
-      if (allLines) {
-        userParts.push('\n【关卡可用资源（全部）】');
-        userParts.push(allLines);
-      }
+      userParts.push('\n【关卡可用资源（全部）】');
+      userParts.push(allLines);
     }
 
-    if (includeExisting && Array.isArray((currentLevel as any)?.rawCommands)) {
+    const curRaw = Array.isArray(currentViewRawCommands) ? currentViewRawCommands : (currentLevel as any)?.rawCommands;
+    if (includeExisting && Array.isArray(curRaw)) {
       try {
-        const raw = JSON.stringify((currentLevel as any).rawCommands, null, 2);
+        const raw = JSON.stringify(curRaw, null, 2);
         userParts.push('\n【当前关卡现有命令（可在其基础上优化）】');
         // 避免太长，放在 text chunk 内部即可
         userParts.push(raw);
@@ -410,7 +414,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
             />
 
             <div className="ai-radio-row">
-              <label>是否引用当前关卡指令：</label>
+              <label>是否引用当前指令树列表：</label>
               <label><input type="radio" name="includeExisting" checked={includeExisting} onChange={()=>setIncludeExisting(true)} /> 是</label>
               <label><input type="radio" name="includeExisting" checked={!includeExisting} onChange={()=>setIncludeExisting(false)} /> 否</label>
             </div>

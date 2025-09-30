@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CommandTemplate, CommandParameterDef, GameProject } from '../types';
 import './CommandParameterEditor.css';
+import vfs from '../utils/vfs';
 
 interface CommandParameterEditorProps {
   template: CommandTemplate;
@@ -21,6 +22,9 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
 }) => {
   const [params, setParams] = useState<Record<string, any>>(initialParams);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // SHOW_IMAGE: original image size + proportional scale UI
+  const [origImageSize, setOrigImageSize] = useState<{ w: number; h: number } | null>(null);
+  const [imageScale, setImageScale] = useState<number>(1);
 
   useEffect(() => {
     // Merge template defaults into initial parameters (dot-path aware),
@@ -66,6 +70,53 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     setParams(merged);
   }, [initialParams, template]);
 
+  // Load original image size for SHOW_IMAGE
+  useEffect(() => {
+    try {
+      const tUpper = String((template as any).type || '').toUpperCase();
+      if (tUpper !== 'SHOW_IMAGE') { setOrigImageSize(null); return; }
+      const rid = ((params || {}) as any)?.resourceId;
+      if (!rid || !project?.resources) { setOrigImageSize(null); return; }
+      const res: any = (project.resources as any[]).find((r: any) => r.id === rid);
+      if (!res) { setOrigImageSize(null); return; }
+      const loadUrl = async (): Promise<string | undefined> => {
+        const path = String((res.path || res.src || '') || '');
+        if (!path) return undefined;
+        try {
+          // prefer VFS-provided URL when available
+          const v = vfs.getResourceURL(path);
+          if (v) return v;
+        } catch {}
+        return res.src || res.url || path;
+      };
+      (async () => {
+        const url = await loadUrl();
+        if (!url) { setOrigImageSize(null); return; }
+        const img = new Image();
+        img.onload = () => {
+          setOrigImageSize({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
+        };
+        img.onerror = () => setOrigImageSize(null);
+        img.src = url;
+      })();
+    } catch { setOrigImageSize(null); }
+  }, [template, params?.resourceId, project]);
+
+  // Compute current scale based on width/height vs original size
+  useEffect(() => {
+    try {
+      const tUpper = String((template as any).type || '').toUpperCase();
+      if (tUpper !== 'SHOW_IMAGE') return;
+      const w = Number(getByPath(params, 'size.width'));
+      if (origImageSize && origImageSize.w > 0 && !isNaN(w) && w > 0) {
+        const s = Math.max(0, Math.min(5, w / origImageSize.w));
+        setImageScale(Number(s.toFixed(2)));
+      } else {
+        setImageScale(1);
+      }
+    } catch {}
+  }, [params?.size?.width, origImageSize, template]);
+
   // 从项目中提取变量和开关列表
   const getVariableOptions = () => {
     if (!project?.globalVariables) return [];
@@ -95,6 +146,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           const t = String((node?.type || '')).toUpperCase();
           const p = (node?.parameters || {}) as any;
           if (t === 'SET_VARIABLE' && p?.key) push(p.key, typeof p.value === 'number' ? 'number' : typeof p.value === 'boolean' ? 'boolean' : undefined);
+          if (t === 'SET_SELECTABLE' && p?.variableKey) push(p.variableKey, 'boolean');
           if (t === 'SET_SWITCH' && p?.key) push(p.key, 'boolean');
           const nested: any[][] = [];
           if (Array.isArray(p.commands)) nested.push(p.commands);
@@ -104,7 +156,10 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           nested.forEach(visit);
         }
       };
-      for (const lv of levels) visit((lv as any).rawCommands || (lv as any).commands || []);
+      for (const lv of levels) {
+        visit((lv as any).rawCommands || (lv as any).commands || []);
+        try { const evs = (lv as any).events || []; evs.forEach((ev: any) => visit(ev?.commands || [])); } catch {}
+      }
     } catch {}
     return out;
   };
@@ -166,6 +221,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
             const op = String(p.op || 'set').toLowerCase();
             if (op === 'add' || op === 'sub' || op === 'mul' || op === 'div') return 'number';
           }
+          if (t === 'SET_SELECTABLE' && p && p.variableKey === key) return 'boolean';
           if (t === 'SET_SWITCH' && p && p.key === key) return 'boolean';
           // Recurse into known nested arrays
           const nestedArrays: any[][] = [];
@@ -184,6 +240,12 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         const cmds = (lv as any).rawCommands || (lv as any).commands || [];
         const r = visitList(cmds);
         if (r) return r;
+        // also scan events
+        const evs = (lv as any).events || [];
+        for (const ev of evs) {
+          const r2 = visitList(ev?.commands || []);
+          if (r2) return r2;
+        }
       }
     } catch {}
     return undefined;
@@ -336,7 +398,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         if (!curId) normalized = setByPath(normalized, 'id', commandId);
       }
     } catch {}
-    // IF_CONDITION 值类型规范化：按变量/开关真实类型落盘（运行时不再做隐式转换）
+    // IF_CONDITION 值类型规范化：按变量/开关真实类型落盘；若未知类型，按用户输入自动识别 true/false/number
     try {
       const typeUp = String((template as any).type || '').toUpperCase();
       if (typeUp === 'IF_CONDITION') {
@@ -362,7 +424,10 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           } else if (targetType === 'boolean') {
             out = (text.toLowerCase() === 'true' || text === '1' || text.toLowerCase() === 'yes' || text.toLowerCase() === 'on');
           } else {
-            out = text; // 目标类型为字符串
+            // Unknown: try to coerce obvious bool/number, else keep string
+            if (/^(true|false)$/i.test(text)) out = /^true$/i.test(text);
+            else if (/^-?\d+(?:\.\d+)?$/.test(text)) out = Number(text);
+            else out = text; // 字符串
           }
         }
         normalized = setByPath(normalized, 'condition.value', out);
@@ -432,15 +497,29 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         );
       }
     }
-    const isCheckInArea = String((template as any).type || '').toUpperCase() === 'CHECK_IN_AREA';
+    const templateTypeUp = String((template as any).type || '').toUpperCase();
+    const isCheckInArea = templateTypeUp === 'CHECK_IN_AREA';
     const areaHintNeeded = isCheckInArea && (param.name === 'area.height');
     switch (param.type) {
       case 'text':
         // 在 IF_CONDITION.condition.key 以及 SET_VARIABLE/SET_SWITCH.key 提供变量下拉/自动完成（datalist，不限制新建）
-        if (
-          param.name === 'condition.key' ||
-          (param.name === 'key' && ['SET_VARIABLE','SET_SWITCH'].includes(String((template as any).type || '').toUpperCase()))
-        ) {
+        if (param.name === 'condition.key') {
+          const listId = `varlist-${param.name}`;
+          const options = getAllVariableOptions();
+          const curKey = String(value || '');
+          const t = curKey ? inferVariableType(curKey) : undefined;
+          const typeText = t === 'boolean' ? '布尔' : t === 'number' ? '数字' : t === 'string' ? '字符串' : '未知';
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
+              <input type="text" list={listId} {...commonProps} style={{ flex: 1 }} />
+              <span style={{ color: '#6c757d', fontSize: 12 }}>类型: {typeText}</span>
+              <datalist id={listId}>
+                {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </datalist>
+            </div>
+          );
+        }
+        if ((param.name === 'key' && ['SET_VARIABLE','SET_SWITCH'].includes(String((template as any).type || '').toUpperCase()))) {
           const listId = `varlist-${param.name}`;
           const options = getAllVariableOptions();
           return (
@@ -834,6 +913,53 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                           {renderParameterInput(getParam('size.width'))}
                           {renderParameterInput(getParam('size.height'))}
                         </div>
+                        {String((template as any).type || '').toUpperCase() === 'SHOW_IMAGE' && (
+                          <div style={{ marginTop: 6 }}>
+                            <div style={{ fontSize: 12, color: '#6c757d' }}>
+                              原始尺寸: {origImageSize ? `${origImageSize.w}×${origImageSize.h}` : '—'}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                              <label style={{ fontSize: 12, color: '#6c757d', minWidth: 80 }}>等比缩放</label>
+                              <input
+                                type="range"
+                                min={0}
+                                max={5}
+                                step={0.01}
+                                value={imageScale}
+                                onChange={(e) => {
+                                  const s = Math.max(0, Math.min(5, Number(e.target.value)));
+                                  setImageScale(s);
+                                  if (origImageSize) {
+                                    const wNew = Math.max(1, Math.round(origImageSize.w * s));
+                                    const hNew = Math.max(1, Math.round(origImageSize.h * s));
+                                    handleParamChange('size.width', wNew);
+                                    handleParamChange('size.height', hNew);
+                                  }
+                                }}
+                                style={{ flex: 1 }}
+                              />
+                              <input
+                                type="number"
+                                min={0}
+                                max={5}
+                                step={0.01}
+                                value={imageScale}
+                                onChange={(e) => {
+                                  const s = Math.max(0, Math.min(5, Number(e.target.value)));
+                                  setImageScale(s);
+                                  if (origImageSize) {
+                                    const wNew = Math.max(1, Math.round(origImageSize.w * s));
+                                    const hNew = Math.max(1, Math.round(origImageSize.h * s));
+                                    handleParamChange('size.width', wNew);
+                                    handleParamChange('size.height', hNew);
+                                  }
+                                }}
+                                style={{ width: 72 }}
+                              />
+                              <span style={{ fontSize: 12, color: '#6c757d' }}>范围 0.0 – 5.0</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     );
                   } else if (vw) {

@@ -41,7 +41,7 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
     // 首先添加主流程作为特殊事件
     events.push({
       id: 'main-flow',
-      name: '🏃 主流程',
+      name: '🏃 入口流程',
       triggers: [{
         type: 'system',
         condition: {

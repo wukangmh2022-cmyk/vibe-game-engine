@@ -28,11 +28,20 @@
           }
         },
         {
+          "id": "set_variable_2",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "victory",
+            "op": "set",
+            "value": false
+          }
+        },
+        {
           "id": "cmd_mfuv240j_gg42_1_h0nb",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "background",
-            "resourceId": "____1",
+            "resourceId": "_____12",
             "position": {
               "x": 0,
               "y": 0
@@ -57,17 +66,1161 @@
           }
         },
         {
+          "id": "show_image_10",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "introduce",
+            "resourceId": "intro-____",
+            "position": {
+              "x": 224,
+              "y": 40
+            },
+            "size": {
+              "width": 332,
+              "height": 509
+            },
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true,
+            "id": "cmd_mfuv240j_gg42_1_h0nb"
+          }
+        },
+        {
+          "id": "set_clickable_1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "introduce",
+            "clickable": true,
+            "blocking": true,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "set_element_style_1",
+                "type": "SET_ELEMENT_STYLE",
+                "parameters": {
+                  "elementId": "introduce",
+                  "style": {
+                    "display": "none",
+                    "scale": 0
+                  }
+                }
+              },
+              {
+                "id": "emit_signal_1",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "gameloop",
+                  "data": ""
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "resources": [
+        "___3",
+        "btn-org",
+        "btn-orange",
+        "btn-blue",
+        "____",
+        "___4",
+        "_____1",
+        "___5",
+        "_____2",
+        "_____3",
+        "_____4",
+        "_____5",
+        "_____6",
+        "async_game_life_1002_item--02_1",
+        "intro-____",
+        "____1",
+        "____2",
+        "_____7",
+        "______",
+        "_______1",
+        "_________",
+        "_____8",
+        "__01_1",
+        "__02_1",
+        "_____9",
+        "intro-_____1",
+        "_06",
+        "_08",
+        "_09",
+        "_12",
+        "____04",
+        "____10",
+        "__01",
+        "__02",
+        "_01",
+        "_07",
+        "_02",
+        "_03",
+        "_05",
+        "_11",
+        "_____10",
+        "__________",
+        "_____11",
+        "_____12",
+        "count-3",
+        "count-2",
+        "count-1",
+        "count-go"
+      ],
+      "events": [
+        {
+          "id": "event_mfwej30b",
+          "name": "倒计时",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "start"
+            }
+          ],
+          "commands": [
+            {
+              "id": "countdown-init",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "countdown",
+                "op": "set",
+                "value": 21
+              }
+            },
+            {
+              "id": "countdown-text-show",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "countdown-text",
+                "text": "⏳ ${gameState.countdown}s",
+                "position": {
+                  "x": 680,
+                  "y": 10
+                },
+                "style": {
+                  "fontSize": "32",
+                  "color": "#ffffff",
+                  "fill": "#ffffff",
+                  "stroke": "#000000",
+                  "strokeThickness": 3,
+                  "textAlign": "right",
+                  "maxWidth": "120",
+                  "dropShadow": false,
+                  "zIndex": 100,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 0,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2
+                },
+                "padding": 20,
+                "blocking": false,
+                "dismissOnContinue": true,
+                "id": "countdown-text-show"
+              }
+            },
+            {
+              "id": "count-3-show",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "countdown-3",
+                "resourceId": "count-3",
+                "position": {
+                  "x": 400,
+                  "y": 300
+                },
+                "size": {
+                  "width": 240,
+                  "height": 240
+                },
+                "style": {
+                  "anchorCenter": true
+                },
+                "zIndex": 20
+              }
+            },
+            {
+              "id": "count-3-anim",
+              "type": "ANIMATE_IN",
+              "parameters": {
+                "elementId": "countdown-3",
+                "preset": "scaleIn",
+                "duration": 260
+              }
+            },
+            {
+              "id": "count-3-wait",
+              "type": "WAIT",
+              "parameters": {
+                "duration": 740
+              }
+            },
+            {
+              "id": "count-3-hide",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "countdown-3",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "count-2-show",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "countdown-2",
+                "resourceId": "count-2",
+                "position": {
+                  "x": 400,
+                  "y": 300
+                },
+                "size": {
+                  "width": 240,
+                  "height": 240
+                },
+                "style": {
+                  "anchorCenter": true
+                },
+                "zIndex": 20
+              }
+            },
+            {
+              "id": "count-2-anim",
+              "type": "ANIMATE_IN",
+              "parameters": {
+                "elementId": "countdown-2",
+                "preset": "scaleIn",
+                "duration": 260
+              }
+            },
+            {
+              "id": "count-2-wait",
+              "type": "WAIT",
+              "parameters": {
+                "duration": 740
+              }
+            },
+            {
+              "id": "count-2-hide",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "countdown-2",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "count-1-show",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "countdown-1",
+                "resourceId": "count-1",
+                "position": {
+                  "x": 400,
+                  "y": 300
+                },
+                "size": {
+                  "width": 240,
+                  "height": 240
+                },
+                "style": {
+                  "anchorCenter": true
+                },
+                "zIndex": 20
+              }
+            },
+            {
+              "id": "count-1-anim",
+              "type": "ANIMATE_IN",
+              "parameters": {
+                "elementId": "countdown-1",
+                "preset": "scaleIn",
+                "duration": 260
+              }
+            },
+            {
+              "id": "count-1-wait",
+              "type": "WAIT",
+              "parameters": {
+                "duration": 740
+              }
+            },
+            {
+              "id": "count-1-hide",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "countdown-1",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "count-go-show",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "countdown-go",
+                "resourceId": "count-go",
+                "position": {
+                  "x": 400,
+                  "y": 300
+                },
+                "size": {
+                  "width": 240,
+                  "height": 240
+                },
+                "style": {
+                  "anchorCenter": true
+                },
+                "zIndex": 20
+              }
+            },
+            {
+              "id": "count-go-anim",
+              "type": "ANIMATE_IN",
+              "parameters": {
+                "elementId": "countdown-go",
+                "preset": "scaleIn",
+                "duration": 220
+              }
+            },
+            {
+              "id": "count-go-wait",
+              "type": "WAIT",
+              "parameters": {
+                "duration": 740
+              }
+            },
+            {
+              "id": "count-go-hide",
+              "type": "SET_ELEMENT_STYLE",
+              "parameters": {
+                "elementId": "countdown-go",
+                "style": {
+                  "display": "none"
+                }
+              }
+            },
+            {
+              "id": "tick",
+              "type": "IF_CONDITION",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "context.stateManager.getVariable('countdown') > 0",
+                  "operator": "eq"
+                },
+                "trueCommands": [
+                  {
+                    "id": "if_condition_1",
+                    "type": "IF_CONDITION",
+                    "parameters": {
+                      "condition": {
+                        "type": "expression",
+                        "key": "",
+                        "operator": "eq",
+                        "value": "",
+                        "expression": "context.stateManager.getVariable('victory') == false"
+                      },
+                      "trueCommands": [
+                        {
+                          "id": "tick-wait",
+                          "type": "WAIT",
+                          "parameters": {
+                            "duration": 1000
+                          }
+                        },
+                        {
+                          "id": "tick-sub",
+                          "type": "SET_VARIABLE",
+                          "parameters": {
+                            "key": "countdown",
+                            "op": "sub",
+                            "value": 1
+                          }
+                        },
+                        {
+                          "id": "tick-update",
+                          "type": "UPDATE_TEXT",
+                          "parameters": {
+                            "elementId": "countdown-text",
+                            "text": "⏳ ${gameState.countdown}s"
+                          }
+                        },
+                        {
+                          "id": "tick-jump",
+                          "type": "JUMP_TO",
+                          "parameters": {
+                            "target": "tick"
+                          }
+                        }
+                      ],
+                      "falseCommands": []
+                    }
+                  }
+                ],
+                "falseCommands": [
+                  {
+                    "id": "show_image_11",
+                    "type": "SHOW_IMAGE",
+                    "parameters": {
+                      "elementId": "show_image_2",
+                      "resourceId": "_____11",
+                      "position": {
+                        "x": 224,
+                        "y": 40
+                      },
+                      "size": {
+                        "width": 401,
+                        "height": 509
+                      },
+                      "zIndex": 100,
+                      "animation": {
+                        "entry": {
+                          "animId": "_____3"
+                        },
+                        "loop": {
+                          "animId": ""
+                        }
+                      },
+                      "parentId": "",
+                      "align": "",
+                      "visible": true,
+                      "id": "cmd_mfuv240j_gg42_1_h0nb"
+                    }
+                  },
+                  {
+                    "id": "set_clickable_1",
+                    "type": "SET_CLICKABLE",
+                    "parameters": {
+                      "elementId": "show_image_2",
+                      "clickable": true,
+                      "onClick": "commands",
+                      "backResourceId": "",
+                      "frontResourceId": "",
+                      "showBack": true,
+                      "effect": "",
+                      "blocking": true,
+                      "commands": [
+                        {
+                          "id": "scene_redirect_1",
+                          "type": "SCENE_REDIRECT",
+                          "parameters": {
+                            "url": "this"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "event_mfytqdg7",
+          "name": "gameloop",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "gameloop"
+            }
+          ],
+          "commands": [
+            {
+              "id": "show_text_1",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "story-text",
+                "text": "第1关",
+                "position": {
+                  "x": 360,
+                  "y": 45
+                },
+                "style": {
+                  "fontSize": "32",
+                  "color": "#917373",
+                  "fontFamily": "Arial, Helvetica, sans-serif",
+                  "stroke": "#1e3a8a",
+                  "strokeThickness": 0,
+                  "dropShadow": false,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 2,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2,
+                  "lineHeight": 28,
+                  "zIndex": 12,
+                  "maxWidth": 999,
+                  "textAlign": "center"
+                },
+                "blocking": false,
+                "skinId": "",
+                "padding": 14,
+                "dismissOnContinue": true,
+                "id": "cmd_mfvul71f_xkqs_0_nv23"
+              }
+            },
+            {
+              "id": "show_text_5",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "story-text",
+                "text": "请将以下水果蔬菜分别装入篮子中",
+                "position": {
+                  "x": 40,
+                  "y": 180
+                },
+                "style": {
+                  "fontSize": "22",
+                  "color": "#000000",
+                  "fontFamily": "Arial, Helvetica, sans-serif",
+                  "stroke": "#1e3a8a",
+                  "strokeThickness": 0,
+                  "dropShadow": false,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 2,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2,
+                  "lineHeight": 28,
+                  "zIndex": 12,
+                  "maxWidth": 999,
+                  "textAlign": "center"
+                },
+                "blocking": false,
+                "skinId": "",
+                "padding": 14,
+                "dismissOnContinue": true,
+                "id": "cmd_mfvul71f_xkqs_0_nv23"
+              }
+            },
+            {
+              "id": "emit_signal_3",
+              "type": "EMIT_SIGNAL",
+              "parameters": {
+                "signal": "start",
+                "data": ""
+              }
+            },
+            {
+              "id": "cmd_mfxcim4r_qjij_0_e1h1",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "veg1",
+                "resourceId": "_12",
+                "position": {
+                  "x": 100,
+                  "y": 100
+                },
+                "size": {
+                  "width": 139,
+                  "height": 142
+                },
+                "zIndex": 2,
+                "animation": {
+                  "entry": {
+                    "animId": "___3"
+                  },
+                  "loop": {
+                    "animId": ""
+                  }
+                },
+                "visible": true,
+                "parentId": "",
+                "align": "",
+                "id": "cmd_mfvtmst5_95xu_0_i7ja"
+              }
+            },
+            {
+              "id": "set_draggable_1",
+              "type": "SET_DRAGGABLE",
+              "parameters": {
+                "elementId": "veg1",
+                "draggable": true
+              }
+            },
+            {
+              "id": "show_image_4",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "veg2",
+                "resourceId": "_08",
+                "position": {
+                  "x": 259,
+                  "y": 100
+                },
+                "size": {
+                  "width": 122,
+                  "height": 122
+                },
+                "zIndex": 2,
+                "animation": {
+                  "entry": {
+                    "animId": "___3"
+                  },
+                  "loop": {
+                    "animId": ""
+                  }
+                },
+                "visible": true,
+                "parentId": "",
+                "align": "",
+                "id": "cmd_mfvtmst5_95xu_2_tyji"
+              }
+            },
+            {
+              "id": "set_draggable_2",
+              "type": "SET_DRAGGABLE",
+              "parameters": {
+                "elementId": "veg2",
+                "draggable": true
+              }
+            },
+            {
+              "id": "show_image_5",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "veg3",
+                "resourceId": "_09",
+                "position": {
+                  "x": 401,
+                  "y": 100
+                },
+                "size": {
+                  "width": "",
+                  "height": ""
+                },
+                "zIndex": 2,
+                "animation": {
+                  "entry": {
+                    "animId": "___3"
+                  },
+                  "loop": {
+                    "animId": ""
+                  }
+                },
+                "visible": true,
+                "parentId": "",
+                "align": "",
+                "id": "cmd_mfvtmst5_95xu_4_o6bt"
+              }
+            },
+            {
+              "id": "set_draggable_3",
+              "type": "SET_DRAGGABLE",
+              "parameters": {
+                "elementId": "veg3",
+                "draggable": true
+              }
+            },
+            {
+              "id": "show_image_6",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "veg4",
+                "resourceId": "_06",
+                "position": {
+                  "x": 617,
+                  "y": 100
+                },
+                "size": {
+                  "width": "",
+                  "height": ""
+                },
+                "zIndex": 2,
+                "animation": {
+                  "entry": {
+                    "animId": "___3"
+                  },
+                  "loop": {
+                    "animId": ""
+                  }
+                },
+                "visible": true,
+                "parentId": "",
+                "align": "",
+                "id": "cmd_mfvtmst5_95xu_6_mvam"
+              }
+            },
+            {
+              "id": "set_draggable_4",
+              "type": "SET_DRAGGABLE",
+              "parameters": {
+                "elementId": "veg4",
+                "draggable": true
+              }
+            },
+            {
+              "id": "show_image_7",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "veg-basket",
+                "resourceId": "__01_1",
+                "position": {
+                  "x": 50,
+                  "y": 416
+                },
+                "size": {
+                  "width": 273,
+                  "height": 184
+                },
+                "zIndex": 1,
+                "animation": {
+                  "entry": {
+                    "animId": "___4"
+                  },
+                  "loop": {
+                    "animId": "_____2"
+                  }
+                },
+                "parentId": "",
+                "align": "",
+                "visible": true,
+                "id": "cmd_mfuv240j_gg42_3_v2py"
+              }
+            },
+            {
+              "id": "show_image_8",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "fruit-basket",
+                "resourceId": "__02_1",
+                "position": {
+                  "x": 518,
+                  "y": 371
+                },
+                "size": {
+                  "width": 232,
+                  "height": 229
+                },
+                "zIndex": 1,
+                "animation": {
+                  "entry": {
+                    "animId": "___4"
+                  },
+                  "loop": {
+                    "animId": "_____2"
+                  }
+                },
+                "parentId": "",
+                "align": "",
+                "visible": true,
+                "id": "cmd_mfuv240j_gg42_4_d5gd"
+              }
+            },
+            {
+              "id": "show_image_9",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "submit-btn",
+                "resourceId": "_____8",
+                "position": {
+                  "x": 300,
+                  "y": 500
+                },
+                "size": {
+                  "width": 170,
+                  "height": 40
+                },
+                "zIndex": 3,
+                "animation": {
+                  "entry": {
+                    "animId": "_____3"
+                  },
+                  "loop": {
+                    "animId": ""
+                  }
+                },
+                "visible": true,
+                "parentId": "",
+                "align": "",
+                "id": "cmd_mfuv240j_gg42_13_3smw"
+              }
+            },
+            {
+              "id": "check_in_area_1",
+              "type": "CHECK_IN_AREA",
+              "parameters": {
+                "area": {
+                  "x": 100,
+                  "y": 416,
+                  "width": 210,
+                  "height": 100
+                },
+                "commands": [
+                  {
+                    "id": "if_condition_5",
+                    "type": "IF_CONDITION",
+                    "parameters": {
+                      "condition": {
+                        "type": "expression",
+                        "expression": "context.stateManager.getVariable('last_drop_element_ID').includes('veg')"
+                      },
+                      "trueCommands": [
+                        {
+                          "id": "set_element_style_1",
+                          "type": "SET_ELEMENT_STYLE",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "style": {
+                              "scale": 0.6
+                            }
+                          }
+                        },
+                        {
+                          "id": "set_draggable_5",
+                          "type": "SET_DRAGGABLE",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "draggable": false
+                          }
+                        },
+                        {
+                          "id": "set_variable_8",
+                          "type": "SET_VARIABLE",
+                          "parameters": {
+                            "key": "cntveg",
+                            "op": "add",
+                            "value": 1
+                          }
+                        },
+                        {
+                          "id": "move_to_3",
+                          "type": "MOVE_TO",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "x": -1,
+                            "y": 420,
+                            "duration": 100,
+                            "keepOnMinusOne": true
+                          }
+                        }
+                      ],
+                      "falseCommands": [
+                        {
+                          "id": "move_to_4",
+                          "type": "MOVE_TO",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "x": 400,
+                            "y": 130,
+                            "duration": 200,
+                            "keepOnMinusOne": true
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "check_in_area_2",
+              "type": "CHECK_IN_AREA",
+              "parameters": {
+                "area": {
+                  "x": 518,
+                  "y": 371,
+                  "width": 232,
+                  "height": 229
+                },
+                "commands": [
+                  {
+                    "id": "if_condition_6",
+                    "type": "IF_CONDITION",
+                    "parameters": {
+                      "condition": {
+                        "type": "expression",
+                        "expression": "context.stateManager.getVariable('last_drop_element_ID').includes('fruit')"
+                      },
+                      "trueCommands": [
+                        {
+                          "id": "set_element_style_2",
+                          "type": "SET_ELEMENT_STYLE",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "style": {
+                              "scale": 0.6
+                            }
+                          }
+                        },
+                        {
+                          "id": "set_draggable_6",
+                          "type": "SET_DRAGGABLE",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "draggable": false
+                          }
+                        },
+                        {
+                          "id": "set_variable_9",
+                          "type": "SET_VARIABLE",
+                          "parameters": {
+                            "key": "cntfruit",
+                            "op": "add",
+                            "value": 1
+                          }
+                        }
+                      ],
+                      "falseCommands": [
+                        {
+                          "id": "move_to_5",
+                          "type": "MOVE_TO",
+                          "parameters": {
+                            "elementId": "{last_drop_element_ID}",
+                            "x": 400,
+                            "y": 130,
+                            "duration": 200,
+                            "keepOnMinusOne": true
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "id": "set_clickable_3",
+              "type": "SET_CLICKABLE",
+              "parameters": {
+                "elementId": "submit-btn",
+                "clickable": true,
+                "onClick": "commands",
+                "backResourceId": "",
+                "frontResourceId": "",
+                "showBack": true,
+                "effect": "",
+                "commands": [
+                  {
+                    "id": "if_condition_7",
+                    "type": "IF_CONDITION",
+                    "parameters": {
+                      "condition": {
+                        "type": "variable",
+                        "key": "cntveg",
+                        "operator": "eq",
+                        "value": 4,
+                        "expression": ""
+                      },
+                      "trueCommands": [
+                        {
+                          "id": "if_condition_8",
+                          "type": "IF_CONDITION",
+                          "parameters": {
+                            "condition": {
+                              "type": "variable",
+                              "key": "cntfruit",
+                              "operator": "eq",
+                              "value": 0,
+                              "expression": ""
+                            },
+                            "trueCommands": [
+                              {
+                                "id": "set_variable_10",
+                                "type": "SET_VARIABLE",
+                                "parameters": {
+                                  "key": "victory",
+                                  "op": "set",
+                                  "value": true
+                                }
+                              },
+                              {
+                                "id": "show_text_6",
+                                "type": "SHOW_TEXT",
+                                "parameters": {
+                                  "elementId": "success-text",
+                                  "text": "分类正确！",
+                                  "position": {
+                                    "x": 300,
+                                    "y": 200
+                                  },
+                                  "style": {
+                                    "fontSize": 28,
+                                    "color": "#00FF00",
+                                    "stroke": "",
+                                    "strokeThickness": 0,
+                                    "dropShadow": false,
+                                    "dropShadowColor": "#000000",
+                                    "dropShadowBlur": 0,
+                                    "dropShadowAngle": 1.2,
+                                    "dropShadowDistance": 2,
+                                    "maxWidth": 999,
+                                    "textAlign": "left"
+                                  },
+                                  "blocking": true,
+                                  "dismissOnContinue": true,
+                                  "padding": 20,
+                                  "skinId": "dialog-default-9slice",
+                                  "id": "cmd_mfv5o7gj_itk7_0_drwx"
+                                }
+                              },
+                              {
+                                "id": "next_level_1",
+                                "type": "NEXT_LEVEL",
+                                "parameters": {}
+                              }
+                            ],
+                            "falseCommands": [
+                              {
+                                "id": "show_text_7",
+                                "type": "SHOW_TEXT",
+                                "parameters": {
+                                  "elementId": "fail-text",
+                                  "text": "分类错误，请重试。",
+                                  "position": {
+                                    "x": 300,
+                                    "y": 200
+                                  },
+                                  "style": {
+                                    "fontSize": 28,
+                                    "color": "#FF0000",
+                                    "stroke": "",
+                                    "strokeThickness": 0,
+                                    "dropShadow": false,
+                                    "dropShadowColor": "#000000",
+                                    "dropShadowBlur": 0,
+                                    "dropShadowAngle": 1.2,
+                                    "dropShadowDistance": 2,
+                                    "maxWidth": 999,
+                                    "textAlign": "left"
+                                  },
+                                  "blocking": true,
+                                  "dismissOnContinue": true,
+                                  "padding": 20,
+                                  "skinId": ""
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "falseCommands": [
+                        {
+                          "id": "show_text_8",
+                          "type": "SHOW_TEXT",
+                          "parameters": {
+                            "elementId": "fail-text",
+                            "text": "分类错误，请重试。",
+                            "position": {
+                              "x": 300,
+                              "y": 200
+                            },
+                            "style": {
+                              "fontSize": 28,
+                              "color": "#FF0000",
+                              "stroke": "",
+                              "strokeThickness": 0,
+                              "dropShadow": false,
+                              "dropShadowColor": "#000000",
+                              "dropShadowBlur": 0,
+                              "dropShadowAngle": 1.2,
+                              "dropShadowDistance": 2,
+                              "maxWidth": 999,
+                              "textAlign": "left"
+                            },
+                            "blocking": true,
+                            "dismissOnContinue": true,
+                            "padding": 20,
+                            "skinId": ""
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level1_copy_1",
+      "name": "关卡1 副本",
+      "commands": [
+        {
+          "id": "init_cntveg",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntveg",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "init_cntfruit",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntfruit",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "set_variable_2",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "victory",
+            "op": "set",
+            "value": false
+          }
+        },
+        {
+          "id": "cmd_mfuv240j_gg42_1_h0nb",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "background",
+            "resourceId": "____1",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true
+          }
+        },
+        {
           "id": "cmd_mfvul71f_xkqs_0_nv23",
           "type": "SHOW_TEXT",
           "parameters": {
             "elementId": "story-text",
-            "text": "请将蔬菜拖拽到对应的蔬菜篮中，\n完成后点击提交按钮。",
+            "text": "请将蔬菜拖拽到对应的蔬菜篮中，水果拖拽到水果篮中。",
             "position": {
               "x": 200,
               "y": 300
             },
             "style": {
-              "fontSize": 20,
+              "fontSize": "20px",
               "color": "#ffffff",
               "fontFamily": "Arial, Helvetica, sans-serif",
               "stroke": "#1e3a8a",
@@ -83,28 +1236,99 @@
               "textAlign": "center"
             },
             "blocking": true,
-            "skinId": "btn-primary-9slice",
+            "skinId": "dialog-default-9slice",
             "padding": 14,
-            "dismissOnContinue": true,
-            "id": "cmd_mfvul71f_xkqs_0_nv23"
+            "dismissOnContinue": true
           }
         },
         {
           "id": "emit_signal_1",
           "type": "EMIT_SIGNAL",
           "parameters": {
-            "signal": "gamestart",
-            "data": "该信号触发倒计时事件"
+            "signal": "start",
+            "data": ""
           }
         },
         {
-          "id": "cmd_mfxcim4r_qjij_0_e1h1",
+          "id": "cmd_mfxcim4r_qjij_0_h0nb",
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "veg1",
-            "resourceId": "_12",
+            "resourceId": "_02",
             "position": {
               "x": 100,
+              "y": 100
+            },
+            "size": {
+              "width": 107,
+              "height": 119
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_1_39nb",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg1",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_2_c4uh",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg2",
+            "resourceId": "_03",
+            "position": {
+              "x": 259,
+              "y": 100
+            },
+            "size": {
+              "width": 196,
+              "height": 68
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_3_czxz",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg2",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_mfxcim4r_qjij_4_ipba",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg3",
+            "resourceId": "_05",
+            "position": {
+              "x": 401,
               "y": 100
             },
             "size": {
@@ -122,82 +1346,7 @@
             },
             "visible": true,
             "parentId": "",
-            "align": "",
-            "id": "cmd_mfvtmst5_95xu_0_i7ja"
-          }
-        },
-        {
-          "id": "cmd_mfxcim4r_qjij_1_39nb",
-          "type": "SET_DRAGGABLE",
-          "parameters": {
-            "elementId": "veg1",
-            "draggable": true
-          }
-        },
-        {
-          "id": "cmd_mfxcim4r_qjij_2_c4uh",
-          "type": "SHOW_IMAGE",
-          "parameters": {
-            "elementId": "veg2",
-            "resourceId": "_08",
-            "position": {
-              "x": 259,
-              "y": 100
-            },
-            "size": {
-              "width": 122,
-              "height": 122
-            },
-            "zIndex": 2,
-            "animation": {
-              "entry": {
-                "animId": "___3"
-              },
-              "loop": {
-                "animId": ""
-              }
-            },
-            "visible": true,
-            "parentId": "",
-            "align": "",
-            "id": "cmd_mfvtmst5_95xu_2_tyji"
-          }
-        },
-        {
-          "id": "cmd_mfxcim4r_qjij_3_czxz",
-          "type": "SET_DRAGGABLE",
-          "parameters": {
-            "elementId": "veg2",
-            "draggable": true
-          }
-        },
-        {
-          "id": "cmd_mfxcim4r_qjij_4_ipba",
-          "type": "SHOW_IMAGE",
-          "parameters": {
-            "elementId": "veg3",
-            "resourceId": "_09",
-            "position": {
-              "x": 401,
-              "y": 100
-            },
-            "size": {
-              "width": "",
-              "height": ""
-            },
-            "zIndex": 2,
-            "animation": {
-              "entry": {
-                "animId": "___3"
-              },
-              "loop": {
-                "animId": ""
-              }
-            },
-            "visible": true,
-            "parentId": "",
-            "align": "",
-            "id": "cmd_mfvtmst5_95xu_4_o6bt"
+            "align": ""
           }
         },
         {
@@ -213,14 +1362,14 @@
           "type": "SHOW_IMAGE",
           "parameters": {
             "elementId": "veg4",
-            "resourceId": "_06",
+            "resourceId": "_11",
             "position": {
               "x": 617,
               "y": 100
             },
             "size": {
-              "width": "",
-              "height": ""
+              "width": 117,
+              "height": 112
             },
             "zIndex": 2,
             "animation": {
@@ -233,8 +1382,7 @@
             },
             "visible": true,
             "parentId": "",
-            "align": "",
-            "id": "cmd_mfvtmst5_95xu_6_mvam"
+            "align": ""
           }
         },
         {
@@ -242,6 +1390,78 @@
           "type": "SET_DRAGGABLE",
           "parameters": {
             "elementId": "veg4",
+            "draggable": true
+          }
+        },
+        {
+          "id": "show_fruit1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "fruit1",
+            "resourceId": "_12",
+            "position": {
+              "x": 100,
+              "y": 250
+            },
+            "size": {
+              "width": 101,
+              "height": 110
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "set_drag_fruit1",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "fruit1",
+            "draggable": true
+          }
+        },
+        {
+          "id": "show_meat1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "meat1",
+            "resourceId": "_01",
+            "position": {
+              "x": 300,
+              "y": 250
+            },
+            "size": {
+              "width": 171,
+              "height": 87
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "set_drag_meat1",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "meat1",
             "draggable": true
           }
         },
@@ -270,8 +1490,7 @@
             },
             "parentId": "",
             "align": "",
-            "visible": true,
-            "id": "cmd_mfuv240j_gg42_3_v2py"
+            "visible": true
           }
         },
         {
@@ -299,8 +1518,7 @@
             },
             "parentId": "",
             "align": "",
-            "visible": true,
-            "id": "cmd_mfuv240j_gg42_4_d5gd"
+            "visible": true
           }
         },
         {
@@ -328,8 +1546,7 @@
             },
             "visible": true,
             "parentId": "",
-            "align": "",
-            "id": "cmd_mfuv240j_gg42_13_3smw"
+            "align": ""
           }
         },
         {
@@ -337,10 +1554,10 @@
           "type": "CHECK_IN_AREA",
           "parameters": {
             "area": {
-              "x": 100,
+              "x": 50,
               "y": 416,
-              "width": 210,
-              "height": 100
+              "width": 273,
+              "height": 184
             },
             "commands": [
               {
@@ -358,7 +1575,8 @@
                       "parameters": {
                         "elementId": "{last_drop_element_ID}",
                         "style": {
-                          "scale": 0.6
+                          "scale": 0.6,
+                          "display": ""
                         }
                       }
                     },
@@ -384,9 +1602,9 @@
                       "type": "MOVE_TO",
                       "parameters": {
                         "elementId": "{last_drop_element_ID}",
-                        "x": -1,
-                        "y": 420,
-                        "duration": 100,
+                        "x": 100,
+                        "y": 450,
+                        "duration": 200,
                         "keepOnMinusOne": true
                       }
                     }
@@ -398,7 +1616,7 @@
                       "parameters": {
                         "elementId": "{last_drop_element_ID}",
                         "x": 400,
-                        "y": 130,
+                        "y": 150,
                         "duration": 200,
                         "keepOnMinusOne": true
                       }
@@ -406,7 +1624,8 @@
                   ]
                 }
               }
-            ]
+            ],
+            "elementId": ""
           }
         },
         {
@@ -435,7 +1654,8 @@
                       "parameters": {
                         "elementId": "{last_drop_element_ID}",
                         "style": {
-                          "scale": 0.6
+                          "scale": 0.6,
+                          "display": ""
                         }
                       }
                     },
@@ -455,6 +1675,17 @@
                         "op": "add",
                         "value": 1
                       }
+                    },
+                    {
+                      "id": "move_to_fruit",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "x": 550,
+                        "y": 400,
+                        "duration": 200,
+                        "keepOnMinusOne": true
+                      }
                     }
                   ],
                   "falseCommands": [
@@ -464,7 +1695,7 @@
                       "parameters": {
                         "elementId": "{last_drop_element_ID}",
                         "x": 400,
-                        "y": 130,
+                        "y": 150,
                         "duration": 200,
                         "keepOnMinusOne": true
                       }
@@ -472,7 +1703,8 @@
                   ]
                 }
               }
-            ]
+            ],
+            "elementId": ""
           }
         },
         {
@@ -495,8 +1727,7 @@
                     "type": "variable",
                     "key": "cntveg",
                     "operator": "eq",
-                    "value": 4,
-                    "expression": ""
+                    "value": 4
                   },
                   "trueCommands": [
                     {
@@ -507,10 +1738,18 @@
                           "type": "variable",
                           "key": "cntfruit",
                           "operator": "eq",
-                          "value": 0,
-                          "expression": ""
+                          "value": 1
                         },
                         "trueCommands": [
+                          {
+                            "id": "set_variable_1",
+                            "type": "SET_VARIABLE",
+                            "parameters": {
+                              "key": "victory",
+                              "op": "set",
+                              "value": true
+                            }
+                          },
                           {
                             "id": "cmd_mfv5o7gj_itk7_0_drwx",
                             "type": "SHOW_TEXT",
@@ -522,7 +1761,7 @@
                                 "y": 200
                               },
                               "style": {
-                                "fontSize": 28,
+                                "fontSize": "28px",
                                 "color": "#00FF00",
                                 "stroke": "",
                                 "strokeThickness": 0,
@@ -537,8 +1776,7 @@
                               "blocking": true,
                               "dismissOnContinue": true,
                               "padding": 20,
-                              "skinId": "dialog-default-9slice",
-                              "id": "cmd_mfv5o7gj_itk7_0_drwx"
+                              "skinId": "dialog-default-9slice"
                             }
                           },
                           {
@@ -559,7 +1797,7 @@
                                 "y": 200
                               },
                               "style": {
-                                "fontSize": 28,
+                                "fontSize": "28px",
                                 "color": "#FF0000",
                                 "stroke": "",
                                 "strokeThickness": 0,
@@ -574,7 +1812,7 @@
                               "blocking": true,
                               "dismissOnContinue": true,
                               "padding": 20,
-                              "skinId": ""
+                              "skinId": "dialog-default-9slice"
                             }
                           }
                         ]
@@ -593,7 +1831,7 @@
                           "y": 200
                         },
                         "style": {
-                          "fontSize": 28,
+                          "fontSize": "28px",
                           "color": "#FF0000",
                           "stroke": "",
                           "strokeThickness": 0,
@@ -608,7 +1846,7 @@
                         "blocking": true,
                         "dismissOnContinue": true,
                         "padding": 20,
-                        "skinId": ""
+                        "skinId": "dialog-default-9slice"
                       }
                     }
                   ]
@@ -659,7 +1897,8 @@
         "_03",
         "_05",
         "_11",
-        "_____10"
+        "_____10",
+        "__________"
       ],
       "events": [
         {
@@ -668,60 +1907,69 @@
           "triggers": [
             {
               "type": "custom",
-              "target": "gamestart"
+              "target": "start"
             }
           ],
           "commands": [
             {
-              "id": "cmd_mfxd9vnd_uwnx_0_cgaq",
+              "id": "set_variable_6",
               "type": "SET_VARIABLE",
               "parameters": {
                 "key": "countdown",
                 "op": "set",
-                "value": 60
+                "value": 21
               }
             },
             {
-              "id": "cmd_mfxd9vnd_uwnx_1_ohg3",
+              "id": "show_text_3",
               "type": "SHOW_TEXT",
               "parameters": {
                 "elementId": "countdown-text",
                 "text": "⏳ ${gameState.countdown}s",
                 "position": {
-                  "x": 740,
+                  "x": 680,
                   "y": 10
                 },
                 "style": {
-                  "fontSize": 16,
+                  "fontSize": "32",
                   "color": "#ffffff",
                   "fill": "#ffffff",
                   "stroke": "#000000",
                   "strokeThickness": 3,
                   "textAlign": "right",
-                  "maxWidth": 80,
+                  "maxWidth": "120",
                   "dropShadow": false,
-                  "zIndex": 100
-                }
+                  "zIndex": 100,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 0,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2
+                },
+                "padding": 20,
+                "blocking": false,
+                "dismissOnContinue": true,
+                "id": "countdown-text-show"
               }
             },
             {
-              "id": "cmd_mfxd9vnd_uwnx_2_qgph",
+              "id": "if_condition_3",
               "type": "IF_CONDITION",
               "parameters": {
                 "condition": {
                   "type": "expression",
-                  "expression": "context.stateManager.getVariable('countdown') > 0"
+                  "expression": "context.stateManager.getVariable('countdown') > 0",
+                  "operator": "eq"
                 },
                 "trueCommands": [
                   {
-                    "id": "cmd_mfxd9vnd_uwnx_0_btwu",
+                    "id": "wait_1",
                     "type": "WAIT",
                     "parameters": {
                       "duration": 1000
                     }
                   },
                   {
-                    "id": "cmd_mfxd9vnd_uwnx_1_awgq",
+                    "id": "set_variable_7",
                     "type": "SET_VARIABLE",
                     "parameters": {
                       "key": "countdown",
@@ -730,7 +1978,7 @@
                     }
                   },
                   {
-                    "id": "cmd_mfxd9vnd_uwnx_2_gy3s",
+                    "id": "update_text_1",
                     "type": "UPDATE_TEXT",
                     "parameters": {
                       "elementId": "countdown-text",
@@ -738,39 +1986,118 @@
                     }
                   },
                   {
-                    "id": "cmd_mfxd9vnd_uwnx_3_963y",
+                    "id": "jump_to_1",
                     "type": "JUMP_TO",
                     "parameters": {
-                      "target": "tick"
+                      "target": "if_condition_3"
                     }
                   }
                 ],
                 "falseCommands": [
                   {
-                    "id": "cmd_mfxd9vnd_uwnx_0_y1rp",
-                    "type": "SHOW_TEXT",
+                    "id": "if_condition_4",
+                    "type": "IF_CONDITION",
                     "parameters": {
-                      "elementId": "timeout-msg",
-                      "text": "⏳ 60秒已到，故事进入尾声。",
-                      "position": {
-                        "x": 60,
-                        "y": 520
+                      "condition": {
+                        "type": "variable",
+                        "key": "victory",
+                        "operator": "ne",
+                        "value": true,
+                        "expression": ""
                       },
-                      "style": {
-                        "fontSize": 18,
-                        "color": "#000000",
-                        "stroke": "#ffffff",
-                        "strokeThickness": 3
-                      },
-                      "blocking": true,
-                      "dismissOnContinue": true,
-                      "skinId": "btn-primary-9slice"
+                      "trueCommands": [
+                        {
+                          "id": "show_image_1",
+                          "type": "SHOW_IMAGE",
+                          "parameters": {
+                            "elementId": "show_image_2",
+                            "resourceId": "__________",
+                            "position": {
+                              "x": 300,
+                              "y": 160
+                            },
+                            "parentId": "",
+                            "align": "",
+                            "size": {
+                              "width": 0,
+                              "height": 0
+                            },
+                            "visible": true,
+                            "zIndex": 3,
+                            "animation": {
+                              "entry": {
+                                "animId": "_____4"
+                              },
+                              "loop": {
+                                "animId": ""
+                              }
+                            },
+                            "id": "show_image_2"
+                          }
+                        },
+                        {
+                          "id": "wait_1",
+                          "type": "WAIT",
+                          "parameters": {
+                            "duration": 500
+                          }
+                        },
+                        {
+                          "id": "show_text_4",
+                          "type": "SHOW_TEXT",
+                          "parameters": {
+                            "elementId": "timeout-msg",
+                            "text": "超时了，\n请重新开始",
+                            "position": {
+                              "x": 330,
+                              "y": 175
+                            },
+                            "style": {
+                              "fontSize": "26",
+                              "color": "#ffffff",
+                              "stroke": "#000000",
+                              "strokeThickness": 6,
+                              "dropShadow": false,
+                              "dropShadowColor": "#000000",
+                              "dropShadowBlur": 0,
+                              "dropShadowAngle": 1.2,
+                              "dropShadowDistance": 2,
+                              "maxWidth": 999,
+                              "textAlign": "center"
+                            },
+                            "blocking": false,
+                            "dismissOnContinue": true,
+                            "skinId": "",
+                            "padding": 20,
+                            "id": "show_text_1"
+                          }
+                        },
+                        {
+                          "id": "set_clickable_2",
+                          "type": "SET_CLICKABLE",
+                          "parameters": {
+                            "elementId": "show_image_2",
+                            "clickable": true,
+                            "onClick": "commands",
+                            "backResourceId": "",
+                            "frontResourceId": "",
+                            "showBack": true,
+                            "effect": "",
+                            "blocking": true,
+                            "commands": [
+                              {
+                                "id": "scene_redirect_2",
+                                "type": "SCENE_REDIRECT",
+                                "parameters": {
+                                  "url": "this"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "falseCommands": []
                     }
-                  },
-                  {
-                    "id": "cmd_mfxd9vnd_uwnx_1_56vq",
-                    "type": "BGM_STOP",
-                    "parameters": {}
                   }
                 ]
               }
@@ -782,11 +2109,1073 @@
       "canvasHeight": 600
     },
     {
-      "id": "level_mfx9wxpt",
-      "name": "新关卡",
-      "commands": [],
+      "id": "level_mfxotpuv",
+      "name": "新关卡2",
+      "commands": [
+        {
+          "id": "set_variable_3",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntveg",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "set_variable_4",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntfruit",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "init_cntmeat",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "cntmeat",
+            "op": "set",
+            "value": 0
+          }
+        },
+        {
+          "id": "set_variable_5",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "victory",
+            "op": "set",
+            "value": false
+          }
+        },
+        {
+          "id": "show_image_3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "background",
+            "resourceId": "____1",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true
+          }
+        },
+        {
+          "id": "show_text_2",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "story-text",
+            "text": "请将蔬菜拖拽到对应的蔬菜篮中，完成后点击提交按钮。",
+            "position": {
+              "x": 200,
+              "y": 300
+            },
+            "style": {
+              "fontSize": 20,
+              "color": "#ffffff",
+              "fontFamily": "Arial, Helvetica, sans-serif",
+              "stroke": "#1e3a8a",
+              "strokeThickness": 3,
+              "dropShadow": true,
+              "dropShadowColor": "#000000",
+              "dropShadowBlur": 2,
+              "dropShadowAngle": 1.2,
+              "dropShadowDistance": 2,
+              "lineHeight": 28,
+              "zIndex": 12,
+              "maxWidth": 999,
+              "textAlign": "center"
+            },
+            "blocking": true,
+            "skinId": "btn-primary-9slice",
+            "padding": 14,
+            "dismissOnContinue": true
+          }
+        },
+        {
+          "id": "emit_signal_2",
+          "type": "EMIT_SIGNAL",
+          "parameters": {
+            "signal": "start",
+            "data": ""
+          }
+        },
+        {
+          "id": "cmd_item1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg1",
+            "resourceId": "_12",
+            "position": {
+              "x": 100,
+              "y": 100
+            },
+            "size": {
+              "width": 139,
+              "height": 142
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_drag1",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg1",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_item2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg2",
+            "resourceId": "_08",
+            "position": {
+              "x": 259,
+              "y": 100
+            },
+            "size": {
+              "width": 122,
+              "height": 122
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_drag2",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg2",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_item3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg3",
+            "resourceId": "_09",
+            "position": {
+              "x": 401,
+              "y": 100
+            },
+            "size": {
+              "width": 120,
+              "height": 120
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_drag3",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg3",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_item4",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg4",
+            "resourceId": "_06",
+            "position": {
+              "x": 541,
+              "y": 100
+            },
+            "size": {
+              "width": 120,
+              "height": 120
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_drag4",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "veg4",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_item5",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "meat1",
+            "resourceId": "_01",
+            "position": {
+              "x": 200,
+              "y": 250
+            },
+            "size": {
+              "width": 120,
+              "height": 120
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_drag5",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "meat1",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_item6",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "meat2",
+            "resourceId": "_07",
+            "position": {
+              "x": 350,
+              "y": 250
+            },
+            "size": {
+              "width": 120,
+              "height": 120
+            },
+            "zIndex": 2,
+            "animation": {
+              "entry": {
+                "animId": "___3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_drag6",
+          "type": "SET_DRAGGABLE",
+          "parameters": {
+            "elementId": "meat2",
+            "draggable": true
+          }
+        },
+        {
+          "id": "cmd_veg_basket",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "veg-basket",
+            "resourceId": "__01_1",
+            "position": {
+              "x": 50,
+              "y": 416
+            },
+            "size": {
+              "width": 273,
+              "height": 184
+            },
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": "_____2"
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true
+          }
+        },
+        {
+          "id": "cmd_fruit_basket",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "fruit-basket",
+            "resourceId": "__02_1",
+            "position": {
+              "x": 518,
+              "y": 371
+            },
+            "size": {
+              "width": 232,
+              "height": 229
+            },
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "___4"
+              },
+              "loop": {
+                "animId": "_____2"
+              }
+            },
+            "parentId": "",
+            "align": "",
+            "visible": true
+          }
+        },
+        {
+          "id": "cmd_submit_btn",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "submit-btn",
+            "resourceId": "_____8",
+            "position": {
+              "x": 300,
+              "y": 500
+            },
+            "size": {
+              "width": 170,
+              "height": 40
+            },
+            "zIndex": 3,
+            "animation": {
+              "entry": {
+                "animId": "_____3"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "visible": true,
+            "parentId": "",
+            "align": ""
+          }
+        },
+        {
+          "id": "cmd_check_veg_area",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "area": {
+              "x": 50,
+              "y": 416,
+              "width": 273,
+              "height": 184
+            },
+            "commands": [
+              {
+                "id": "if_condition_2",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "variable",
+                    "key": "last_drop_resource_ID",
+                    "operator": "eq",
+                    "value": "_12"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "shrink_accepted_veg1",
+                      "type": "SET_ELEMENT_STYLE",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "style": {
+                          "scale": 0.6
+                        }
+                      }
+                    },
+                    {
+                      "id": "disable_drag_accepted_veg1",
+                      "type": "SET_DRAGGABLE",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "draggable": false
+                      }
+                    },
+                    {
+                      "id": "inc_cntveg1",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "cntveg",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "move_to_veg_basket1",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "x": 100,
+                        "y": 450,
+                        "duration": 200
+                      }
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "check_veg2",
+                      "type": "IF_CONDITION",
+                      "parameters": {
+                        "condition": {
+                          "type": "variable",
+                          "key": "last_drop_resource_ID",
+                          "operator": "eq",
+                          "value": "_08"
+                        },
+                        "trueCommands": [
+                          {
+                            "id": "shrink_accepted_veg2",
+                            "type": "SET_ELEMENT_STYLE",
+                            "parameters": {
+                              "elementId": "{last_drop_element_ID}",
+                              "style": {
+                                "scale": 0.6
+                              }
+                            }
+                          },
+                          {
+                            "id": "disable_drag_accepted_veg2",
+                            "type": "SET_DRAGGABLE",
+                            "parameters": {
+                              "elementId": "{last_drop_element_ID}",
+                              "draggable": false
+                            }
+                          },
+                          {
+                            "id": "inc_cntveg2",
+                            "type": "SET_VARIABLE",
+                            "parameters": {
+                              "key": "cntveg",
+                              "op": "add",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "id": "move_to_veg_basket2",
+                            "type": "MOVE_TO",
+                            "parameters": {
+                              "elementId": "{last_drop_element_ID}",
+                              "x": 150,
+                              "y": 450,
+                              "duration": 200
+                            }
+                          }
+                        ],
+                        "falseCommands": [
+                          {
+                            "id": "check_veg3",
+                            "type": "IF_CONDITION",
+                            "parameters": {
+                              "condition": {
+                                "type": "variable",
+                                "key": "last_drop_resource_ID",
+                                "operator": "eq",
+                                "value": "_09"
+                              },
+                              "trueCommands": [
+                                {
+                                  "id": "shrink_accepted_veg3",
+                                  "type": "SET_ELEMENT_STYLE",
+                                  "parameters": {
+                                    "elementId": "{last_drop_element_ID}",
+                                    "style": {
+                                      "scale": 0.6
+                                    }
+                                  }
+                                },
+                                {
+                                  "id": "disable_drag_accepted_veg3",
+                                  "type": "SET_DRAGGABLE",
+                                  "parameters": {
+                                    "elementId": "{last_drop_element_ID}",
+                                    "draggable": false
+                                  }
+                                },
+                                {
+                                  "id": "inc_cntveg3",
+                                  "type": "SET_VARIABLE",
+                                  "parameters": {
+                                    "key": "cntveg",
+                                    "op": "add",
+                                    "value": 1
+                                  }
+                                },
+                                {
+                                  "id": "move_to_veg_basket3",
+                                  "type": "MOVE_TO",
+                                  "parameters": {
+                                    "elementId": "{last_drop_element_ID}",
+                                    "x": 200,
+                                    "y": 450,
+                                    "duration": 200
+                                  }
+                                }
+                              ],
+                              "falseCommands": [
+                                {
+                                  "id": "check_veg4",
+                                  "type": "IF_CONDITION",
+                                  "parameters": {
+                                    "condition": {
+                                      "type": "variable",
+                                      "key": "last_drop_resource_ID",
+                                      "operator": "eq",
+                                      "value": "_06"
+                                    },
+                                    "trueCommands": [
+                                      {
+                                        "id": "shrink_accepted_veg4",
+                                        "type": "SET_ELEMENT_STYLE",
+                                        "parameters": {
+                                          "elementId": "{last_drop_element_ID}",
+                                          "style": {
+                                            "scale": 0.6
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "id": "disable_drag_accepted_veg4",
+                                        "type": "SET_DRAGGABLE",
+                                        "parameters": {
+                                          "elementId": "{last_drop_element_ID}",
+                                          "draggable": false
+                                        }
+                                      },
+                                      {
+                                        "id": "inc_cntveg4",
+                                        "type": "SET_VARIABLE",
+                                        "parameters": {
+                                          "key": "cntveg",
+                                          "op": "add",
+                                          "value": 1
+                                        }
+                                      },
+                                      {
+                                        "id": "move_to_veg_basket4",
+                                        "type": "MOVE_TO",
+                                        "parameters": {
+                                          "elementId": "{last_drop_element_ID}",
+                                          "x": 250,
+                                          "y": 450,
+                                          "duration": 200
+                                        }
+                                      }
+                                    ],
+                                    "falseCommands": [
+                                      {
+                                        "id": "reset_wrong_item",
+                                        "type": "MOVE_TO",
+                                        "parameters": {
+                                          "elementId": "{last_drop_element_ID}",
+                                          "x": 400,
+                                          "y": 130,
+                                          "duration": 200
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "cmd_check_fruit_area",
+          "type": "CHECK_IN_AREA",
+          "parameters": {
+            "area": {
+              "x": 518,
+              "y": 371,
+              "width": 232,
+              "height": 229
+            },
+            "commands": [
+              {
+                "id": "check_meat1",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "variable",
+                    "key": "last_drop_resource_ID",
+                    "operator": "eq",
+                    "value": "_01"
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "inc_cntmeat1",
+                      "type": "SET_VARIABLE",
+                      "parameters": {
+                        "key": "cntmeat",
+                        "op": "add",
+                        "value": 1
+                      }
+                    },
+                    {
+                      "id": "reset_meat1",
+                      "type": "MOVE_TO",
+                      "parameters": {
+                        "elementId": "{last_drop_element_ID}",
+                        "x": 200,
+                        "y": 250,
+                        "duration": 200
+                      }
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "check_meat2",
+                      "type": "IF_CONDITION",
+                      "parameters": {
+                        "condition": {
+                          "type": "variable",
+                          "key": "last_drop_resource_ID",
+                          "operator": "eq",
+                          "value": "_07"
+                        },
+                        "trueCommands": [
+                          {
+                            "id": "inc_cntmeat2",
+                            "type": "SET_VARIABLE",
+                            "parameters": {
+                              "key": "cntmeat",
+                              "op": "add",
+                              "value": 1
+                            }
+                          },
+                          {
+                            "id": "reset_meat2",
+                            "type": "MOVE_TO",
+                            "parameters": {
+                              "elementId": "{last_drop_element_ID}",
+                              "x": 350,
+                              "y": 250,
+                              "duration": 200
+                            }
+                          }
+                        ],
+                        "falseCommands": [
+                          {
+                            "id": "reset_wrong_fruit",
+                            "type": "MOVE_TO",
+                            "parameters": {
+                              "elementId": "{last_drop_element_ID}",
+                              "x": 400,
+                              "y": 130,
+                              "duration": 200
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "cmd_set_submit_clickable",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "submit-btn",
+            "clickable": true,
+            "onClick": "commands",
+            "commands": [
+              {
+                "id": "check_victory",
+                "type": "IF_CONDITION",
+                "parameters": {
+                  "condition": {
+                    "type": "variable",
+                    "key": "cntveg",
+                    "operator": "eq",
+                    "value": 4
+                  },
+                  "trueCommands": [
+                    {
+                      "id": "check_meat_count",
+                      "type": "IF_CONDITION",
+                      "parameters": {
+                        "condition": {
+                          "type": "variable",
+                          "key": "cntmeat",
+                          "operator": "eq",
+                          "value": 0
+                        },
+                        "trueCommands": [
+                          {
+                            "id": "set_victory",
+                            "type": "SET_VARIABLE",
+                            "parameters": {
+                              "key": "victory",
+                              "op": "set",
+                              "value": true
+                            }
+                          },
+                          {
+                            "id": "show_success",
+                            "type": "SHOW_TEXT",
+                            "parameters": {
+                              "elementId": "success-text",
+                              "text": "分类正确！",
+                              "position": {
+                                "x": 300,
+                                "y": 200
+                              },
+                              "style": {
+                                "fontSize": 28,
+                                "color": "#00FF00",
+                                "maxWidth": 999,
+                                "textAlign": "center"
+                              },
+                              "blocking": true,
+                              "dismissOnContinue": true,
+                              "padding": 20,
+                              "skinId": "dialog-default-9slice"
+                            }
+                          },
+                          {
+                            "id": "next_level",
+                            "type": "NEXT_LEVEL",
+                            "parameters": {}
+                          }
+                        ],
+                        "falseCommands": [
+                          {
+                            "id": "show_fail_meat",
+                            "type": "SHOW_TEXT",
+                            "parameters": {
+                              "elementId": "fail-text",
+                              "text": "肉类不应该放入果篮，请重试。",
+                              "position": {
+                                "x": 300,
+                                "y": 200
+                              },
+                              "style": {
+                                "fontSize": 28,
+                                "color": "#FF0000",
+                                "maxWidth": 999,
+                                "textAlign": "center"
+                              },
+                              "blocking": true,
+                              "dismissOnContinue": true,
+                              "padding": 20,
+                              "skinId": "dialog-default-9slice"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ],
+                  "falseCommands": [
+                    {
+                      "id": "show_fail_veg",
+                      "type": "SHOW_TEXT",
+                      "parameters": {
+                        "elementId": "fail-text",
+                        "text": "蔬菜数量不足，请将所有蔬菜放入蔬菜篮。",
+                        "position": {
+                          "x": 300,
+                          "y": 200
+                        },
+                        "style": {
+                          "fontSize": 28,
+                          "color": "#FF0000",
+                          "maxWidth": 999,
+                          "textAlign": "center"
+                        },
+                        "blocking": true,
+                        "dismissOnContinue": true,
+                        "padding": 20,
+                        "skinId": "dialog-default-9slice"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
       "resources": [],
-      "events": [],
+      "events": [
+        {
+          "id": "event_mfy2m5in_zn7u",
+          "name": "倒计时",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "start"
+            }
+          ],
+          "commands": [
+            {
+              "id": "set_variable_6",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "countdown",
+                "op": "set",
+                "value": 21
+              }
+            },
+            {
+              "id": "show_text_3",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "countdown-text",
+                "text": "⏳ ${gameState.countdown}s",
+                "position": {
+                  "x": 680,
+                  "y": 10
+                },
+                "style": {
+                  "fontSize": "32",
+                  "color": "#ffffff",
+                  "fill": "#ffffff",
+                  "stroke": "#000000",
+                  "strokeThickness": 3,
+                  "textAlign": "right",
+                  "maxWidth": "120",
+                  "dropShadow": false,
+                  "zIndex": 100,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 0,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2
+                },
+                "padding": 20,
+                "blocking": false,
+                "dismissOnContinue": true,
+                "id": "countdown-text-show"
+              }
+            },
+            {
+              "id": "if_condition_3",
+              "type": "IF_CONDITION",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "context.stateManager.getVariable('countdown') > 0",
+                  "operator": "eq"
+                },
+                "trueCommands": [
+                  {
+                    "id": "wait_1",
+                    "type": "WAIT",
+                    "parameters": {
+                      "duration": 1000
+                    }
+                  },
+                  {
+                    "id": "set_variable_7",
+                    "type": "SET_VARIABLE",
+                    "parameters": {
+                      "key": "countdown",
+                      "op": "sub",
+                      "value": 1
+                    }
+                  },
+                  {
+                    "id": "update_text_1",
+                    "type": "UPDATE_TEXT",
+                    "parameters": {
+                      "elementId": "countdown-text",
+                      "text": "⏳ ${gameState.countdown}s"
+                    }
+                  },
+                  {
+                    "id": "jump_to_1",
+                    "type": "JUMP_TO",
+                    "parameters": {
+                      "target": "if_condition_3"
+                    }
+                  }
+                ],
+                "falseCommands": [
+                  {
+                    "id": "if_condition_4",
+                    "type": "IF_CONDITION",
+                    "parameters": {
+                      "condition": {
+                        "type": "variable",
+                        "key": "victory",
+                        "operator": "ne",
+                        "value": true,
+                        "expression": ""
+                      },
+                      "trueCommands": [
+                        {
+                          "id": "show_image_1",
+                          "type": "SHOW_IMAGE",
+                          "parameters": {
+                            "elementId": "show_image_2",
+                            "resourceId": "__________",
+                            "position": {
+                              "x": 300,
+                              "y": 160
+                            },
+                            "parentId": "",
+                            "align": "",
+                            "size": {
+                              "width": 0,
+                              "height": 0
+                            },
+                            "visible": true,
+                            "zIndex": 3,
+                            "animation": {
+                              "entry": {
+                                "animId": "_____4"
+                              },
+                              "loop": {
+                                "animId": ""
+                              }
+                            },
+                            "id": "show_image_2"
+                          }
+                        },
+                        {
+                          "id": "wait_1",
+                          "type": "WAIT",
+                          "parameters": {
+                            "duration": 500
+                          }
+                        },
+                        {
+                          "id": "show_text_4",
+                          "type": "SHOW_TEXT",
+                          "parameters": {
+                            "elementId": "timeout-msg",
+                            "text": "超时了，\n请重新开始",
+                            "position": {
+                              "x": 330,
+                              "y": 175
+                            },
+                            "style": {
+                              "fontSize": "26",
+                              "color": "#ffffff",
+                              "stroke": "#000000",
+                              "strokeThickness": 6,
+                              "dropShadow": false,
+                              "dropShadowColor": "#000000",
+                              "dropShadowBlur": 0,
+                              "dropShadowAngle": 1.2,
+                              "dropShadowDistance": 2,
+                              "maxWidth": 999,
+                              "textAlign": "center"
+                            },
+                            "blocking": false,
+                            "dismissOnContinue": true,
+                            "skinId": "",
+                            "padding": 20,
+                            "id": "show_text_1"
+                          }
+                        },
+                        {
+                          "id": "set_clickable_2",
+                          "type": "SET_CLICKABLE",
+                          "parameters": {
+                            "elementId": "show_image_2",
+                            "clickable": true,
+                            "onClick": "commands",
+                            "backResourceId": "",
+                            "frontResourceId": "",
+                            "showBack": true,
+                            "effect": "",
+                            "blocking": true,
+                            "commands": [
+                              {
+                                "id": "scene_redirect_2",
+                                "type": "SCENE_REDIRECT",
+                                "parameters": {
+                                  "url": "this"
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "falseCommands": []
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
       "canvasWidth": 800,
       "canvasHeight": 600
     }
@@ -922,6 +3311,46 @@
         "id": "_11",
         "src": "images/G1002-瓜果分类达人/蔬11.png",
         "name": "蔬11"
+      },
+      {
+        "id": "__________",
+        "src": "images/old/生活模拟手持木牌图片.png",
+        "name": "生活模拟手持木牌图片"
+      },
+      {
+        "id": "_____10",
+        "src": "images/胜利弹窗.png",
+        "name": "胜利弹窗"
+      },
+      {
+        "id": "_____11",
+        "src": "images/失败弹窗.png",
+        "name": "失败弹窗"
+      },
+      {
+        "id": "_____12",
+        "src": "images/通用背景.png",
+        "name": "通用背景"
+      },
+      {
+        "id": "count-3",
+        "src": "images/count-3.svg",
+        "name": "count-3"
+      },
+      {
+        "id": "count-2",
+        "src": "images/count-2.svg",
+        "name": "count-2"
+      },
+      {
+        "id": "count-1",
+        "src": "images/count-1.svg",
+        "name": "count-1"
+      },
+      {
+        "id": "count-go",
+        "src": "images/count-go.svg",
+        "name": "count-go"
       }
     ],
     "audios": [],
