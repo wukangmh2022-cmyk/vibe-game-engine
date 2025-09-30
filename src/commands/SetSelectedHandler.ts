@@ -74,7 +74,7 @@ export class SetSelectedHandler extends BaseCommandHandler {
     try { if ((node as any).__selectOverlay) (node as any).__selectOverlay.visible = selected; } catch {}
 
     if (selected) {
-      const eff = p.effect || (node as any).__selectEffect || 'pulse';
+      const eff = p.effect || (node as any).__selectEffect || '';
       if (eff === 'pulse') {
         this.animator.loopPulseScale(animTarget, 0.95, 1.05, 900);
       } else if (typeof eff === 'string' && eff.trim()) {

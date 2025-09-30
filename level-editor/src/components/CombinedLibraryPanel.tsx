@@ -36,6 +36,7 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
   onSwitchDelete,
 }) => {
   const [tab, setTab] = useState<'project' | 'scene' | 'variables'>('project');
+  const [preview, setPreview] = useState<{ url: string; name?: string } | null>(null);
 
   // -------- Project (disk) resources tree --------
   type FileNode = { kind: 'file'; path: string; name: string; type: 'image'|'audio'|'video'|'animation' };
@@ -238,6 +239,25 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
     );
   };
 
+  // Resolve a resource path to previewable URL (same logic as ResourceThumb)
+  const resolveURL = async (path: string): Promise<string> => {
+    const fromVfs = await vfs.getURL(path).catch(() => null as any);
+    if (fromVfs) return fromVfs as any;
+    const base = (vfs as any)?.getBase?.() || (window as any).__ASSET_BASE__ || '';
+    const isAbs = /^(https?:|blob:|data:|file:)/.test(path) || path.startsWith('/') || path.startsWith('../');
+    return isAbs ? path : (base ? (base.endsWith('/') ? base + String(path).replace(/^\.\//,'') : base + '/' + String(path).replace(/^\.\//,'')) : String(path));
+  };
+
+  // Global ESC to close preview
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key || '').toLowerCase() === 'escape') setPreview(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [preview]);
+
   const renderDir = (node: DirNode, rootKind: RootNode['root']) => {
     const isOpen = expanded.has(node.path);
     const filesUnder = collectFiles(node).filter(p => {
@@ -257,13 +277,22 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
             {node.children.map(ch => ch.kind === 'dir'
               ? renderDir(ch as DirNode, rootKind)
               : (
-                <div key={(ch as FileNode).path} style={{ display:'flex', alignItems:'center', gap:8, padding:'4px 8px', border:'1px solid #eee', borderRadius:6, margin:'0 8px 6px 8px', background:'#fff' }}>
+                <div
+                  key={(ch as FileNode).path}
+                  style={{ display:'flex', alignItems:'center', gap:8, padding:'4px 8px', border:'1px solid #eee', borderRadius:6, margin:'0 8px 6px 8px', background:'#fff', cursor: (ch as FileNode).type === 'image' ? 'zoom-in' : 'default' }}
+                  onClick={async () => {
+                    const f = ch as FileNode;
+                    if (f.type !== 'image') return;
+                    const url = await resolveURL(f.path);
+                    setPreview({ url, name: f.name });
+                  }}
+                >
                   <ResourceThumb path={(ch as FileNode).path} type={(ch as FileNode).type} />
                   <div style={{ flex:1, overflow:'hidden' }}>
                     <div style={{ fontSize:12, fontWeight:600, color:'#333', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{(ch as FileNode).name}</div>
                     <div style={{ fontSize:11, color:'#666', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{(ch as FileNode).path}</div>
                   </div>
-                  <button className="lib-small-btn" onClick={() => addFilesToScene([(ch as FileNode).path])} title="添加到当前场景">→</button>
+                  <button className="lib-small-btn" onClick={(e) => { e.stopPropagation(); addFilesToScene([(ch as FileNode).path]); }} title="添加到当前场景">→</button>
                 </div>
               )
             )}
@@ -295,13 +324,22 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
                       {/* Render children of the synthetic root to avoid duplicate top-level directory row */}
                       <div style={{ marginLeft: 0 }}>
                         {rt.tree.children.map(ch => ch.kind === 'dir' ? renderDir(ch as any, rt.root) : (
-                          <div key={(ch as FileNode).path} style={{ display:'flex', alignItems:'center', gap:8, padding:'4px 8px', border:'1px solid #eee', borderRadius:6, margin:'0 8px 6px 8px', background:'#fff' }}>
+                          <div
+                            key={(ch as FileNode).path}
+                            style={{ display:'flex', alignItems:'center', gap:8, padding:'4px 8px', border:'1px solid #eee', borderRadius:6, margin:'0 8px 6px 8px', background:'#fff', cursor: (ch as FileNode).type === 'image' ? 'zoom-in' : 'default' }}
+                            onClick={async () => {
+                              const f = ch as FileNode;
+                              if (f.type !== 'image') return;
+                              const url = await resolveURL(f.path);
+                              setPreview({ url, name: f.name });
+                            }}
+                          >
                             <ResourceThumb path={(ch as FileNode).path} type={(ch as FileNode).type} />
                             <div style={{ flex:1, overflow:'hidden' }}>
                               <div style={{ fontSize:12, fontWeight:600, color:'#333', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{(ch as FileNode).name}</div>
                               <div style={{ fontSize:11, color:'#666', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{(ch as FileNode).path}</div>
                             </div>
-                            <button className="lib-small-btn" onClick={() => addFilesToScene([(ch as FileNode).path])} title="添加到当前场景">→</button>
+                            <button className="lib-small-btn" onClick={(e) => { e.stopPropagation(); addFilesToScene([(ch as FileNode).path]); }} title="添加到当前场景">→</button>
                           </div>
                         ))}
                       </div>
@@ -320,7 +358,15 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
                     const t = r.type || 'image';
                     const pth = (r as any).path || r.src;
                     return (
-                      <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid #e9ecef', borderRadius: 6, marginBottom: 6, background: '#fff' }}>
+                      <div
+                        key={r.id}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', border: '1px solid #e9ecef', borderRadius: 6, marginBottom: 6, background: '#fff', cursor: t === 'image' ? 'zoom-in' : 'default' }}
+                        onClick={async () => {
+                          if (t !== 'image') return;
+                          const url = await resolveURL(pth);
+                          setPreview({ url, name: r.name || r.id });
+                        }}
+                      >
                         <ResourceThumb path={pth} type={t} />
                         <div style={{ flex: 1, overflow: 'hidden' }}>
                           <div style={{ fontSize: 12, fontWeight: 600, color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.name || r.id}</div>
@@ -329,7 +375,7 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
                         <button
                           className="lib-small-btn"
                           title="移除资源的引用（不会删除项目资源）"
-                          onClick={() => onRemoveProjectResource?.(r.id)}
+                          onClick={(e) => { e.stopPropagation(); onRemoveProjectResource?.(r.id); }}
                         >−</button>
                       </div>
                     );
@@ -370,6 +416,18 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
           )}
         </div>
       </div>
+      {preview && (
+        <div className="lib-preview-mask" onClick={() => setPreview(null)}>
+          <div className="lib-preview-dialog" onClick={(e) => e.stopPropagation()}>
+            <button className="lib-preview-close" onClick={() => setPreview(null)}>×</button>
+            <div className="lib-preview-body">
+              <img src={preview.url} alt={preview.name || ''} />
+            </div>
+            {preview.name && <div className="lib-preview-title">{preview.name}</div>}
+            <div className="lib-preview-hint">按 Esc 关闭</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

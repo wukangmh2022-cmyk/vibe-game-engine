@@ -36,12 +36,15 @@ export class SetClickableHandler extends BaseCommandHandler {
     const showBackParam: boolean | undefined = p.showBack;
     const commands: GameCommand[] = Array.isArray(p.commands) ? p.commands : [];
 
-    // If created as blocking, make it the only interactive element now
-    if (blocking && rm?.setExclusiveInteractive) {
-      try { rm.setExclusiveInteractive(id); } catch {}
-    }
+    // For blocking=true, block the flow until the FIRST click completes
+    let resolver: (() => void) | null = null;
+    const waitFirstClick = blocking ? new Promise<void>(resolve => { resolver = resolve; }) : null;
 
     const handler = async () => {
+      // Apply exclusive interaction only during the click handling window
+      if (blocking && rm?.setExclusiveInteractive) {
+        try { rm.setExclusiveInteractive(id); } catch {}
+      }
       if (action === 'flip') {
         // 未明确指定时，基于当前面进行切换；首次默认视为背面在显示
         const isBackNow = (typeof (node as any).__isBack === 'boolean') ? (node as any).__isBack : true;
@@ -58,10 +61,14 @@ export class SetClickableHandler extends BaseCommandHandler {
       if (blocking && rm?.clearExclusiveInteractive) {
         try { rm.clearExclusiveInteractive(id); } catch {}
       }
+      if (resolver) { const r = resolver; resolver = null; try { r(); } catch {} }
     };
 
     node.on?.('pointertap', handler);
     node.__clickHandler = handler;
+    if (waitFirstClick) {
+      await waitFirstClick;
+    }
     return this.createSuccessResult({ elementId: id, clickable: true, onClick: action, blocking });
   }
 }

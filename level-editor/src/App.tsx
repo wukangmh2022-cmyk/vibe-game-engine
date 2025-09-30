@@ -42,6 +42,8 @@ interface AppState {
   hasOpenedProject?: boolean;
   // AI 生成弹窗开关
   isAIGenerateOpen?: boolean;
+  // 设置：预览开始时自动保存关卡（默认关闭，由首页勾选开启）
+  autoSaveOnPlay?: boolean;
 }
 
 // 添加事件触发条件更新函数的类型定义
@@ -88,7 +90,8 @@ const App: React.FC = () => {
     currentScenePath: null,
     unsaved: false,
     hasOpenedProject: false,
-    isAIGenerateOpen: false
+    isAIGenerateOpen: false,
+    autoSaveOnPlay: (() => { try { return localStorage.getItem('editor:autoSaveOnPlay') === '1'; } catch { return false; } })()
   });
 
   const currentLevel = appState.currentProject?.levels.find(l => l.id === appState.currentLevelId) || appState.currentProject?.levels[0];
@@ -1095,6 +1098,8 @@ const App: React.FC = () => {
           sessionScenes={(appState.sessionScenes || [])}
           projectBaseFromApp={appState.projectBase}
           shouldAutoLoad={!!appState.hasOpenedProject}
+          autoSaveOnPlay={!!appState.autoSaveOnPlay}
+          onToggleAutoSave={(on: boolean) => setAppState(prev => ({ ...prev, autoSaveOnPlay: !!on }))}
           onExportProject={async () => {
             try {
               // 递归遍历 VFS，导出整个项目（包含 config.json、scene 与资源）
@@ -1170,8 +1175,8 @@ const App: React.FC = () => {
         onSaveJson={handleSaveJson}
         isPlaying={appState.isPlaying}
         onPlayToggle={(playing: boolean) => {
-          // Auto-save whenever preview starts playing (or re-playing)
-          if (playing) {
+          // 仅当首页勾选时，预览开始自动保存
+          if (playing && appState.autoSaveOnPlay) {
             try { handleSaveJson(); } catch {}
           }
           setAppState(prev => ({ ...prev, isPlaying: playing }));

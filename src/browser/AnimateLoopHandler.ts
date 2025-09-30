@@ -25,9 +25,14 @@ export class AnimateLoopHandler extends BaseCommandHandler {
     const durationOverride = p.duration ?? p.period ?? p.cycle ?? (p.seconds != null ? Number(p.seconds) * 1000 : undefined);
 
     if (animId && elementNode) {
-      try {
-        await elementNode.setLoopTimeline(animId, { duration: durationOverride, resolver: (id: string) => this.loadAnimationData(id, context) });
-      } catch {}
+      // Pre-resolve to ensure资源存在；若失败则回退到预设 loopType
+      let data: any | null = null;
+      try { data = await this.loadAnimationData(animId, context); } catch { data = null; }
+      if (data && data.timeline) {
+        try { await elementNode.setLoopTimeline(animId, { timeline: data, duration: durationOverride, resolver: (id: string) => this.loadAnimationData(id, context) }); } catch {}
+      } else {
+        // fallback to preset below
+      }
       (node as any).__loopAnimId = animId;
       (node as any).__loopCancel = () => { try { elementNode.clearLoopTimeline(); } catch {} };
 
@@ -45,7 +50,9 @@ export class AnimateLoopHandler extends BaseCommandHandler {
         (node as any).__loopPauseHandlers = { onDown, onUp };
       }
 
-      return this.createSuccessResult({ elementId: id, loopType: 'resource', animId });
+      if (data && data.timeline) {
+        return this.createSuccessResult({ elementId: id, loopType: 'resource', animId });
+      }
     }
 
     const loopType: string = p.loopType || 'hoverY';

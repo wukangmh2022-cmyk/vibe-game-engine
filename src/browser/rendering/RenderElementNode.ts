@@ -110,6 +110,12 @@ export class RenderElementNode {
   private anchorX = 0;
   private anchorY = 0;
   private anchorCenter = false;
+  private anchorCompensated = false;
+  private centerDueToAnimation = false;
+  // Render-time bias for anchor switch (do not mutate base.x/base.y)
+  private anchorBiasX = 0;
+  private anchorBiasY = 0;
+  private alignCenter = false;
   private destroyed = false;
   private dirty = true;
   private currentTimeline: TimelineData | null = null;
@@ -619,7 +625,7 @@ export class RenderElementNode {
       this.setAnimationState(frame);
     }
 
-    if (this.dirty) this.applyTransforms();
+    if (this.dirty || this.alignCenter) this.applyTransforms();
   }
 
   private getEase(easing: keyof typeof Easings): (t: number) => number {
@@ -676,11 +682,23 @@ export class RenderElementNode {
 
   private applyTransforms() {
     this.dirty = false;
+    // If we switched to center-origin for rotation, compensate position once size is known
+    this.maybeCompensateAnchorCenter();
+    const off = this.getAlignmentOffset();
+    // Apply anchor bias only when anchor was switched to center due to animation origin logic
+    const biasX = (this.anchorCenter && this.centerDueToAnimation) ? this.anchorBiasX : 0;
+    const biasY = (this.anchorCenter && this.centerDueToAnimation) ? this.anchorBiasY : 0;
+    const bx = this.base.x + off.dx + biasX;
+    const by = this.base.y + off.dy + biasY;
+    // 若基于父元素的对齐尚未就绪，或动画请求的中心锚点补偿尚未完成，则暂时隐藏，避免首帧位置抖动/错位
+    const needAlignWait = this.alignCenter && !this.isAlignReady();
+    const needAnchorWait = this.centerDueToAnimation && this.anchorCenter && !this.anchorCompensated;
+    const nextVisible = (needAlignWait || needAnchorWait) ? false : this.base.visible;
     try {
-      if (typeof this.wrapperSetX === 'function') this.wrapperSetX.call(this.wrapper, this.base.x);
-      else if (this.wrapperPositionRef) this.wrapperPositionRef.x = this.base.x;
-      if (typeof this.wrapperSetY === 'function') this.wrapperSetY.call(this.wrapper, this.base.y);
-      else if (this.wrapperPositionRef) this.wrapperPositionRef.y = this.base.y;
+      if (typeof this.wrapperSetX === 'function') this.wrapperSetX.call(this.wrapper, bx);
+      else if (this.wrapperPositionRef) this.wrapperPositionRef.x = bx;
+      if (typeof this.wrapperSetY === 'function') this.wrapperSetY.call(this.wrapper, by);
+      else if (this.wrapperPositionRef) this.wrapperPositionRef.y = by;
       if (this.wrapperScaleSet) this.wrapperScaleSet(this.base.scaleX, this.base.scaleY);
       else if (this.wrapperScaleRef) {
         this.wrapperScaleRef.x = this.base.scaleX;
@@ -690,8 +708,8 @@ export class RenderElementNode {
       else if (this.wrapper.transform) this.wrapper.transform.rotation = this.base.rotation;
       if (typeof this.wrapperSetAlpha === 'function') this.wrapperSetAlpha.call(this.wrapper, this.base.alpha);
       else (this.wrapper as any)._alpha = this.base.alpha;
-      if (typeof this.wrapperSetVisible === 'function') this.wrapperSetVisible.call(this.wrapper, this.base.visible);
-      else (this.wrapper as any)._visible = this.base.visible;
+      if (typeof this.wrapperSetVisible === 'function') this.wrapperSetVisible.call(this.wrapper, nextVisible);
+      else (this.wrapper as any)._visible = nextVisible;
     } catch {}
 
     try {
@@ -706,6 +724,47 @@ export class RenderElementNode {
     } catch {}
 
     this.updateRenderedTransform();
+  }
+
+  private getAlignmentOffset(): { dx: number; dy: number } {
+    if (!this.alignCenter || !this.parent) return { dx: 0, dy: 0 };
+    const pc: any = (this.parent as any).content;
+    const hasContent = pc && typeof pc === 'object';
+    const w = hasContent ? Number(pc.width || 0) : 0;
+    const h = hasContent ? Number(pc.height || 0) : 0;
+    const ax = hasContent && pc.anchor && typeof pc.anchor.x === 'number' ? Number(pc.anchor.x) : 0;
+    const ay = hasContent && pc.anchor && typeof pc.anchor.y === 'number' ? Number(pc.anchor.y) : 0;
+    // When parent's content anchor is center (0.5), no offset; otherwise shift by (0.5 - anchor) * size
+    const dx = w > 0 ? (0.5 - ax) * w : 0;
+    const dy = h > 0 ? (0.5 - ay) * h : 0;
+    return { dx, dy };
+  }
+
+  private isAlignReady(): boolean {
+    if (!this.alignCenter || !this.parent) return true;
+    const pc: any = (this.parent as any).content;
+    const hasContent = pc && typeof pc === 'object';
+    const w = hasContent ? Number(pc.width || 0) : 0;
+    const h = hasContent ? Number(pc.height || 0) : 0;
+    return (w > 0 && h > 0);
+  }
+
+  private maybeCompensateAnchorCenter() {
+    if (!this.centerDueToAnimation || !this.anchorCenter || this.anchorCompensated) return;
+    try {
+      const w = this.width || (this.content?.width ?? 0);
+      const h = this.height || (this.content?.height ?? 0);
+      if (!(w > 0 && h > 0)) return; // wait until size is known
+      const dx = (0.5 - (this.anchorX ?? 0)) * w;
+      const dy = (0.5 - (this.anchorY ?? 0)) * h;
+      // Apply as render-time bias and keep base intact
+      this.anchorBiasX = dx;
+      this.anchorBiasY = dy;
+      // mark compensated and normalize stored anchor to center
+      this.anchorX = 0.5;
+      this.anchorY = 0.5;
+      this.anchorCompensated = true;
+    } catch {}
   }
 
   private updateRenderedTransform() {
@@ -755,6 +814,7 @@ export class RenderElementNode {
     const data = options.timeline || (await this.fetchTimeline?.(specId));
     if (!data) return;
     if (req !== this.timelineRequest) return;
+    this.prepareAnimationOrigin(data);
     const timeline = this.buildTimeline(data, options.duration);
     this.currentTimeline = timeline;
     this.timelineElapsed = 0;
@@ -775,6 +835,7 @@ export class RenderElementNode {
     const data = options.timeline || (await this.fetchTimeline?.(specId));
     if (!data) return;
     if (req !== this.timelineRequest) return;
+    this.prepareAnimationOrigin(data);
     const timeline = this.buildTimeline(data, options.duration, true);
     if (options.startAfterEntry && this.currentTimeline) {
       this.pendingLoop = timeline;
@@ -792,6 +853,41 @@ export class RenderElementNode {
     this.pendingLoop = null;
     this.playingLoop = false;
     this.resetAnimation();
+  }
+
+  // Align with previous behavior: if timeline requests origin:'center' or includes rotation,
+  // ensure rotation happens around the visual center without causing orbital effect.
+  private prepareAnimationOrigin(data: any) {
+    try {
+      const wantsCenter = String(data?.origin || '').toLowerCase() === 'center';
+      const raw = Array.isArray(data?.timeline) ? data.timeline : [];
+      const usesRotation = raw.some((k: any) => !!(k?.props && (k.props.angle != null || k.props.rotation != null)));
+      if ((wantsCenter || usesRotation) && !this.anchorCenter) {
+        // remember previous anchor before switching to center for compensation
+        const prevAx = (this.content?.anchor?.x != null) ? Number(this.content.anchor.x) : this.anchorX;
+        const prevAy = (this.content?.anchor?.y != null) ? Number(this.content.anchor.y) : this.anchorY;
+        // Switch to center anchor on the content
+        this.setAnchor(undefined, undefined, true);
+        this.centerDueToAnimation = true;
+        // Try to compensate immediately if size known; otherwise defer to maybeCompensateAnchorCenter()
+        const w = this.width || (this.content?.width ?? 0);
+        const h = this.height || (this.content?.height ?? 0);
+        if (w > 0 && h > 0) {
+          const dx = (0.5 - (prevAx ?? 0)) * w;
+          const dy = (0.5 - (prevAy ?? 0)) * h;
+          // Apply as render-time bias only
+          this.anchorBiasX = dx;
+          this.anchorBiasY = dy;
+          this.anchorX = 0.5; this.anchorY = 0.5; this.anchorCompensated = true;
+        } else {
+          // store previous values so deferred compensation uses them
+          this.anchorX = prevAx ?? 0;
+          this.anchorY = prevAy ?? 0;
+          this.anchorCompensated = false;
+        }
+        this.markDirty();
+      }
+    } catch {}
   }
 
   private buildTimeline(data: any, overrideDuration?: number, loop = false): TimelineData {
@@ -893,5 +989,10 @@ export class RenderElementNode {
       loop,
     };
   }
-}
 
+  // Public API: configure alignment behavior for base position (offsets are interpreted from parent's center when enabled)
+  setAlignCenter(v: boolean | undefined) {
+    this.alignCenter = !!v;
+    this.markDirty();
+  }
+}

@@ -26,6 +26,34 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
   const [origImageSize, setOrigImageSize] = useState<{ w: number; h: number } | null>(null);
   const [imageScale, setImageScale] = useState<number>(1);
 
+  // 键盘快捷键：ESC 关闭，Enter 保存（在 textarea 中的回车不拦截）
+  useEffect(() => {
+    const isTextInputLike = (el: Element | null): string => {
+      if (!el) return '';
+      const tag = (el as HTMLElement).tagName?.toLowerCase();
+      if ((el as HTMLElement).isContentEditable) return 'editable';
+      return tag; // 'input' | 'textarea' | 'select' | ''
+    };
+    const onKey = (e: KeyboardEvent) => {
+      const key = String(e.key || '');
+      if (key === 'Escape') {
+        e.preventDefault();
+        onCancel();
+        return;
+      }
+      if (key === 'Enter') {
+        const tag = isTextInputLike(document?.activeElement || null);
+        // 在 textarea 中保留换行；其他输入框 Enter 触发保存
+        if (tag !== 'textarea') {
+          e.preventDefault();
+          handleSave();
+        }
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [params, template]);
+
   useEffect(() => {
     // Merge template defaults into initial parameters (dot-path aware),
     // so editor controls always show sensible defaults even for older commands.

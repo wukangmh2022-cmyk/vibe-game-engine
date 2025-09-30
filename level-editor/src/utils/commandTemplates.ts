@@ -106,7 +106,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'bounce', label: '弹跳' },
         { value: 'moveIn', label: '位移进入' }
       ], showIf: { path: 'mode', equals: 'preset' } },
-      { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600, showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600, description: '预设：动画时长；资源：覆盖时间轴总时长（可选）' },
       { name: 'direction', label: '方向', type: 'select', required: false, defaultValue: 'up', options: [
         { value: 'up', label: '自下向上' },
         { value: 'down', label: '自上向下' },
@@ -133,7 +133,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'hoverY', label: '上下悬浮' },
         { value: 'pulse', label: '呼吸缩放' }
       ], showIf: { path: 'mode', equals: 'preset' } },
-      { name: 'duration', label: '单次时长(ms)', type: 'number', required: false, defaultValue: 1200, showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'duration', label: '单次时长(ms)', type: 'number', required: false, defaultValue: 1200, description: '预设：单次周期；资源：覆盖时间轴总时长（可选）' },
       { name: 'animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '使用资源动画循环播放', showIf: { path: 'mode', equals: 'resource' } }
     ]
   },
@@ -150,7 +150,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'variableKey', label: '绑定变量名', type: 'text', required: false, description: '自动把选中状态写入此变量(true/false)' },
       { name: 'singleSelect', label: '单选', type: 'boolean', required: false, defaultValue: false, description: '开启后，新的选中会自动取消上一个元素的选中（基于上次变更的元素ID）' },
       { name: 'overlayResourceId', label: '选中覆盖图', type: 'resource', required: false, resourceKind: 'image' },
-      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, resourceKind: 'animation', description: '可选：选中时播放的动画资源（不选则为内置“呼吸”效果）' }
+      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, resourceKind: 'animation', description: '可选：选中时播放的动画资源（留空为无特效）' }
       // 子命令 onSelected/onCancelSelected 在指令树中编辑
     ]
   },
@@ -191,7 +191,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'backResourceId', label: '背面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选', showIf: { path: 'onClick', equals: 'flip' }, resourceKind: 'image' },
       { name: 'frontResourceId', label: '正面资源ID', type: 'resource', required: false, description: 'onClick=flip 时可选', showIf: { path: 'onClick', equals: 'flip' }, resourceKind: 'image' },
       { name: 'showBack', label: '翻到背面', type: 'boolean', required: false, defaultValue: true, description: 'onClick=flip 时有效', showIf: { path: 'onClick', equals: 'flip' } },
-      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, description: 'onClick=toggle_selected 时可选：选中时播放的动画资源（留空则为内置“呼吸”）', showIf: { path: 'onClick', equals: 'toggle_selected' }, resourceKind: 'animation' }
+      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, description: 'onClick=toggle_selected 时可选：选中时播放的动画资源（留空为无特效）', showIf: { path: 'onClick', equals: 'toggle_selected' }, resourceKind: 'animation' }
       // 注意：子命令 commands[] 在指令树中编辑，不在此面板
     ]
   },
@@ -242,18 +242,6 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         description: '可选：挂载到已有元素下（相对其坐标）'
       },
       {
-        name: 'align',
-        label: '对齐',
-        type: 'select',
-        required: false,
-        options: [
-          { value: '', label: '左上' },
-          { value: 'center', label: '居中' }
-        ],
-        description: '与父元素的对齐方式（需设置父元素）',
-        showIf: { path: 'parentId', notEmpty: true }
-      },
-      {
         name: 'size.width',
         label: '宽度',
         type: 'number',
@@ -284,7 +272,9 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         description: '层级'
       },
       { name: 'animation.entry.animId', label: '入场动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '动画资源ID或URL。默认非阻塞，如需等待请在后续添加 WAIT 指令。' },
-      { name: 'animation.loop.animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '循环动画资源ID或URL。若同时设置入场动画，将在入场结束后自动开始循环。' }
+      { name: 'animation.entry.duration', label: '入场时长(ms)', type: 'number', required: false, description: '覆盖资源时间轴总时长（可选）' },
+      { name: 'animation.loop.animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '循环动画资源ID或URL。若同时设置入场动画，将在入场结束后自动开始循环。' },
+      { name: 'animation.loop.duration', label: '循环时长(ms)', type: 'number', required: false, description: '覆盖循环动画的单次周期（可选）' }
     ]
   },
   {
@@ -330,7 +320,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
   },
   {
     type: CommandType.SHOW_CHOICES,
-    name: '显示选项（阻塞）',
+    name: '显示选项',
     description: '显示用户可选择的多个选项（默认阻塞后续，blocking=false 可改为非阻塞）',
     category: CommandCategory.DISPLAY,
     icon: '📋',

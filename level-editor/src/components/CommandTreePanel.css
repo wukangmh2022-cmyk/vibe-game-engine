@@ -30,3 +30,14 @@
 .ctp-dialog { background:#fff; width:560px; max-width:90vw; max-height:80vh; display:flex; flex-direction:column; border-radius:8px; overflow:hidden; border:1px solid #e9ecef; }
 .ctp-dialog-header { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:#f8f9fa; border-bottom:1px solid #e9ecef; }
 .ctp-dialog-body { flex:1; min-height:0; overflow: auto; overscroll-behavior: contain; }
+
+/* Raw JSON view: enable selection and simple syntax coloring */
+.ctp-raw, .ctp-raw * { -webkit-user-select: text !important; user-select: text !important; }
+.ctp-raw-box { background:#0b1020; color:#e6edf3; border-radius:6px; border:1px solid #19233d; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); }
+.ctp-raw-pre { margin:0; padding:12px; overflow:auto; max-height:420px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; line-height:1.5; }
+.ctp-raw-code { white-space: pre; }
+.ctp-raw-code .j-key { color:#79c0ff; }
+.ctp-raw-code .j-str { color:#a5d6ff; }
+.ctp-raw-code .j-num { color:#ffa657; }
+.ctp-raw-code .j-kw { color:#7ee787; }
+.ctp-raw-code .j-punc { color:#8b949e; }

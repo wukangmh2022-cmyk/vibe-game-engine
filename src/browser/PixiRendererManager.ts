@@ -111,7 +111,7 @@ export class PixiRendererManager implements IRendererManager {
         if (rawStyle.dropShadowDistance != null) textStyle.dropShadowDistance = Number(rawStyle.dropShadowDistance);
       }
       const hasMarkup = (s: any) => {
-        try { const t = String(s || ''); return /<\/?(b|color|c|span|br)/i.test(t); } catch { return false; }
+        try { const t = String(s || ''); return /<\/?(b|color|c|span|br)/i.test(t); } catch { return false; }
       };
       const parseColorVal = (raw: string | undefined): any => {
         if (!raw) return undefined;
@@ -123,6 +123,8 @@ export class PixiRendererManager implements IRendererManager {
         if (/^0x/i.test(s)) { try { return parseInt(s); } catch { return s; } }
         return s;
       };
+      const RT_DEBUG = (globalThis as any).__RICH_TEXT_DEBUG__ === true;
+      const dbg = (...args: any[]) => { {console.info('[RichText]', ...args); } };
       const buildRichText = (content: string, baseStyle: any): any => {
         const cont = new P.Container();
         (cont as any).__isRichText = true;
@@ -145,12 +147,12 @@ export class PixiRendererManager implements IRendererManager {
           if (!closing) {
             if (tag === 'b') stack.push({ bold: true });
             else if (tag === 'color' || tag === 'c') {
-              const m1 = attrs.match(/=\s*(['"]?)(#[0-9a-fA-F]{3,8}|0x[0-9a-fA-F]+|[a-zA-Z]+)/);
-              const col = parseColorVal(m1 ? m1[2] : undefined);
+              const m1 = attrs.match(/=\s*(?:['"])?(#[0-9a-fA-F]{3,8}|0x[0-9a-fA-F]+|[a-zA-Z]+)(?:['"])?/);
+              const col = parseColorVal(m1 ? m1[1] : undefined);
               stack.push({ color: col });
             } else if (tag === 'span') {
               let col: any;
-              const m2 = attrs.match(/color\s*=\s*['"]([^'"]+)['"]/i);
+              const m2 = attrs.match(/color\s*=\s*['"]([^'"]+)['"]/i);
               if (m2) col = parseColorVal(m2[1]);
               const m3 = attrs.match(/style\s*=\s*['"][^'"]*color\s*:\s*([^;'"]+)/i);
               if (!col && m3) col = parseColorVal(m3[1]);
@@ -169,8 +171,7 @@ export class PixiRendererManager implements IRendererManager {
         const expanded: Array<{ t: 'text'|'br'; text?: string; style?: any }> = [];
         tokens.forEach(tok => {
           if (tok.t === 'br') { expanded.push(tok); return; }
-          const parts = String(tok.text || '').split(/
-/);
+          const parts = String(tok.text || '').split(/\n/);
           for (let i = 0; i < parts.length; i++) {
             if (i > 0) expanded.push({ t: 'br' });
             if (parts[i]) expanded.push({ t: 'text', text: parts[i], style: tok.style });
@@ -202,6 +203,7 @@ export class PixiRendererManager implements IRendererManager {
         return cont;
       };
       const contentText = String((config as any).content || '');
+      dbg('create hasMarkup', hasMarkup(contentText), 'sample=', contentText.slice(0, 120));
       if (hasMarkup(contentText)) {
         visual = buildRichText(contentText, textStyle);
       } else {
@@ -224,8 +226,16 @@ export class PixiRendererManager implements IRendererManager {
     wrapper.visible = config.visible !== false;
     if (style?.zIndex != null) wrapper.zIndex = Number(style.zIndex);
 
-    if (style?.anchorCenter) node.setAnchor(undefined, undefined, true);
+    // 先确定父节点，只有在父节点有效时才启用基于父的“居中对齐/居中锚点”逻辑
+    const parentNode = config.parentId ? this.elements.get(config.parentId) : null;
+
+    if (style?.anchorCenter === true && parentNode) node.setAnchor(undefined, undefined, true);
+    else if (style?.anchorCenter === true && !parentNode) node.setAnchor(undefined, undefined, false);
     else node.setAnchor(style?.anchorX, style?.anchorY, false);
+
+    if (((style as any)?.align === 'center' || (style as any)?.alignCenter === true) && parentNode) {
+      (node as any).setAlignCenter?.(true);
+    }
 
     const pos = config.position || { x: 0, y: 0 };
     node.setBasePosition(pos.x ?? 0, pos.y ?? 0);
@@ -243,7 +253,6 @@ export class PixiRendererManager implements IRendererManager {
       node.setSize((config.size as any).width, (config.size as any).height);
     }
 
-    const parentNode = config.parentId ? this.elements.get(config.parentId) : null;
     if (parentNode) {
       node.attachTo(parentNode);
     } else {
@@ -299,8 +308,18 @@ export class PixiRendererManager implements IRendererManager {
 
     if (updates.style) {
       const st: any = updates.style;
-      if (st.anchorCenter || st.anchorX != null || st.anchorY != null) {
-        node.setAnchor(st.anchorX, st.anchorY, !!st.anchorCenter);
+      const hasParent = !!(node as any).parent;
+      if (st.anchorCenter === true) {
+        if (hasParent) node.setAnchor(undefined, undefined, true);
+        else node.setAnchor(undefined, undefined, false);
+      } else if (st.anchorX != null || st.anchorY != null) {
+        node.setAnchor(st.anchorX, st.anchorY, false);
+      }
+      if (st.alignCenter === true || st.align === 'center') {
+        if (hasParent) (node as any).setAlignCenter?.(true);
+      }
+      if (st.alignCenter === false || st.align === 'none') {
+        (node as any).setAlignCenter?.(false);
       }
       if (st.zIndex != null) {
         try { wrapper.zIndex = Number(st.zIndex); wrapper.parent?.sortChildren?.(); } catch {}
@@ -332,7 +351,7 @@ export class PixiRendererManager implements IRendererManager {
           const P = this.pixi;
           while (content.children?.length) { try { content.removeChild(content.children[content.children.length - 1]); } catch {} }
           const builder = (textSrc: string, baseStyle: any) => {
-            const hasMarkup = (s: any) => { try { const t = String(s || ''); return /<\/?(b|color|c|span|br)/i.test(t); } catch { return false; } };
+            const hasMarkup = (s: any) => { try { const t = String(s || ''); return /<\/?(b|color|c|span|br)/i.test(t); } catch { return false; } };
             const parseColorVal = (raw: string | undefined): any => {
               if (!raw) return undefined;
               const s = String(raw).trim();
@@ -356,12 +375,12 @@ export class PixiRendererManager implements IRendererManager {
               if (!closing) {
                 if (tag === 'b') stack.push({ bold: true });
                 else if (tag === 'color' || tag === 'c') {
-                  const m1 = attrs.match(/=\s*(['"]?)(#[0-9a-fA-F]{3,8}|0x[0-9a-fA-F]+|[a-zA-Z]+)/);
-                  const col = parseColorVal(m1 ? m1[2] : undefined);
+                  const m1 = attrs.match(/=\s*(?:['"])?(#[0-9a-fA-F]{3,8}|0x[0-9a-fA-F]+|[a-zA-Z]+)(?:['"])?/);
+                  const col = parseColorVal(m1 ? m1[1] : undefined);
                   stack.push({ color: col });
                 } else if (tag === 'span') {
                   let col: any;
-                  const m2 = attrs.match(/color\s*=\s*['"]([^'"]+)['"]/i);
+                  const m2 = attrs.match(/color\s*=\s*['"]([^'"]+)['"]/i);
                   if (m2) col = parseColorVal(m2[1]);
                   const m3 = attrs.match(/style\s*=\s*['"][^'"]*color\s*:\s*([^;'"]+)/i);
                   if (!col && m3) col = parseColorVal(m3[1]);
@@ -380,8 +399,7 @@ export class PixiRendererManager implements IRendererManager {
             const expanded: Array<{ t: 'text'|'br'; text?: string; style?: any }> = [];
             tokens.forEach(tok => {
               if (tok.t === 'br') { expanded.push(tok); return; }
-              const parts = String(tok.text || '').split(/
-/);
+              const parts = String(tok.text || '').split(/\n/);
               for (let i = 0; i < parts.length; i++) {
                 if (i > 0) expanded.push({ t: 'br' });
                 if (parts[i]) expanded.push({ t: 'text', text: parts[i], style: tok.style });

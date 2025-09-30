@@ -48,29 +48,42 @@ export class ShowImageHandler extends BaseCommandHandler {
             if (res) src = res.url || res.src || src;
           } catch {}
         }
-        // Update texture if sprite-like and new src provided
-        try {
-          if (src) {
-            const P = rm?.getPixi?.();
-            if (P) {
-              const oldTex: any = (existing as any).texture;
-              const newTex = P.Texture.from(src);
-              // If it's the same cached Texture instance, skip reassigning/destroying
-              if (oldTex !== newTex) {
-                (existing as any).texture = newTex;
-              }
+        // Update underlying visual's texture when elementId相同但资源变化
+        if (src) {
+          const P = rm?.getPixi?.();
+          const wrapper: any = existing;
+          const content: any = (wrapper as any).__content || undefined;
+          if (P && content && ('texture' in content)) {
+            const newTex = P.Texture.from(src);
+            if (content.texture !== newTex) {
+              content.texture = newTex;
             }
+            // propagate resourceId for downstream tools
+            try { (wrapper as any).resourceId = resourceId || (wrapper as any).resourceId; } catch {}
+            try { (content as any).resourceId = resourceId || (content as any).resourceId; } catch {}
           }
-        } catch {}
+        }
         // Merge style and allow zIndex update
         const mergedStyle: any = params.style ? { ...params.style } : {};
         if (params.zIndex != null) mergedStyle.zIndex = params.zIndex;
+        // 若指定父元素：仅声明中心对齐，偏移交由节点处理（SRP）
+        if (parentId) {
+          if (mergedStyle.anchorX == null) mergedStyle.anchorX = 0.5;
+          if (mergedStyle.anchorY == null) mergedStyle.anchorY = 0.5;
+          (mergedStyle as any).alignCenter = true;
+          const offX = params.x ?? (params.position?.x ?? 0);
+          const offY = params.y ?? (params.position?.y ?? 0);
+          x = offX; y = offY;
+        }
         // Apply updates via renderer API
         const updates: Partial<ElementConfig> = {} as any;
-        // position (only when provided)
-        if (params.position && (params.position.x != null || params.position.y != null)) {
+        // position: 若挂到父元素，x/y 作为偏移，并声明 alignCenter；否则按传入值更新
+        if (parentId) {
+          updates.position = { x, y } as any;
+          (updates as any).style = { ...(updates as any).style, alignCenter: true, anchorX: 0.5, anchorY: 0.5 } as any;
+        } else if (params.position && (params.position.x != null || params.position.y != null)) {
           updates.position = { x: params.position.x, y: params.position.y } as any;
-        } else if (params.x != null || params.y != null || (parentId && align === 'center')) {
+        } else if (params.x != null || params.y != null) {
           updates.position = { x, y } as any;
         }
         // size (ignore 0/negatives)
@@ -115,55 +128,22 @@ export class ShowImageHandler extends BaseCommandHandler {
           if (width && height && Number(width) > 0 && Number(height) > 0) recreate.size = { width, height } as any;
           try { context.renderManager.createElement(recreate); } catch {}
         }
-        // 记录对齐信息：若 align=center 且指定了 parentId，保存偏移用于后续显示/隐藏切换时保持居中
-        try {
-          if (parentId && align === 'center') {
-            const node2 = rm?.getNode ? rm.getNode(elementId) : null;
-            if (node2) {
-              (node2 as any).__alignCenterParentId = parentId;
-              (node2 as any).__alignOffsetX = (params.x ?? (params.position?.x ?? 0)) || 0;
-              (node2 as any).__alignOffsetY = (params.y ?? (params.position?.y ?? 0)) || 0;
-            }
-          }
-        } catch {}
+        // 不在外部记录内部属性；对齐信息由节点内部维护
         // Non-blocking animations (entry/loop) still apply if provided
         await this.applyAnimationsIfAny(elementId, params, context);
         return this.createSuccessResult({ elementId, updated: true, position: updates.position || { x: existing.x, y: existing.y } });
       }
 
-      // If align center with parent specified:
-      // - force child anchor to 0.5 for true center positioning
-      // - if parent anchor is 0.5, child's (0,0) already at parent center → use offsets directly
-      // - otherwise, move to (parent.width/2, parent.height/2) and then apply offsets
-      if (parentId && align === 'center') {
-        try {
-          const parentNode: any = (context.renderManager as any)?.getNode?.(parentId);
-          if (parentNode) {
-            const pw = Number(parentNode.width || 0); const ph = Number(parentNode.height || 0);
-            const pax = (parentNode.anchor && typeof parentNode.anchor.x === 'number') ? Number(parentNode.anchor.x) : 0;
-            const pay = (parentNode.anchor && typeof parentNode.anchor.y === 'number') ? Number(parentNode.anchor.y) : 0;
-            (params.style = params.style || {});
-            (params.style.anchorX = 0.5); (params.style.anchorY = 0.5);
-            if (Math.abs(pax - 0.5) < 1e-3 && Math.abs(pay - 0.5) < 1e-3) {
-              // parent local origin already at its visual center
-              x = x; y = y;
-            } else {
-              // move to center of parent's bounds (top-left origin)
-              x = (pw / 2) + x; y = (ph / 2) + y;
-            }
-          }
-        } catch {}
-      }
+      // 单一职责：若指定父元素，则只声明对齐为中心，偏移量仍使用传入的 x/y；真正的对齐偏移由 RenderElementNode 处理
+      if (parentId) { (params.style = params.style || {}); (params.style.alignCenter = true); (params.style.anchorX = 0.5); (params.style.anchorY = 0.5); }
 
       // Merge style and support top-level zIndex for compatibility
       const mergedStyle: any = params.style ? { ...params.style } : {};
       if (params.zIndex != null) {
         mergedStyle.zIndex = params.zIndex;
       }
-      if (align === 'center') {
-        if (mergedStyle.anchorX == null) mergedStyle.anchorX = 0.5;
-        if (mergedStyle.anchorY == null) mergedStyle.anchorY = 0.5;
-      }
+      // 移除对齐参数后，默认居中（若挂到父元素上）
+      if (parentId) { if (mergedStyle.anchorX == null) mergedStyle.anchorX = 0.5; if (mergedStyle.anchorY == null) mergedStyle.anchorY = 0.5; }
 
       const visibleParam = (params.hidden === true) ? false : (params.visible != null ? !!params.visible : true);
       const elementConfig: ElementConfig = {
@@ -183,17 +163,7 @@ export class ShowImageHandler extends BaseCommandHandler {
       }
 
       const element = context.renderManager.createElement(elementConfig);
-      // 记录对齐信息（用于后续显示/隐藏切换时维持居中偏移）
-      try {
-        if (parentId && align === 'center') {
-          const node0 = (context.renderManager as any)?.getNode?.(elementId);
-          if (node0) {
-            (node0 as any).__alignCenterParentId = parentId;
-            (node0 as any).__alignOffsetX = (params.x ?? (params.position?.x ?? 0)) || 0;
-            (node0 as any).__alignOffsetY = (params.y ?? (params.position?.y ?? 0)) || 0;
-          }
-        }
-      } catch {}
+      // 不再外部记录内部属性；对齐由节点内部维护
       // 播放基于资源脚本的入场/循环动画（可选）
       await this.applyAnimationsIfAny(elementId, params, context);
       return this.createSuccessResult({ elementId, src: src || null, resourceId: resourceId || null, position: { x, y } });

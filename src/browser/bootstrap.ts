@@ -16,6 +16,7 @@ import { PixiSetElementStyleHandler } from './PixiSetElementStyleHandler';
 import { FlipCardHandler } from '../commands/FlipCardHandler';
 import { SetClickableHandler } from '../commands/SetClickableHandler';
 import SetSelectableHandler from '../commands/SetSelectableHandler';
+import StopAnimationHandler from '../commands/StopAnimationHandler';
 import { FireworkBurstHandler } from './FireworkBurstHandler';
 import { GameCommand } from '../types';
 import { attachPixiUi } from './ui/PixiUiLayer';
@@ -91,6 +92,7 @@ export async function mountRuntime(
   executor.registerHandler(new FlipCardHandler());
   executor.registerHandler(new SetClickableHandler());
   executor.registerHandler(new SetSelectableHandler());
+  executor.registerHandler(new StopAnimationHandler());
   // Allow external toggling of selected state (used by SET_CLICKABLE toggle_selected)
   try { const { SetSelectedHandler } = await import('../commands/SetSelectedHandler'); executor.registerHandler(new (SetSelectedHandler as any)()); } catch {}
   executor.registerHandler(new FireworkBurstHandler());

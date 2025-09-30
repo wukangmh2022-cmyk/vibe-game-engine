@@ -42,3 +42,59 @@
 
 /* Folder row tweaks: smaller label font */
 .combined-lib .lib-folder-row strong { font-size: 12px; }
+
+/* Image preview overlay */
+.combined-lib .lib-preview-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2147483646;
+}
+.combined-lib .lib-preview-dialog {
+  position: relative;
+  background: #111;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  max-width: 86vw;
+  max-height: 86vh;
+  padding: 16px 18px 12px;
+}
+.combined-lib .lib-preview-close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #eee;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.combined-lib .lib-preview-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.combined-lib .lib-preview-body img {
+  max-width: 82vw;
+  max-height: 74vh;
+  display: block;
+}
+.combined-lib .lib-preview-title {
+  text-align: center;
+  color: #ddd;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.combined-lib .lib-preview-hint {
+  text-align: center;
+  color: #aaa;
+  margin-top: 4px;
+  font-size: 11px;
+}

@@ -10,11 +10,14 @@ interface ProjectHomeProps {
   onExportProject?: () => void; // 导出整个工程
   projectBaseFromApp?: string; // 当前工程基准（由 App 维护）
   shouldAutoLoad?: boolean; // 仅当从编辑页返回时自动加载列表
+  // 编辑器设置：预览开始时自动保存（默认关闭，由首页勾选开启）
+  autoSaveOnPlay?: boolean;
+  onToggleAutoSave?: (on: boolean) => void;
 }
 
 type SceneEntry = { path: string; mtime?: number | null };
 
-export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionScenes = [], onExportProject, projectBaseFromApp, shouldAutoLoad }) => {
+export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionScenes = [], onExportProject, projectBaseFromApp, shouldAutoLoad, autoSaveOnPlay, onToggleAutoSave }) => {
   const [projectBase, setProjectBase] = useState<string>(projectBaseFromApp || ''); // 优先使用上层传入
   const [scenes, setScenes] = useState<SceneEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -242,6 +245,20 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
         {lastKey !== 'local' && (
           <div className="ph-hero-sub">上传工程开始编辑</div>
         )}
+        <div className="ph-hint" style={{ marginTop: 8 }}>
+          <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={!!autoSaveOnPlay}
+              onChange={(e) => {
+                const on = !!e.target.checked;
+                try { localStorage.setItem('editor:autoSaveOnPlay', on ? '1' : '0'); } catch {}
+                onToggleAutoSave && onToggleAutoSave(on);
+              }}
+            />
+            <span>预览开始时自动保存关卡</span>
+          </label>
+        </div>
         {/* 最近工程提示（仅本地文件夹记录） */}
         {lastKey === 'local' && (
           <div className="ph-hint" style={{ marginTop: 12 }}>
@@ -280,7 +297,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
                     setError(null);
                     try { console.info('[FSA] Reopened last handle, scenes:', list.map(x=>x.path)); } catch {}
                   } catch (e) { console.warn('[FSA] Quick reopen failed, fallback to picker', e); chooseLocalFolder(); }
-                }} title="无需重新上传，直接恢复上次的工程">↺ 重新打开上次工程</button>
+                }} title="打开上次的本地工程">↺ 重新打开上次工程</button>
               )}
               <input
                 ref={dirInputRef}

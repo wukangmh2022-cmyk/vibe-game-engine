@@ -33,6 +33,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
   const [editing, setEditing] = useState<{ path: number[] } | null>(null);
   const [pendingNewPath, setPendingNewPath] = useState<number[] | null>(null);
   const [showRaw, setShowRaw] = useState(false);
+  const [copiedRaw, setCopiedRaw] = useState<null | 'ok' | 'err'>(null);
   const [selectedPlaceholder, setSelectedPlaceholder] = useState<number[] | null>(null);
   const [runtimeStatus, setRuntimeStatus] = useState<{ id?: string; status?: 'start'|'complete'|'error' } | null>(null);
   const idSetRef = React.useRef<Set<string>>(new Set());
@@ -57,8 +58,8 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
 
   useEffect(() => {
     try { setTree(jsonToTree(initialCommandsJson || [])); } catch { setTree([]); }
-    // 保持折叠状态，不重置 folded
-    setSelectedPath(null);
+    // 不再强制清空选中项，避免删除后丢失“下一个命令”的光标态
+    // 若需要后续做健壮校验，可在此检测 selectedPath 是否仍然有效并在无效时回退到同层相邻节点
   }, [initialCommandsJson]);
 
   const toggle = (id: string) => {
@@ -236,6 +237,36 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
   const rawJson = React.useMemo(() => {
     try { return JSON.stringify(treeToJson(tree), null, 2); } catch { return '[]'; }
   }, [tree]);
+
+  // JSON syntax highlight (no external deps)
+  const highlightJson = (json: string): string => {
+    if (json == null) return '';
+    let s = String(json)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    const re = /(\"(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\\"])*\"\s*:)|(\"(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\\"])*\")|\b(true|false|null)\b|(-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?)/g;
+    s = s.replace(re, (match, key, str, kw, num) => {
+      if (key) return `<span class=\"j-key\">${key.slice(0, -1)}</span><span class=\"j-punc\">:</span>`;
+      if (str) return `<span class=\"j-str\">${str}</span>`;
+      if (kw) return `<span class=\"j-kw\">${kw}</span>`;
+      if (num) return `<span class=\"j-num\">${num}</span>`;
+      return match;
+    });
+    return s;
+  };
+
+  const highlightedRaw = React.useMemo(() => highlightJson(rawJson), [rawJson]);
+
+  const copyRaw = async () => {
+    try {
+      const ok = await tryWriteClipboard(rawJson);
+      setCopiedRaw(ok ? 'ok' : 'err');
+    } catch {
+      setCopiedRaw('err');
+    }
+    setTimeout(() => setCopiedRaw(null), 1600);
+  };
 
   // Build a fast lookup of visible node IDs for runtime event filtering
   React.useEffect(() => {
@@ -573,9 +604,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     if (clipboard.cut) setClipboard(null);
   };
   const deleteSingle = (path: number[]) => {
-    delSubtree(path);
-    setSelectedPath(null);
-    setMultiSel(null);
+    deleteAtPathAndSelectNext(path);
   };
   const copyRange = () => {
     if (!multiSel) return;
@@ -649,11 +678,104 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
 
   // Keyboard shortcuts: Ctrl/Cmd + C/X/V for copy/cut/paste
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const pendingSelectIdRef = useRef<string | null>(null);
   const isTextInputLike = (el: Element | null): boolean => {
     if (!el) return false;
     const tag = (el as HTMLElement).tagName?.toLowerCase();
     const editable = (el as HTMLElement).isContentEditable;
     return editable || tag === 'input' || tag === 'textarea' || tag === 'select';
+  };
+  const moveSelectionBy = (delta: -1 | 1) => {
+    // Skip placeholders and branch headers; only land on real action commands
+    const isActionLine = (li: LineItem) => !!li.node && li.node.kind === 'action';
+    const actionLines = lines.filter(isActionLine);
+    if (actionLines.length === 0) return;
+
+    // Locate current index in the full lines list (so we can step past placeholders/branches)
+    const findCurrentIndex = (): number => {
+      if (selectedPath) {
+        const i = lines.findIndex(li => li.path && eqArr(li.path, selectedPath));
+        if (i >= 0) return i;
+      }
+      if (selectedPlaceholder) {
+        const i = lines.findIndex(li => !!li.placeholder && eqArr(li.parentPath || [], selectedPlaceholder));
+        if (i >= 0) return i;
+      }
+      return -1;
+    };
+
+    const cur = findCurrentIndex();
+    if (cur < 0) {
+      // No current focus: always select the first action line
+      const p = actionLines[0].path || null;
+      if (p) { setSelectedPath(p); setMultiSel(null); setSelectedPlaceholder(null); }
+      return;
+    }
+
+    // Step in the requested direction until we hit an action line, skipping placeholders/branch rows
+    let j = cur + delta;
+    while (j >= 0 && j < lines.length && !isActionLine(lines[j])) {
+      j += delta;
+    }
+    if (j >= 0 && j < lines.length && lines[j].path) {
+      setSelectedPath(lines[j].path!);
+      setMultiSel(null);
+      setSelectedPlaceholder(null);
+    }
+  };
+  const deleteAtPathAndSelectNext = (path: number[]) => {
+    // 基于层级结构选择“同级下一条”（若无则上一条）；不依赖扁平列表，避免选到被删节点的子分支
+    const parentPath = path.slice(0, -1);
+    const delIndex = path[path.length - 1];
+    // 使用当前树状态计算同级列表长度
+    const siblings = getChildrenAtParent(tree, parentPath);
+    const len = siblings.length;
+    let nextPath: number[] | null = null;
+    if (len > 1) {
+      const nextIndex = (delIndex < len - 1) ? delIndex : (delIndex - 1);
+      nextPath = [...parentPath, nextIndex];
+    } else {
+      nextPath = null; // 该层级已空
+    }
+
+    withTree(nodes => {
+      const { list, index } = getAtPath(nodes, path);
+      const nl = list.slice();
+      nl.splice(index, 1);
+      return replaceAt(nodes, parentPath, nl);
+    });
+    // 直接切换到计算好的同级节点（若存在）
+    setSelectedPath(nextPath);
+    setSelectedPlaceholder(null);
+    setMultiSel(null);
+  };
+  const deleteRangeAndSelect = () => {
+    if (!multiSel) return;
+    const s = Math.min(multiSel.start, multiSel.end);
+    const e = Math.max(multiSel.start, multiSel.end);
+    const parentPath = multiSel.parentPath.slice();
+    let next: number[] | null = null;
+    withTree(nodes => {
+      const list = getChildrenAtParent(nodes, parentPath);
+      const nl = list.slice();
+      nl.splice(s, e - s + 1);
+      const newLen = nl.length;
+      if (newLen > 0) {
+        const ni = Math.min(s, newLen - 1);
+        next = [...parentPath, ni];
+      } else {
+        next = null;
+      }
+      return replaceAt(nodes, parentPath, nl);
+    });
+    setSelectedPath(next);
+    setSelectedPlaceholder(null);
+    setMultiSel(null);
+  };
+  const deleteByKey = () => {
+    if (multiSel) { deleteRangeAndSelect(); return; }
+    if (selectedPath) { deleteAtPathAndSelectNext(selectedPath); }
   };
   const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = async (e) => {
     // don't interfere when editing params dialog or typing in inputs
@@ -661,30 +783,45 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     const active = (document?.activeElement || null) as Element | null;
     if (isTextInputLike(active)) return;
     const mod = e.metaKey || e.ctrlKey;
-    if (!mod) return;
-    const k = String(e.key || '').toLowerCase();
-    if (k === 'c') {
-      e.preventDefault(); e.stopPropagation();
-      if (multiSel) copyRange(); else if (selectedPath) copySingle(selectedPath);
+    const keyRaw = String(e.key || '');
+    const k = keyRaw.toLowerCase();
+    if (mod) {
+      if (k === 'c') { e.preventDefault(); e.stopPropagation(); if (multiSel) copyRange(); else if (selectedPath) copySingle(selectedPath); return; }
+      if (k === 'x') { e.preventDefault(); e.stopPropagation(); if (multiSel) cutRange(); else if (selectedPath) cutSingle(selectedPath); return; }
+      if (k === 'v') {
+        e.preventDefault(); e.stopPropagation();
+        const hasObj = !!(clipboard && clipboard.nodes && clipboard.nodes.length);
+        if (hasObj) {
+          if (selectedPlaceholder) pasteToParentEnd(selectedPlaceholder);
+          else if (selectedPath) pasteAfterSingle(selectedPath);
+          else pasteToParentEnd([]);
+        } else {
+          // 无对象可粘贴时，回落到 JSON 文本粘贴
+          if (selectedPlaceholder) await pasteJsonToParentEnd(selectedPlaceholder);
+          else if (selectedPath) await pasteJsonAfterSingle(selectedPath);
+          else await pasteJsonToParentEnd([]);
+        }
+        return;
+      }
       return;
     }
-    if (k === 'x') {
+    if (keyRaw === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); moveSelectionBy(-1); return; }
+    if (keyRaw === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); moveSelectionBy(1); return; }
+    if (keyRaw === 'Backspace') { e.preventDefault(); e.stopPropagation(); deleteByKey(); return; }
+    if (keyRaw === 'Enter') {
       e.preventDefault(); e.stopPropagation();
-      if (multiSel) cutRange(); else if (selectedPath) cutSingle(selectedPath);
-      return;
-    }
-    if (k === 'v') {
-      e.preventDefault(); e.stopPropagation();
-      const hasObj = !!(clipboard && clipboard.nodes && clipboard.nodes.length);
-      if (hasObj) {
-        if (selectedPlaceholder) pasteToParentEnd(selectedPlaceholder);
-        else if (selectedPath) pasteAfterSingle(selectedPath);
-        else pasteToParentEnd([]);
-      } else {
-        // 无对象可粘贴时，回落到 JSON 文本粘贴
-        if (selectedPlaceholder) await pasteJsonToParentEnd(selectedPlaceholder);
-        else if (selectedPath) await pasteJsonAfterSingle(selectedPath);
-        else await pasteJsonToParentEnd([]);
+      if (selectedPath) {
+        try {
+          const findNode = (nodes: CommandNode[], path: number[]): CommandNode => {
+            let cur: any = { children: nodes };
+            for (const i of path) cur = cur.children[i];
+            return cur;
+          };
+          const n = findNode(tree, selectedPath);
+          if (n && n.kind === 'action' && tplForType(n.type)) {
+            setEditing({ path: selectedPath });
+          }
+        } catch {}
       }
       return;
     }
@@ -697,29 +834,64 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
       const active = (document?.activeElement || null) as Element | null;
       if (isTextInputLike(active)) return;
       const mod = e.metaKey || e.ctrlKey;
-      if (!mod) return;
-      const k = String((e as any).key || '').toLowerCase();
-      if (k === 'c') {
-        e.preventDefault(); e.stopPropagation();
-        if (multiSel) copyRange(); else if (selectedPath) copySingle(selectedPath);
+      const keyRaw = String((e as any).key || '');
+      const k = keyRaw.toLowerCase();
+      if (mod) {
+        if (k === 'c') { e.preventDefault(); e.stopPropagation(); if (multiSel) copyRange(); else if (selectedPath) copySingle(selectedPath); return; }
+        if (k === 'x') { e.preventDefault(); e.stopPropagation(); if (multiSel) cutRange(); else if (selectedPath) cutSingle(selectedPath); return; }
+        if (k === 'v') { e.preventDefault(); e.stopPropagation(); if (selectedPlaceholder) pasteToParentEnd(selectedPlaceholder); else if (selectedPath) pasteAfterSingle(selectedPath); else pasteToParentEnd([]); return; }
         return;
       }
-      if (k === 'x') {
+      if (keyRaw === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); moveSelectionBy(-1); return; }
+      if (keyRaw === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); moveSelectionBy(1); return; }
+      if (keyRaw === 'Backspace') { e.preventDefault(); e.stopPropagation(); deleteByKey(); return; }
+      if (keyRaw === 'Enter') {
         e.preventDefault(); e.stopPropagation();
-        if (multiSel) cutRange(); else if (selectedPath) cutSingle(selectedPath);
-        return;
-      }
-      if (k === 'v') {
-        e.preventDefault(); e.stopPropagation();
-        if (selectedPlaceholder) pasteToParentEnd(selectedPlaceholder);
-        else if (selectedPath) pasteAfterSingle(selectedPath);
-        else pasteToParentEnd([]);
+        if (selectedPath) {
+          try {
+            const findNode = (nodes: CommandNode[], path: number[]): CommandNode => {
+              let cur: any = { children: nodes };
+              for (const i of path) cur = cur.children[i];
+              return cur;
+            };
+            const n = findNode(tree, selectedPath);
+            if (n && n.kind === 'action' && tplForType(n.type)) {
+              setEditing({ path: selectedPath });
+            }
+          } catch {}
+        }
         return;
       }
     };
     window.addEventListener('keydown', onWinKey);
     return () => window.removeEventListener('keydown', onWinKey);
   }, [editing, selectedPath, selectedPlaceholder, multiSel]);
+
+  // Auto-scroll: keep selected row visible inside the list container
+  useEffect(() => {
+    if (!selectedPath || !listRef.current) return;
+    const key = selectedPath.join('-');
+    const listEl = listRef.current;
+    try {
+      const el = listEl.querySelector(`[data-path="${key}"]`) as HTMLElement | null;
+      if (el && typeof el.scrollIntoView === 'function') {
+        el.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      }
+    } catch {}
+  }, [selectedPath, lines.length]);
+
+  // 若存在待选中的目标 ID，在行列表刷新后恢复选中（用于删除后的“选中下一条”）
+  useEffect(() => {
+    const targetId = pendingSelectIdRef.current;
+    if (!targetId) return;
+    for (const li of lines) {
+      if (li.node && li.node.id === targetId && li.path) {
+        setSelectedPath(li.path);
+        pendingSelectIdRef.current = null;
+        break;
+      }
+    }
+  }, [JSON.stringify(lines.map(li => (li.node ? li.node.id : `ph:${(li.parentPath||[]).join('-')}`))) ]);
 
   return (
     <div
@@ -734,8 +906,13 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         <button onClick={() => setInsertTarget({ path: selectedPath || [], mode: 'sibling' })}>＋ 添加指令</button>
         <button onClick={() => { if (selectedPath) moveSibling(selectedPath, -1); }} disabled={!selectedPath}>↑ 上移</button>
         <button onClick={() => { if (selectedPath) moveSibling(selectedPath, 1); }} disabled={!selectedPath}>↓ 下移</button>
-        <button onClick={() => { if (selectedPath) { delSubtree(selectedPath); setSelectedPath(null); } }} disabled={!selectedPath}>删除</button>
+        <button onClick={() => { if (multiSel) { deleteRangeAndSelect(); } else if (selectedPath) { deleteAtPathAndSelectNext(selectedPath); } }} disabled={!selectedPath && !multiSel}>删除</button>
         <button onClick={() => setShowRaw(s => !s)} style={{ marginLeft: 8 }}>{showRaw ? '显示树' : '显示源数据'}</button>
+        {showRaw && (
+          <button onClick={copyRaw} title="复制 JSON">
+            {copiedRaw === 'ok' ? '已复制' : copiedRaw === 'err' ? '复制失败' : '复制' }
+          </button>
+        )}
       </div>
 
       {ctxMenu && (
@@ -768,10 +945,12 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
           )}
         </div>
       )}
-      <div className="ctp-list" onClick={(e) => { if (e.currentTarget === e.target) { setSelectedPath(null); setMultiSel(null); setSelectedPlaceholder(null); setCtxMenu(null); } }}>
+      <div className="ctp-list" ref={listRef} onClick={(e) => { if (e.currentTarget === e.target) { setSelectedPath(null); setMultiSel(null); setSelectedPlaceholder(null); setCtxMenu(null); } }}>
         {showRaw && (
-          <div style={{ padding: 8 }}>
-            <pre style={{ background: '#0b1020', color: '#e6edf3', padding: 12, borderRadius: 6, overflow: 'auto', maxHeight: 400 }}>{rawJson}</pre>
+          <div className="ctp-raw" style={{ padding: 8 }}>
+            <div className="ctp-raw-box">
+              <pre className="ctp-raw-pre"><code className="ctp-raw-code" dangerouslySetInnerHTML={{ __html: highlightedRaw }} /></pre>
+            </div>
           </div>
         )}
         {!showRaw && lines.length === 0 && <div className="clp-empty">暂无指令，点击“添加命令”</div>}
@@ -811,6 +990,7 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
           return (
             <div
               key={n.id + '|' + p.join('-')}
+              data-path={p.join('-')}
               className={`ctp-row ${n.kind === 'branch' ? 'branch' : ''} ${selectedPath && eqArr(selectedPath, p) ? 'selected' : ''} ${isInMultiRange(p) ? 'in-range' : ''} ${execClass}`}
               style={{ marginLeft: li.depth * 16 }}
               onClick={(e) => handleRowClick(e, p)}

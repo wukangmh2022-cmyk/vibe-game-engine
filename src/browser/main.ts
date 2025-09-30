@@ -14,6 +14,7 @@ import { PixiSetElementStyleHandler } from './PixiSetElementStyleHandler';
 import { FlipCardHandler } from '../commands/FlipCardHandler';
 import { SetClickableHandler } from '../commands/SetClickableHandler';
 import SetSelectableHandler from '../commands/SetSelectableHandler';
+import StopAnimationHandler from '../commands/StopAnimationHandler';
 import { GameCommand } from '../types';
 import { FireworkBurstHandler } from './FireworkBurstHandler';
 import { attachPixiUi } from './ui/PixiUiLayer';
@@ -79,6 +80,7 @@ async function bootstrap() {
   executor.registerHandler(new SetClickableHandler());
   // executor.registerHandler(new SetSelectedHandler()); // removed
   executor.registerHandler(new SetSelectableHandler());
+  executor.registerHandler(new StopAnimationHandler());
   // Effects
   executor.registerHandler(new FireworkBurstHandler());
 
