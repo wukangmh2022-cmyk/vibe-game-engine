@@ -142,15 +142,27 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
     ? Object.entries(project.globalSwitches).map(([key, value]) => ({ key, value }))
     : [];
 
-  // 合并变量：项目显式 + 推导 + 内建（去重，项目优先）
-  const allVariables: Array<Variable & { source: 'project'|'derived'|'builtin' }> = (() => {
+  // 合并变量：项目显式 + 推导 + 内建 + 运行时快照（去重，项目优先，其次推导/内建，最后运行时）
+  const allVariables: Array<Variable & { source: 'project'|'derived'|'builtin'|'runtime' }> = (() => {
     const used = new Set<string>();
-    const out: Array<Variable & { source: 'project'|'derived'|'builtin' }> = [];
+    const out: Array<Variable & { source: 'project'|'derived'|'builtin'|'runtime' }> = [];
     projectVariables.forEach(v => { out.push({ ...v, source: 'project' }); used.add(v.key); });
     derivedVarTypes.forEach((t, k) => {
       if (!used.has(k)) { out.push({ key: k, value: '', type: t as any, source: 'derived' }); used.add(k); }
     });
     BUILTIN_VARIABLES.forEach(b => { if (!used.has(b.key)) { out.push({ key: b.key, value: b.value, type: b.type, source: 'builtin' }); used.add(b.key); } });
+    // 运行时：把预览时产生但工程未声明的变量也显示出来（例如 sys_choice_N）
+    try {
+      const isSysChoice = (key: string) => /^sys_choice_\d+$/.test(String(key));
+      Object.keys(liveVars || {}).forEach((k) => {
+        if (isSysChoice(k) && !used.has(k)) {
+          const v = (liveVars as any)[k];
+          const t: any = (typeof v === 'boolean') ? 'boolean' : (typeof v === 'number') ? 'number' : (typeof v === 'object') ? 'object' : 'string';
+          out.push({ key: k, value: v, type: t, source: 'runtime' });
+          used.add(k);
+        }
+      });
+    } catch {}
     return out.sort((a, b) => a.key.localeCompare(b.key));
   })();
 

@@ -9,7 +9,9 @@ export class ShowChoicesHandler extends BaseCommandHandler {
   readonly type = CommandType.SHOW_CHOICES;
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
-      const { title: rawTitle, timeout, elementId, blocking } = command.parameters;
+      const { title: rawTitle, timeout, elementId } = command.parameters as any;
+      const multiSelect: boolean = !!((command.parameters as any)?.multiSelect || (command.parameters as any)?.ui?.multiSelect);
+      const blocking: boolean = multiSelect ? false : ((command.parameters as any)?.blocking !== false);
       // 位置（供运行时渲染器决定放置处）
       const pos = command.parameters.position || {};
       const px: number | undefined = (command.parameters.x ?? pos.x);
@@ -37,6 +39,16 @@ export class ShowChoicesHandler extends BaseCommandHandler {
         choices: choices.map((choice, index) => `${index + 1}. ${choice.text}`)
       });
 
+      // 初始化系统变量：sys_choice_N（N 从 1 开始）为 false，确保变量面板可见
+      try {
+        const sm: any = (context as any).stateManager;
+        if (sm && typeof sm.setVariable === 'function') {
+          for (let i = 0; i < choices.length; i++) {
+            sm.setVariable(`sys_choice_${i + 1}`, false);
+          }
+        }
+      } catch {}
+
       // 模拟显示选择界面
       console.log('\n=== CHOICES ===');
       // no title output
@@ -48,36 +60,63 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       });
       console.log('===============\n');
 
-      // 监听一次选择事件并执行被选项的子指令（先挂监听，再发展示事件，避免竞态）
+      // 监听选择事件
       let resolveChoice: (() => void) | null = null;
       const choicePromise = new Promise<void>((res) => { resolveChoice = res; });
-      const onSelect = async (payload: any) => {
-        if (!payload || (payload.commandId && payload.commandId !== command.id) || (payload.elementId && payload.elementId !== elementId)) {
-          return; // 非本次选择
-        }
-        const optId = payload.optionId ?? payload.id;
-        let selected: any = null;
-        if (optId != null) {
-          selected = choices.find((c: any) => c.id === optId);
-        } else if (typeof payload.index === 'number') {
-          selected = choices[payload.index];
-        }
-        if (!selected) {
-          context.logger?.warn('choice_selected payload did not match an option', payload);
-          return;
-        }
-        const child = Array.isArray(selected.commands) ? selected.commands : [];
-        if (child.length > 0) {
-          const exec = (context as any).executor;
-          await exec.executeCommands(child);
-        }
-        // 通知 UI 该选择组件生命周期结束，应该被移除
-        context.eventManager?.emit('choices_dismissed', { commandId: command.id, elementId, selected: selected.id || selected.text });
-        // resolve blocking if needed
-        try { resolveChoice?.(); } catch {}
-      };
-      // 默认单次选择即结束生命周期
-      context.eventManager?.once('choice_selected', onSelect);
+      if (multiSelect) {
+        // 多选：监听切换事件，仅在选中时执行子命令；不自动关闭
+        const onToggle = async (payload: any) => {
+          if (!payload || (payload.commandId && payload.commandId !== command.id) || (payload.elementId && payload.elementId !== elementId)) return;
+          const idx: number = typeof payload.index === 'number' ? payload.index : -1;
+          const sel = (idx >= 0 && idx < choices.length) ? choices[idx] : null;
+          if (!sel) return;
+          const isSelected = !!payload.selected;
+          if (isSelected) {
+            const child = Array.isArray((sel as any).commands) ? (sel as any).commands : [];
+            if (child.length > 0) {
+              const exec = (context as any).executor;
+              await exec.executeCommands(child);
+            }
+          }
+        };
+        context.eventManager?.on('choice_toggled', onToggle);
+      } else {
+        const onSelect = async (payload: any) => {
+          if (!payload || (payload.commandId && payload.commandId !== command.id) || (payload.elementId && payload.elementId !== elementId)) {
+            return; // 非本次选择
+          }
+          const optId = payload.optionId ?? payload.id;
+          let selected: any = null;
+          if (optId != null) {
+            selected = choices.find((c: any) => c.id === optId);
+          } else if (typeof payload.index === 'number') {
+            selected = choices[payload.index];
+          }
+          if (!selected) {
+            context.logger?.warn('choice_selected payload did not match an option', payload);
+            return;
+          }
+          // 单选：写入 sys_choice_N，选中的置 true，其他置 false
+          try {
+            const sm: any = (context as any).stateManager;
+            if (sm && typeof sm.setVariable === 'function') {
+              const selIdx = (typeof payload.index === 'number') ? payload.index : Math.max(0, choices.findIndex((c: any) => c === selected));
+              for (let i = 0; i < choices.length; i++) sm.setVariable(`sys_choice_${i + 1}`, i === selIdx);
+            }
+          } catch {}
+          const child = Array.isArray(selected.commands) ? selected.commands : [];
+          if (child.length > 0) {
+            const exec = (context as any).executor;
+            await exec.executeCommands(child);
+          }
+          // 通知 UI 该选择组件生命周期结束，应该被移除
+          context.eventManager?.emit('choices_dismissed', { commandId: command.id, elementId, selected: selected.id || selected.text });
+          // resolve blocking if needed
+          try { resolveChoice?.(); } catch {}
+        };
+        // 默认单次选择即结束生命周期
+        context.eventManager?.once('choice_selected', onSelect);
+      }
 
       // 触发选择显示事件（供上层渲染）
       const pick = (obj: any, keys: string[]) => {
@@ -90,6 +129,7 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       const assignIf = (k: string, v: any) => { if (v != null) (ui as any)[k] = v; };
       assignIf('rowMax', (command.parameters?.rowMax ?? (command.parameters as any)?.maxrow ?? (command.parameters as any)?.maxRow ?? command.parameters?.ui?.rowMax ?? (command.parameters as any)?.ui?.maxrow ?? (command.parameters as any)?.ui?.maxRow));
       assignIf('buttonSkinId', command.parameters?.buttonSkinId || command.parameters?.ui?.buttonSkinId);
+      assignIf('selectedSkinId', (command.parameters as any)?.selectedSkinId || (command.parameters as any)?.ui?.selectedSkinId);
       assignIf('buttonResourceId', command.parameters?.buttonResourceId || command.parameters?.ui?.buttonResourceId);
       assignIf('fontSize', command.parameters?.fontSize || command.parameters?.ui?.fontSize);
       assignIf('minWidth', command.parameters?.minWidth || command.parameters?.ui?.minWidth);
@@ -109,12 +149,13 @@ export class ShowChoicesHandler extends BaseCommandHandler {
         title: '',
         choices,
         timeout,
-        blocking: (blocking !== false),
+        blocking: blocking,
+        multiSelect,
         ui
       });
 
-      // 若 blocking !== false，则等待选择后再返回（阻塞主流程）
-      if (blocking !== false) {
+      // 单选且阻塞：等待选择后再返回；多选或非阻塞：直接返回
+      if (!multiSelect && blocking) {
         await choicePromise;
       }
 

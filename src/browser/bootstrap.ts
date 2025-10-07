@@ -112,7 +112,7 @@ export async function mountRuntime(
   executor.registerHandler(new EventGroupHandlerUpper());
 
   // UI Layer (buttons/choices/text blocking etc.)
-  attachPixiUi(eventManager, resourceManager, renderManager, PIXIImpl);
+  attachPixiUi(eventManager, resourceManager, renderManager, PIXIImpl, stateManager);
 
   // Preserve original level ordering across full-remount NEXT_LEVEL operations
   try {

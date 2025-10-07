@@ -321,7 +321,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
   {
     type: CommandType.SHOW_CHOICES,
     name: '显示选项',
-    description: '显示用户可选择的多个选项（默认阻塞后续，blocking=false 可改为非阻塞）',
+    description: '显示用户可选择的多个选项。支持单选/多选：多选开启后将不阻塞且不自动消失。',
     category: CommandCategory.DISPLAY,
     icon: '📋',
     color: '#3F51B5',
@@ -329,6 +329,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     parameters: [
       { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（默认等于指令ID，可修改）' },
       { name: 'blocking', label: '阻塞后续', type: 'boolean', required: false, defaultValue: true },
+      { name: 'multiSelect', label: '开启多选', type: 'boolean', required: false, defaultValue: false, description: '开启后：不阻塞、不自动消失；每个选项将切换变量 sys_choice_N（N 为选项序号，从 1 开始）。' },
       { name: 'position.x', label: 'X坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'position.y', label: 'Y坐标', type: 'number', required: false, defaultValue: 0 },
       { name: 'ui.rowMax', label: '每行最大按钮数', type: 'number', required: false, defaultValue: 1 },
@@ -340,7 +341,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'ui.paddingX', label: '按钮左右内边距', type: 'number', required: false, defaultValue: 12 },
       { name: 'ui.paddingY', label: '按钮上下内边距', type: 'number', required: false, defaultValue: 8 },
       { name: 'ui.color', label: '按钮文字颜色', type: 'color', required: false, defaultValue: '#ffffff' },
-      { name: 'ui.buttonSkinId', label: '按钮样式ID', type: 'text', required: false }
+      { name: 'ui.buttonSkinId', label: '按钮样式ID', type: 'text', required: false },
+      { name: 'ui.selectedSkinId', label: '选中态皮肤ID', type: 'text', required: false, showIf: { path: 'multiSelect', equals: true }, description: '用于多选模式下显示选中高亮皮肤。提示：sys_choice_N 为系统提供的选中态变量（true/false）。' }
     ]
   },
   {

@@ -501,28 +501,20 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
       className: `param-input ${error ? 'error' : ''}`
     };
 
-    // Dynamic override: skin select for SHOW_CHOICES
-    if (param.name.endsWith('buttonSkinId')) {
-      const skins = (project?.resources || []).filter((r: any) => (r as any).type === 'skin');
-      if (skins.length) {
-        return (
-          <select {...commonProps as any} value={String(value || '')} onChange={(e)=>handleParamChange(param.name, e.target.value)}>
-            <option value="">（不使用皮肤）</option>
-            {skins.map((s: any) => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
-          </select>
-        );
-      }
-    }
-    // Dynamic override: skin select for SHOW_TEXT (skinId or nested .skinId)
-    if (param.name === 'skinId' || param.name.endsWith('.skinId')) {
-      const skins = (project?.resources || []).filter((r: any) => (r as any).type === 'skin');
-      if (skins.length) {
-        return (
-          <select {...commonProps as any} value={String(value || '')} onChange={(e)=>handleParamChange(param.name, e.target.value)}>
-            <option value="">（不使用皮肤）</option>
-            {skins.map((s: any) => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
-          </select>
-        );
+    // Dynamic override: any *skinId field (e.g., skinId, ui.buttonSkinId, ui.selectedSkinId)
+    {
+      const lname = String(param.name || '').toLowerCase();
+      const isSkinField = (lname === 'skinid') || lname.endsWith('.skinid') || lname.endsWith('skinid');
+      if (isSkinField) {
+        const skins = (project?.resources || []).filter((r: any) => (r as any).type === 'skin');
+        if (skins.length) {
+          return (
+            <select {...commonProps as any} value={String(value || '')} onChange={(e)=>handleParamChange(param.name, e.target.value)}>
+              <option value="">（不使用皮肤）</option>
+              {skins.map((s: any) => <option key={s.id} value={s.id}>{s.name || s.id}</option>)}
+            </select>
+          );
+        }
       }
     }
     const templateTypeUp = String((template as any).type || '').toUpperCase();

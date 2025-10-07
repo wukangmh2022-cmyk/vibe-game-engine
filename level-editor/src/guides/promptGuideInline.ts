@@ -105,7 +105,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | SET_SELECTABLE | elementId | 可选：selectable、variableKey、overlayResourceId、effect，并可定义 onSelected / onCancelSelected 子命令。|
 | SET_DRAGGABLE | elementId | 可选：draggable（布尔）。拖拽落下后的逻辑通过 CHECK_IN_AREA 或自定义事件处理。|
 | CHECK_IN_AREA | area.x, area.y, area.width, area.height | 命中后写入 last_drop_element_ID / last_drop_resource_ID，并执行 commands 子数组。|
-| SHOW_CHOICES | elementId | 使用 options 数组定义按钮；每个选项包含 id, text, （可选）commands。blocking(默认 true，开启将独占交互)。parameters.ui 可设置按钮样式，如 rowMax, fontSize, buttonSkinId。|
+| SHOW_CHOICES | elementId | 使用 options 数组定义按钮；每个选项包含 id, text, （可选）commands。blocking(默认 true，开启将独占交互)。支持多选：parameters.multiSelect=true 时，阻塞失效且点击后不自动消失，选中状态写入变量 sys_choice_N（N 从1开始）。parameters.ui 可设置按钮样式，如 rowMax, fontSize, buttonSkinId、selectedSkinId。|
 
 ### 3.5 音频与系统
 
@@ -136,7 +136,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
  - 如确需使用 expression：字符串判断支持 .includes()，例如 context.stateManager.getVariable('last_drop_element_ID').includes('veg')（本身已返回布尔值，可不写 === true）。在事件上下文中也可用 event.xxx。
  - 注意：expression 不会自动把裸变量名解析为状态变量，不能直接写 xxstring.includes('xx')；需通过 context.stateManager.getVariable('xxstring') 或 event.xxstring 获取再调用 includes。
 - operator 仅可为 eq/ne/gt/lt/gte/lte；若出现 ==/!=/>/</>=/<=，请映射为上述枚举。
-- SHOW_CHOICES 必须完整提供 parameters.ui 的关键字段：rowMax、gapX、gapY、fontSize、maxWidth、paddingX、paddingY、color、buttonSkinId（未指定请给出合理默认）。
+- SHOW_CHOICES 必须完整提供 parameters.ui 的关键字段：rowMax、gapX、gapY、fontSize、maxWidth、paddingX、paddingY、color、buttonSkinId（未指定请给出合理默认）。多选模式可选提供 selectedSkinId 作为选中态皮肤。
 - 独占交互（顶层优先）：当下列任一成立时，将临时禁用其他元素的点击/拖拽，仅保留当前控件可交互，控件结束后恢复——
   - SHOW_TEXT: parameters.blocking === true
   - SHOW_CHOICES: parameters.blocking !== false（默认独占）

@@ -6,7 +6,8 @@ export function attachPixiUi(
   eventManager: IEventManager | any,
   resourceManager: any,
   renderManager: any,
-  PIXIRef?: any
+  PIXIRef?: any,
+  stateManager?: any
 ) {
   const PIXIImpl = PIXIRef || (typeof PIXI !== 'undefined' ? PIXI : undefined);
   if (!PIXIImpl) return;
@@ -193,6 +194,9 @@ export function attachPixiUi(
     const sk = ui.buttonSkinId ? resourceManager.getSkin?.(ui.buttonSkinId) : null;
     const skinUrl = (sk?.url) ? sk.url : (sk?.imageId ? resourceManager.getResource?.(sk.imageId)?.url : undefined);
     const slice = sk?.slice;
+    const selSk = ui.selectedSkinId ? resourceManager.getSkin?.(ui.selectedSkinId) : null;
+    const selSkinUrl = (selSk?.url) ? selSk.url : (selSk?.imageId ? resourceManager.getResource?.(selSk.imageId)?.url : undefined);
+    const selSlice = selSk?.slice;
     const resId = ui.buttonResourceId || undefined;
     const url = resId ? resourceManager.getResource?.(resId)?.url : skinUrl;
     const group = new PIXIImpl.Container(); group.x = pos.x; group.y = pos.y; (group as any).zIndex = 100;
@@ -208,43 +212,67 @@ export function attachPixiUi(
       let w = Math.max(minW, contentW + padX * 2);
       let h = contentH + padY * 2;
       let bg: any;
+      let selBg: any | null = null;
       const tile = ui.tileNineSlice === true;
       if (url && slice && tile) { bg = createTiledNineSlice(url, slice, w, h); }
       else if (url && slice && (PIXIImpl as any).NineSlicePlane) { const tex = PIXIImpl.Texture.from(url); bg = new PIXIImpl.NineSlicePlane(tex, Number(slice.left||12), Number(slice.top||12), Number(slice.right||12), Number(slice.bottom||12)); bg.width = w; bg.height = h; }
       else if (url) { const spr = new PIXIImpl.Sprite(PIXIImpl.Texture.from(url)); spr.width = w; spr.height = h; bg = spr; }
       else { const g = new PIXIImpl.Graphics(); g.beginFill(0x2c3e50); g.drawRoundedRect(0,0,w,h,10); g.endFill(); bg = g; }
       btn.addChild(bg);
+      // selected background if provided
+      if (selSkinUrl) {
+        if (selSlice && tile) { selBg = createTiledNineSlice(selSkinUrl, selSlice, w, h); }
+        else if (selSlice && (PIXIImpl as any).NineSlicePlane) { const tex = PIXIImpl.Texture.from(selSkinUrl); selBg = new PIXIImpl.NineSlicePlane(tex, Number(selSlice.left||12), Number(selSlice.top||12), Number(selSlice.right||12), Number(selSlice.bottom||12)); (selBg as any).width = w; (selBg as any).height = h; }
+        else { const spr2 = new PIXIImpl.Sprite(PIXIImpl.Texture.from(selSkinUrl)); spr2.width = w; spr2.height = h; selBg = spr2; }
+        if (selBg) { try { selBg.visible = false; } catch {} btn.addChild(selBg); }
+      }
       const txt = new PIXIImpl.Text(label, tStyle);
       txt.x = Math.round((w - txt.width) / 2);
       txt.y = Math.round((h - txt.height) / 2);
       btn.addChild(txt);
       (btn as any).eventMode = 'static'; (btn as any).cursor = 'pointer';
       btn.on('pointertap', onTap);
-      (btn as any).__w = w; (btn as any).__h = h;
+      (btn as any).__w = w; (btn as any).__h = h; (btn as any).__bg = bg; (btn as any).__selBg = selBg;
       return btn;
     };
+    const multi = !!payload.multiSelect || !!ui.multiSelect;
+    const selected: boolean[] = new Array((payload.choices || []).length).fill(false);
+    const buttons: any[] = [];
     (payload.choices || []).forEach((opt: any, idx: number) => {
       const label = opt.text || opt.id || String(idx + 1);
       const b = makeBtn(label, () => {
-        try { stage.removeChild(group); } catch {}
-        eventManager.emit('choice_selected', { commandId: payload.commandId, elementId: payload.elementId, optionId: opt.id, index: idx, text: label });
+        if (multi) {
+          selected[idx] = !selected[idx];
+          const bg = (b as any).__bg; const sbg = (b as any).__selBg;
+          if (sbg) { try { sbg.visible = !!selected[idx]; } catch {} }
+          if (bg) { try { bg.visible = !selected[idx]; } catch {} }
+          const key = `sys_choice_${idx + 1}`;
+          // 写入变量表（已废弃 switch 表，保持仅变量）
+          try { (stateManager as any)?.setVariable?.(key, !!selected[idx]); } catch {}
+          try { eventManager.emit('choice_toggled', { commandId: payload.commandId, elementId: payload.elementId, optionId: opt.id, index: idx, selected: !!selected[idx] }); } catch {}
+        } else {
+          try { stage.removeChild(group); } catch {}
+          eventManager.emit('choice_selected', { commandId: payload.commandId, elementId: payload.elementId, optionId: opt.id, index: idx, text: label });
+        }
       });
       if ((gapX == null || isNaN(gapX as any)) || (gapY == null || isNaN(gapY as any))) {
         const refH = Math.max(((b as any).__h) || 0, Math.ceil(fontSize * 2));
         if (gapX == null || isNaN(gapX as any)) gapX = Math.max(4, Math.ceil(refH * 0.2));
         if (gapY == null || isNaN(gapY as any)) gapY = Math.max(4, Math.ceil(refH * 0.3));
       }
-      b.x = x; b.y = y; group.addChild(b); col++;
+      b.x = x; b.y = y; group.addChild(b); buttons.push(b); col++;
       if (rowMax > 0 && col >= rowMax) { const hBtnActual = Math.round(((b as any).height) || Math.ceil(fontSize * 2)); col = 0; x = 0; y += hBtnActual + (gapY as number); }
       else { x += Math.round(((b as any).__w) || minW) + (gapX as number); }
     });
     stage.addChild(group);
     uiGroups.add(group);
-    eventManager.once('choices_dismissed', () => {
-      try { stage.removeChild(group); } catch {}
-      uiGroups.delete(group);
-      try { (renderManager as any)?.clearExclusiveInteractive?.(); } catch {}
-    });
+    if (!multi) {
+      eventManager.once('choices_dismissed', () => {
+        try { stage.removeChild(group); } catch {}
+        uiGroups.delete(group);
+        try { (renderManager as any)?.clearExclusiveInteractive?.(); } catch {}
+      });
+    }
   }
 
   eventManager.on('choices_displayed', (payload: any) => {

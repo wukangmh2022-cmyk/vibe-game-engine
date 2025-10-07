@@ -2,6 +2,7 @@ import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig 
 // Cache parsed animation JSON by resolved URL/id to avoid repeated fetch/allocations
 const ANIM_JSON_CACHE: Map<string, any> = new Map();
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveIdFromBraces, resolveFromBraces, resolveNumberFromBraces } from '../utils/ParamResolver';
 
 export class ShowImageHandler extends BaseCommandHandler {
   readonly type = CommandType.SHOW_IMAGE;
@@ -9,17 +10,26 @@ export class ShowImageHandler extends BaseCommandHandler {
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const params = command.parameters || {};
     // 兼容 V2：elementId/resourceId/position/size；同时兼容旧版：src/x/y/width/height/id
-    const elementId = params.elementId || params.id || `image_${Date.now()}`;
+    // Allow elementId/parentId to be provided as {var}
+    const resolvedElementId = resolveIdFromBraces(params.elementId, context) || params.elementId || params.id;
+    const elementId = resolvedElementId || `image_${Date.now()}`;
     const resourceId = params.resourceId;
     let src: string | undefined = params.src;
     const pos = params.position || {};
     const size = params.size || {};
     // treat provided x/y as offsets; center-align logic will add parent center when needed
-    let x = params.x ?? pos.x ?? 0;
-    let y = params.y ?? pos.y ?? 0;
+    // Resolve x/y from braces variables when provided
+    let xRaw: any = params.x ?? pos.x;
+    let yRaw: any = params.y ?? pos.y;
+    const rx = resolveNumberFromBraces(xRaw, context);
+    const ry = resolveNumberFromBraces(yRaw, context);
+    let x = (rx != null ? rx : (xRaw != null ? Number(xRaw) : 0));
+    let y = (ry != null ? ry : (yRaw != null ? Number(yRaw) : 0));
+    if (Number.isNaN(x)) x = 0;
+    if (Number.isNaN(y)) y = 0;
     const width = params.width ?? size.width;
     const height = params.height ?? size.height;
-    const parentId: string | undefined = params.parentId || params.parentElementId;
+    const parentId: string | undefined = resolveIdFromBraces(params.parentId || params.parentElementId, context);
     const align: string | undefined = params.align || params.alignment;
 
     // 若提供了 resourceId 尝试从资源管理器解析 url/src
@@ -71,9 +81,12 @@ export class ShowImageHandler extends BaseCommandHandler {
           if (mergedStyle.anchorX == null) mergedStyle.anchorX = 0.5;
           if (mergedStyle.anchorY == null) mergedStyle.anchorY = 0.5;
           (mergedStyle as any).alignCenter = true;
-          const offX = params.x ?? (params.position?.x ?? 0);
-          const offY = params.y ?? (params.position?.y ?? 0);
-          x = offX; y = offY;
+          const offXraw = params.x ?? (params.position?.x ?? 0);
+          const offYraw = params.y ?? (params.position?.y ?? 0);
+          const offX = resolveNumberFromBraces(offXraw, context);
+          const offY = resolveNumberFromBraces(offYraw, context);
+          x = (offX != null ? offX : Number(offXraw) || 0);
+          y = (offY != null ? offY : Number(offYraw) || 0);
         }
         // Apply updates via renderer API
         const updates: Partial<ElementConfig> = {} as any;
@@ -82,7 +95,9 @@ export class ShowImageHandler extends BaseCommandHandler {
           updates.position = { x, y } as any;
           (updates as any).style = { ...(updates as any).style, alignCenter: true, anchorX: 0.5, anchorY: 0.5 } as any;
         } else if (params.position && (params.position.x != null || params.position.y != null)) {
-          updates.position = { x: params.position.x, y: params.position.y } as any;
+          const px = resolveNumberFromBraces(params.position.x, context);
+          const py = resolveNumberFromBraces(params.position.y, context);
+          updates.position = { x: (px != null ? px : Number(params.position.x)), y: (py != null ? py : Number(params.position.y)) } as any;
         } else if (params.x != null || params.y != null) {
           updates.position = { x, y } as any;
         }

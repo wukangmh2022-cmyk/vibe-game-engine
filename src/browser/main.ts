@@ -98,7 +98,7 @@ async function bootstrap() {
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') cleanup(); });
   } catch {}
 
-  attachPixiUi(eventManager, resourceManager, renderManager, PIXI);
+  attachPixiUi(eventManager, resourceManager, renderManager, PIXI, stateManager);
   // (moved below after 'game' is loaded)
 
   // Track level-scoped event listeners so they can be removed on level switch

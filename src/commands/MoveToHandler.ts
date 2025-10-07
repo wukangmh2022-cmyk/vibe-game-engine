@@ -1,6 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveIdFromBraces, resolveNumberFromBraces } from '../utils/ParamResolver';
 
 /**
  * 移动动画指令处理器
@@ -18,8 +18,13 @@ export class MoveToHandler extends BaseCommandHandler {
     }
     
     // 支持：当 keepOnMinusOne 为真时，-1 表示“不修改”
-    const nx = (keepOnMinusOne && x === -1) ? undefined : x;
-    const ny = (keepOnMinusOne && y === -1) ? undefined : y;
+    // Resolve x/y from {var}; keepOnMinusOne still respected on resolved numbers
+    const rx = resolveNumberFromBraces(x, context);
+    const ry = resolveNumberFromBraces(y, context);
+    const xv = (rx != null ? rx : x);
+    const yv = (ry != null ? ry : y);
+    const nx = (keepOnMinusOne && xv === -1) ? undefined : xv;
+    const ny = (keepOnMinusOne && yv === -1) ? undefined : yv;
 
     if (nx === undefined && ny === undefined) {
       return this.createErrorResult('At least one of x or y coordinates must be specified');
