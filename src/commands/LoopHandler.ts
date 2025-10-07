@@ -50,6 +50,7 @@ export class LoopHandler extends BaseCommandHandler {
           if (variable && typeof start === 'number' && typeof end === 'number') {
             // 带变量的for循环 (for i = start to end)
             for (let i = start; step > 0 ? i < end : i > end; i += step) {
+              if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
               if (iterations >= maxIterations) {
                 context.logger.warn(`Loop exceeded maximum iterations: ${maxIterations}`);
                 break;
@@ -60,6 +61,7 @@ export class LoopHandler extends BaseCommandHandler {
               log(loopId, 'for(var)', 'iter', iterations, 'i', i, 'begin');
               const results = await executor.executeCommands(commands);
               executionResults.push(...results);
+              if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
               
               // 检查是否有break或continue指令
               if (this.shouldBreakLoop(results)) {
@@ -79,6 +81,7 @@ export class LoopHandler extends BaseCommandHandler {
           } else {
             // 简单的计数循环
             for (let i = 0; i < count; i++) {
+              if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
               if (iterations >= maxIterations) {
                 context.logger.warn(`Loop exceeded maximum iterations: ${maxIterations}`);
                 break;
@@ -90,6 +93,7 @@ export class LoopHandler extends BaseCommandHandler {
               log(loopId, 'for(count)', 'iter', iterations, 'i', i, 'begin');
               const results = await executor.executeCommands(commands);
               executionResults.push(...results);
+              if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
               
               if (this.shouldBreakLoop(results)) {
                 log(loopId, 'break', 'iter', iterations);
@@ -108,10 +112,16 @@ export class LoopHandler extends BaseCommandHandler {
           break;
           
         case 'while':
-          // while循环：暂时忽略条件判断，强制进入循环体；仍保留最大轮次保护与 break/continue/jump 语义
+          // while循环：若提供 condition 则每轮评估；支持 abort / break / continue / jump
           while (true) {
+            if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
             if (iterations >= maxIterations) {
               context.logger.warn(`While loop exceeded maximum iterations: ${maxIterations}`);
+              break;
+            }
+            // 条件驱动：提供了 condition 时，条件不满足则退出
+            if (condition && !this.evaluateCondition(condition as any, context)) {
+              log(loopId, 'cond-false', 'iter', iterations);
               break;
             }
             
@@ -121,6 +131,7 @@ export class LoopHandler extends BaseCommandHandler {
             log(loopId, 'while', 'iter', iterations, 'begin');
             const results = await executor.executeCommands(commands);
             executionResults.push(...results);
+            if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
             
             if (this.shouldBreakLoop(results)) {
               log(loopId, 'break', 'iter', iterations);
@@ -151,6 +162,7 @@ export class LoopHandler extends BaseCommandHandler {
           }
           
           for (let i = 0; i < items.length; i++) {
+            if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
             if (iterations >= maxIterations) {
               context.logger.warn(`Foreach loop exceeded maximum iterations: ${maxIterations}`);
               break;
@@ -168,6 +180,7 @@ export class LoopHandler extends BaseCommandHandler {
             log(loopId, 'foreach', 'iter', iterations, 'i', i, 'begin');
             const results = await executor.executeCommands(commands);
             executionResults.push(...results);
+            if ((context as any)?.executor?.isAborted?.()) { log(loopId, 'abort', 'iter', iterations); break; }
             
             if (this.shouldBreakLoop(results)) {
               log(loopId, 'break', 'iter', iterations);

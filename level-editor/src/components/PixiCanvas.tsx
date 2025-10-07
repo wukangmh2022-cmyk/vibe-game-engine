@@ -172,6 +172,13 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
           // initial scale: explicit prop or auto-fit
           const initScale = (typeof scale === 'number') ? scale : computeAutoScale();
           applyScale(initScale);
+          // Clear previous scale observers if any (in case of redirect re-mount)
+          try {
+            const c: any = container as any;
+            if (c.__scaleRO && c.__scaleRO.disconnect) { try { c.__scaleRO.disconnect(); } catch {} c.__scaleRO = null; }
+            if (c.__onWin) { try { window.removeEventListener('resize', c.__onWin); } catch {} c.__onWin = null; }
+            if (c.__scaleRAF) { try { cancelAnimationFrame(c.__scaleRAF); } catch {} c.__scaleRAF = null; }
+          } catch {}
           // observe container resize to auto-fit when no explicit scale is provided
           if (typeof scale !== 'number') {
             try {
@@ -181,10 +188,24 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
                 ro.observe(container);
                 (container as any).__scaleRO = ro;
               } else {
-                // fallback: listen to window resize
+                // fallback: listen to window resize + RAF polling on container size changes
                 const onWin = () => { try { applyScale(computeAutoScale()); } catch {} };
                 window.addEventListener('resize', onWin);
                 (container as any).__onWin = onWin;
+                // RAF polling: detect container rect changes even without window resize
+                let lastW = -1, lastH = -1;
+                const rafTick = () => {
+                  try {
+                    const r = container.getBoundingClientRect();
+                    const w = Math.round(r.width);
+                    const h = Math.round(r.height);
+                    if (w !== lastW || h !== lastH) {
+                      lastW = w; lastH = h; applyScale(computeAutoScale());
+                    }
+                  } catch {}
+                  (container as any).__scaleRAF = requestAnimationFrame(rafTick);
+                };
+                (container as any).__scaleRAF = requestAnimationFrame(rafTick);
               }
             } catch {}
           }

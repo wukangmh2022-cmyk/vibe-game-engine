@@ -356,17 +356,21 @@ export async function mountRuntime(
       if (ro) { try { delete c.__scaleRO; } catch {} }
       const onWin = c?.__onWin; if (onWin) { try { window.removeEventListener('resize', onWin); } catch {} }
       if (onWin) { try { delete c.__onWin; } catch {} }
+      const rafId = c?.__scaleRAF; if (rafId) { try { cancelAnimationFrame(rafId); } catch {} }
+      if (rafId) { try { delete c.__scaleRAF; } catch {} }
     } catch {}
   };
 
   return {
     // Soft dispose: keep BGM/music, stop only SFX
     dispose() {
+      (executor as any)?.abort?.();
       try { (audioManager as any)?.stopAllSounds?.(); } catch {}
       commonTearDown();
     },
     // Hard dispose: stop everything including BGM/music
     hardDispose() {
+      (executor as any)?.abort?.();
       try { (audioManager as any)?.stopAll?.(); } catch {}
       commonTearDown();
     },

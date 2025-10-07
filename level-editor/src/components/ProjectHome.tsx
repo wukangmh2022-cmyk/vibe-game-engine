@@ -85,7 +85,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
       // 复用本地模式读取 config.json / scene 列表
       (async () => {
         setLocalFiles(globalFiles);
-        setLocalFolderName('local');
+        try { setLocalFolderName(localStorage.getItem('editor:lastLocalFolderName') || 'local'); } catch { setLocalFolderName('local'); }
         vfs.setBackend('folder', { files: globalFiles });
         vfs.setProjectBase('');
         const list = (await vfs.listSceneMetas()).map(m => ({ path: m.path, mtime: m.mtime }));
@@ -105,7 +105,8 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
       const handle = await pickDirectory(); if (!handle) { console.info('[FSA] User cancelled directory picker'); return; }
       const ok = await verifyPermission(handle, 'read'); if (!ok) return;
       const map = await buildFileMapFromHandle(handle);
-      setLocalFolderName('local');
+      try { localStorage.setItem('editor:lastLocalFolderName', String(handle.name || 'local')); } catch {}
+      setLocalFolderName(String(handle.name || 'local'));
       setProjectBase('');
       setLocalFiles(map);
       try { (window as any).__LOCAL_FILES__ = map; } catch {}
@@ -131,6 +132,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
       m.set(norm, f);
     });
     setLocalFolderName(rootName);
+    try { localStorage.setItem('editor:lastLocalFolderName', String(rootName || 'local')); } catch {}
     // 进入本地工程模式：清空 server base，所有场景打开/保存走本地映射
     setProjectBase('');
     setLocalFiles(m);
@@ -245,6 +247,18 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
         {lastKey !== 'local' && (
           <div className="ph-hero-sub">上传工程开始编辑</div>
         )}
+        {(() => {
+          const text = (() => {
+            if (localFiles) return localFolderName ? `本地 · ${localFolderName}` : '本地工程';
+            if (projectBase) return ``;//远程不显示
+            return '';
+          })();
+          return text ? (
+            <div className="ph-hint" style={{ marginTop: 6, wordBreak: 'break-all' }}>
+              当前工程：{text}
+            </div>
+          ) : null;
+        })()}
         <div className="ph-hint" style={{ marginTop: 8 }}>
           <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
             <input
@@ -256,16 +270,10 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
                 onToggleAutoSave && onToggleAutoSave(on);
               }}
             />
-            <span>预览开始时自动保存关卡</span>
+            <span>是否编辑时自动保存关卡</span>
           </label>
         </div>
-        {/* 最近工程提示（仅本地文件夹记录） */}
-        {lastKey === 'local' && (
-          <div className="ph-hint" style={{ marginTop: 12 }}>
-            网页已缓存上次打开的本地工程，若想重新打开，请点击“重新打开上次工程”按钮。
-          </div>
-        )}
-        {/* 导出按钮改为右下角悬浮，不在此处渲染 */}
+        
       </div>
       <div className="ph-body">
         <div className="ph-col">
@@ -285,7 +293,8 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
                       if (!ok2) { console.info('[FSA] Permission not granted for last handle'); chooseLocalFolder(); return; }
                     }
                     const map = await buildFileMapFromHandle(handle);
-                    setLocalFolderName('local');
+                    try { localStorage.setItem('editor:lastLocalFolderName', String(handle.name || 'local')); } catch {}
+                    setLocalFolderName(String(handle.name || 'local'));
                     setProjectBase('');
                     setLocalFiles(map);
                     try { (window as any).__LOCAL_FILES__ = map; } catch {}

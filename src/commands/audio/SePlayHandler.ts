@@ -50,7 +50,19 @@ export class SePlayHandler extends BaseCommandHandler {
 
       // 延迟播放
       if (delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const ex: any = (context as any).executor;
+        await new Promise<void>((resolve) => {
+          let settled = false;
+          const done = () => { if (!settled) { settled = true; resolve(); } };
+          const id = setTimeout(done, delay);
+          if (ex && typeof ex.registerAbortable === 'function') {
+            ex.registerAbortable(() => { clearTimeout(id); done(); });
+          }
+        });
+        const ex2: any = (context as any).executor;
+        if (ex2 && typeof ex2.isAborted === 'function' && ex2.isAborted()) {
+          return this.createSuccessResult({ aborted: true });
+        }
       }
 
       // 播放音效

@@ -23,6 +23,9 @@ export class CommandExecutor {
   private isExecuting: boolean = false;
   private context: CommandContext;
   private logger: ILogger;
+  // Abort support
+  private aborted: boolean = false;
+  private abortables: Set<() => void> = new Set();
 
   constructor(
     stateManager: IStateManager,
@@ -46,6 +49,24 @@ export class CommandExecutor {
 
     // 注册默认指令处理器
     // this.registerDefaultHandlers();
+  }
+
+  // Abort all pending/ongoing execution and clear timeouts/listeners registered via registerAbortable
+  abort(): void {
+    if (this.aborted) return;
+    this.aborted = true;
+    this.clearQueue();
+    const items = Array.from(this.abortables);
+    this.abortables.clear();
+    for (const fn of items) { if (fn) fn(); }
+  }
+
+  resetAbort(): void { this.aborted = false; }
+  isAborted(): boolean { return this.aborted; }
+  registerAbortable(fn: () => void): void {
+    if (!fn) return;
+    if (this.aborted) { fn(); return; }
+    this.abortables.add(fn);
   }
 
   /**
@@ -75,6 +96,9 @@ export class CommandExecutor {
    * 执行单个指令
    */
   async executeCommand(command: GameCommand): Promise<CommandResult> {
+    if (this.aborted) {
+      return { success: true, data: { aborted: true } } as CommandResult;
+    }
     // 兼容大小写/命名风格：允许 JSON 中使用大写类型（如 "SHOW_TEXT"、"EMIT_SIGNAL"）
     let handler = this.handlers.get(command.type as any);
     if (!handler && typeof (command as any).type === 'string') {
@@ -141,6 +165,9 @@ export class CommandExecutor {
     }
 
     try {
+      if (this.aborted) {
+        return { success: true, data: { aborted: true } } as CommandResult;
+      }
       this.logger.debug(`Executing command: ${command.type}`, { command });
       
       // 触发指令开始执行事件
@@ -175,6 +202,7 @@ export class CommandExecutor {
     const results: CommandResult[] = [];
     
     for (const command of commands) {
+      if (this.aborted) break;
       const result = await this.executeCommand(command);
       results.push(result);
       
@@ -186,6 +214,7 @@ export class CommandExecutor {
       
       // 如果指令指定了下一个指令，跳转执行
       if (result.nextCommand) {
+        if (this.aborted) break;
         const nextCommand = commands.find(cmd => cmd.id === result.nextCommand);
         if (nextCommand) {
           const nextResult = await this.executeCommand(nextCommand);
@@ -217,6 +246,7 @@ export class CommandExecutor {
    * 执行队列中的所有指令
    */
   async executeQueue(): Promise<CommandResult[]> {
+    if (this.aborted) return [];
     if (this.isExecuting) {
       this.logger.warn('Command queue is already executing');
       return [];
