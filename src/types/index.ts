@@ -74,6 +74,7 @@ export enum CommandType {
   SET_SELECTABLE = 'set_selectable',
   CHECK_IN_AREA = 'check_in_area',
   SET_SELECTED = 'set_selected',
+  CHANGE_SELECTED_STATE = 'change_selected_state',
   // 拖拽/投放 与 位置
   DRAG_START = 'drag_start',
   DRAG_END = 'drag_end',
@@ -84,6 +85,7 @@ export enum CommandType {
   
   ANIMATE_IN = 'animate_in',
   ANIMATE_LOOP = 'animate_loop',
+  ANIMATE_OUT = 'animate_out',
   STOP_ANIMATION = 'stop_animation',
   
   // 特效动画
@@ -264,6 +266,29 @@ export interface IStateManager {
   setVariable(key: string, value: any): void;
   getSwitch(key: string): boolean;
   setSwitch(key: string, value: boolean): void;
+  // Optional temp-scope overlay APIs (per execution/event)
+  hasActiveTempScope?(): boolean;
+  beginTempScope?(): void;
+  endTempScope?(): void;
+  setTempVariable?(key: string, value: any): void;
+  setTempSwitch?(key: string, value: boolean): void;
+  // Optional read-only helpers for editor
+  getTempValues?(key: string): any[];
+  hasTemp?(key: string): boolean;
+  getTempSwitchValues?(key: string): boolean[];
+  hasTempSwitch?(key: string): boolean;
+  // Event instance (scoped temp) APIs
+  beginEventInstance?(instanceId?: number): number;
+  endEventInstance?(id: number): void;
+  getCurrentInstanceId?(): number | null;
+  newEventInstanceId?(): number;
+  setCurrentInstance?(id: number | null): void;
+  getVariableFor?(instanceId: number, key: string): any;
+  getSwitchFor?(instanceId: number, key: string): boolean;
+  setTempVariableFor?(instanceId: number, key: string, value: any): void;
+  setTempSwitchFor?(instanceId: number, key: string, value: boolean): void;
+  newEventInstanceId?(): number;
+  setCurrentInstance?(id: number | null): void;
   saveState(): GameState;
   loadState(state: GameState): void;
   reset(): void;

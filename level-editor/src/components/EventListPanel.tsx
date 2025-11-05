@@ -42,13 +42,8 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
     events.push({
       id: 'main-flow',
       name: '🏃 入口流程',
-      triggers: [{
-        type: 'system',
-        condition: {
-          type: 'expression',
-          expression: '游戏主要逻辑流程'
-        }
-      }],
+      // 明确标注为“自动：立即”触发，便于面板一致显示
+      triggers: [{ type: 'auto', start: 'immediate' }],
       commands: Array.isArray(lvl.commands) ? lvl.commands : []
     });
     
@@ -68,6 +63,25 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
   };
 
   const events = extractEvents(level as any);
+
+  // 统计可执行指令数量（递归进入常见子数组字段）
+  const countCommands = (arr: any[]): number => {
+    if (!Array.isArray(arr)) return 0;
+    let n = 0;
+    const walk = (cmd: any) => {
+      if (!cmd || typeof cmd !== 'object') return;
+      n += 1;
+      const p = cmd.parameters || {};
+      // 常见容器字段
+      if (Array.isArray(cmd.commands)) cmd.commands.forEach(walk);
+      if (Array.isArray(cmd.trueCommands)) cmd.trueCommands.forEach(walk);
+      if (Array.isArray(cmd.falseCommands)) cmd.falseCommands.forEach(walk);
+      // LOOP 等把子命令放在 parameters.commands
+      if (Array.isArray(p.commands)) p.commands.forEach(walk);
+    };
+    arr.forEach(walk);
+    return n;
+  };
 
   const toggleEventExpanded = (eventId: string) => {
     setExpandedEvents(prev => {
@@ -183,8 +197,8 @@ export const EventListPanel: React.FC<EventListPanelProps> = ({
                     {event.id === 'main-flow' ? '🏃 ' : '📋 '}{event.name}
                   </div>
                   <div className="event-meta">
-                    指令数: {event.commands.length} | 
-                    触发器: {event.triggers.length}个
+                    指令数: {event.id === 'main-flow' ? (Array.isArray((level as any)?.commands) ? (level as any).commands.length : 0) : countCommands(event.commands)} |
+                    触发: {event.id === 'main-flow' ? '⚡ 自动：立即' : (event.triggers.length ? getTriggerDescription(event.triggers[0]) : '无触发条件')}
                   </div>
                 </div>
               </div>

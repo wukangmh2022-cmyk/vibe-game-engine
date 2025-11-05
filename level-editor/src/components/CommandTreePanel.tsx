@@ -78,6 +78,28 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
     return t?.icon || '📝';
   };
   const titleOf = (node: CommandNode) => node.kind === 'branch' ? (node.label || '分支') : (tplMap.get(node.type)?.name || node.type);
+  const stripExt = (s: string) => s.replace(/\.[a-zA-Z0-9]+(?:\?.*)?$/, '');
+  const fileBaseNameOf = (resId?: string): string => {
+    const id = String(resId || '').trim();
+    if (!id) return '';
+    try {
+      const list = (project?.resources || []);
+      // 优先显示资源的人类可读 name（去后缀）
+      const byId = list.find(r => String(r.id) === id);
+      if (byId) {
+        if (byId.name) return stripExt(String(byId.name));
+        if (byId.src) { const last = String(byId.src).split(/[\\/]/).pop() || String(byId.src); return stripExt(last) || id; }
+      }
+      // 兼容：以 name 匹配（有些项目把资源ID直接设为文件名）
+      const byName = list.find(r => String(r.name) === id);
+      if (byName) { return stripExt(String(byName.name || '')) || id; }
+      // 兼容：以 src 含有 id 的方式模糊匹配
+      const bySrc = list.find(r => String(r.src || '').includes(id));
+      if (bySrc) { const last = String(bySrc.src).split(/[\\/]/).pop() || String(bySrc.src); return stripExt(last) || id; }
+    } catch {}
+    return id;
+  };
+
   const summaryOf = (node: CommandNode) => {
     if (node.kind === 'branch') return '';
     const p = node.parameters || {};
@@ -128,8 +150,60 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         if (c.type === 'switch') return `${c.key || ''} 等于 ${c.value === true ? '开' : '关'}`;
         return '';
       }
+      case 'BREAK': {
+        const c = p.condition || {};
+        if (!c || Object.keys(c).length === 0) return '跳出循环';
+        if (c.type === 'expression' && c.expression) return `当 ${c.expression} 时跳出`;
+        if (c.type === 'variable') {
+          const op = String(c.operator || 'eq');
+          const label = ({ eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' } as any)[op] || op;
+          const v = c.value;
+          const valStr = (typeof v === 'string') ? `'${v}'` : String(v ?? '');
+          return `当 ${c.key || ''} ${label} ${valStr} 时跳出`;
+        }
+        if (c.type === 'switch') return `当 ${c.key || ''} == ${String(c.value === true ? '开' : '关')} 时跳出`;
+        return '跳出循环';
+      }
+      case 'CONTINUE': {
+        const c = p.condition || {};
+        if (!c || Object.keys(c).length === 0) return '继续下一次迭代';
+        if (c.type === 'expression' && c.expression) return `当 ${c.expression} 时继续`;
+        if (c.type === 'variable') {
+          const op = String(c.operator || 'eq');
+          const label = ({ eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' } as any)[op] || op;
+          const v = c.value;
+          const valStr = (typeof v === 'string') ? `'${v}'` : String(v ?? '');
+          return `当 ${c.key || ''} ${label} ${valStr} 时继续`;
+        }
+        if (c.type === 'switch') return `当 ${c.key || ''} == ${String(c.value === true ? '开' : '关')} 时继续`;
+        return '继续下一次迭代';
+      }
       case 'WAIT': {
         return p.duration ? `${p.duration}ms` : '';
+      }
+      case 'BGM_PLAY': {
+        const id = p.musicId || p.bgmId || p.id || '';
+        const name = fileBaseNameOf(id);
+        const vol = (p.volume != null) ? ` · 音量${p.volume}` : '';
+        const loop = (p.loop === false) ? ' · 不循环' : (p.loop === true ? ' · 循环' : '');
+        return name ? `${name}${vol}${loop}` : '';
+      }
+      case 'SE_PLAY': {
+        const id = p.soundId || p.seId || p.id || '';
+        const name = fileBaseNameOf(id);
+        const vol = (p.volume != null) ? ` · 音量${p.volume}` : '';
+        return name ? `${name}${vol}` : '';
+      }
+      case 'SCENE_REDIRECT': {
+        const url = p.url || p.scene || '';
+        const idx = (p.levelIndex != null) ? ` · 关卡#${p.levelIndex}` : '';
+        return url ? `${url}${idx}` : '';
+      }
+      case 'SCRIPT': {
+        const code: string = String(p.code || '').trim();
+        if (!code) return '脚本';
+        const first = code.split(/\n/)[0].trim();
+        return first.length > 40 ? first.slice(0, 40) + '…' : first;
       }
       case 'UPDATE_TEXT': {
         const eid = p.elementId || p.id || '';
@@ -140,6 +214,16 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
           else try { preview = JSON.stringify(p.text); } catch { preview = '[object]'; }
         }
         return eid ? `${eid}${preview ? ` ← ${preview}` : ''}` : preview;
+      }
+      case 'SHOW_IMAGE': {
+        const eid = p.elementId || p.id || '';
+        const rid = p.resourceId || '';
+        let name = fileBaseNameOf(rid);
+        if (!name && p.src) {
+          try { const last = String(p.src).split(/[\\/]/).pop() || String(p.src); name = last.replace(/\.[a-zA-Z0-9]+$/, ''); } catch {}
+        }
+        if (eid && name) return `${eid} ← ${name}`;
+        return name || eid || '';
       }
       case 'SET_ELEMENT_STYLE': {
         const eid = p.elementId || '';
@@ -164,7 +248,9 @@ export const CommandTreePanel: React.FC<CommandTreePanelProps> = ({ project, ini
         const ay = a.y != null ? a.y : '?';
         const aw = a.width != null ? a.width : '?';
         const ah = a.height != null ? a.height : '?';
-        return eid ? `${eid} ∈ [${ax},${ay},${aw},${ah}]` : `[${ax},${ay},${aw},${ah}]`;
+        const outsideMark = p.outside ? '（区域外）' : '';
+        const enterMark = (p.requireEnter) ? '（仅进入）' : '';
+        return eid ? `${eid} ∈ [${ax},${ay},${aw},${ah}]${outsideMark}${enterMark}` : `[${ax},${ay},${aw},${ah}]${outsideMark}${enterMark}`;
       }
       case 'LOOP': {
         const lt = String(p.loopType || 'for').toLowerCase();

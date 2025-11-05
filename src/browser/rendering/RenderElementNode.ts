@@ -126,6 +126,7 @@ export class RenderElementNode {
   private playingLoop = false;
   private awaitingEntry = false;
   private timelineRequest = 0;
+  private holdEntryTail = false;
   private easingCache = new Map<string, (t: number) => number>();
   private fetchTimeline: ((specId: string) => Promise<any | null>) | null = null;
   private fetchContext: any = null;
@@ -608,7 +609,11 @@ export class RenderElementNode {
             this.loopElapsed = 0;
             this.playingLoop = true;
           } else {
-            this.resetAnimation();
+            if (this.holdEntryTail) {
+              this.holdEntryTail = false; // keep final frame
+            } else {
+              this.resetAnimation();
+            }
           }
         }
       }
@@ -804,7 +809,7 @@ export class RenderElementNode {
     return { ...this.animation };
   }
 
-  async setEntryTimeline(specId: string, options: { timeline?: any; duration?: number; resolver?: (spec: string) => Promise<any | null>; context?: any }) {
+  async setEntryTimeline(specId: string, options: { timeline?: any; duration?: number; resolver?: (spec: string) => Promise<any | null>; context?: any; holdOnEnd?: boolean }) {
     if (!specId) return;
     this.timelineRequest++;
     const req = this.timelineRequest;
@@ -822,6 +827,7 @@ export class RenderElementNode {
     this.loopTimeline = null;
     this.loopElapsed = 0;
     this.playingLoop = false;
+    this.holdEntryTail = !!options.holdOnEnd;
     this.resetAnimation();
   }
 

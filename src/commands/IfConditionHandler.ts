@@ -98,13 +98,16 @@ export class IfConditionHandler extends BaseCommandHandler {
   }
 
   private evaluateExpression(expression: string, context: CommandContext): boolean {
-    // 尝试注入事件作用域，支持在表达式中使用 event.*
+    // 支持：
+    //  - event.* （自动替换为 eventVar.*）
+    //  - getVar('key') 读取变量
     try {
       const eventVar = (context as any).event || (context as any).lastEvent || (globalThis as any).event;
-      // 将表达式中的 event 替换为 eventVar 变量
-      // 注意：eval 仍不安全，这里仅为兼容数据；后续可替换为安全解析器
+      const sm: any = (context as any).stateManager;
+      const getVar = (key: string) => (sm && typeof sm.getVariable === 'function') ? sm.getVariable(String(key)) : undefined;
+      const expr = String(expression || '').replace(/\bevent\b/g, 'eventVar');
       // eslint-disable-next-line no-eval
-      return Boolean(eval(expression.replace(/\bevent\b/g, 'eventVar')));
+      return Boolean(eval(expr));
     } catch {
       return false;
     }

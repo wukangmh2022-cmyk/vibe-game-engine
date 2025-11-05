@@ -102,7 +102,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
     setError(null); setScenes([]);
     try {
       if (!isFsaSupported()) { chooseLocalFolder(); return; }
-      const handle = await pickDirectory(); if (!handle) { console.info('[FSA] User cancelled directory picker'); return; }
+      const handle = await pickDirectory(); if (!handle) { try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.info('[FSA] User cancelled directory picker'); } catch {} return; }
       const ok = await verifyPermission(handle, 'read'); if (!ok) return;
       const map = await buildFileMapFromHandle(handle);
       try { localStorage.setItem('editor:lastLocalFolderName', String(handle.name || 'local')); } catch {}
@@ -116,9 +116,9 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
       const list = (await vfs.listSceneMetas()).map(mm => ({ path: mm.path, mtime: mm.mtime }));
       setScenes(list);
       try { await saveLastHandle(handle); } catch {}
-      try { console.info('[FSA] Saved last handle after opening directory, scenes:', list.map(x=>x.path)); } catch {}
+      try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.info('[FSA] Saved last handle after opening directory, scenes:', list.map(x=>x.path)); } catch {}
       setError(null);
-    } catch (e) { console.warn('[FSA] chooseLocalFolderFsa failed', e); setError('打开本地工程失败'); }
+    } catch (e) { try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.warn('[FSA] chooseLocalFolderFsa failed', e); } catch {} setError('打开本地工程失败'); }
   };
   const onLocalFolderPicked = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
@@ -286,11 +286,11 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
                   try {
                     if (!isFsaSupported()) { chooseLocalFolder(); return; }
                     const handle = await loadLastHandle();
-                    if (!handle) { console.info('[FSA] No stored last handle'); chooseLocalFolder(); return; }
+                    if (!handle) { try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.info('[FSA] No stored last handle'); } catch {} chooseLocalFolder(); return; }
                     const ok = await verifyPermission(handle, 'read');
                     if (!ok) {
                       const ok2 = await verifyPermission(handle, 'read');
-                      if (!ok2) { console.info('[FSA] Permission not granted for last handle'); chooseLocalFolder(); return; }
+                      if (!ok2) { try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.info('[FSA] Permission not granted for last handle'); } catch {} chooseLocalFolder(); return; }
                     }
                     const map = await buildFileMapFromHandle(handle);
                     try { localStorage.setItem('editor:lastLocalFolderName', String(handle.name || 'local')); } catch {}
@@ -304,8 +304,8 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
                     const list = (await vfs.listSceneMetas()).map(mm => ({ path: mm.path, mtime: mm.mtime }));
                     setScenes(list);
                     setError(null);
-                    try { console.info('[FSA] Reopened last handle, scenes:', list.map(x=>x.path)); } catch {}
-                  } catch (e) { console.warn('[FSA] Quick reopen failed, fallback to picker', e); chooseLocalFolder(); }
+                    try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.info('[FSA] Reopened last handle, scenes:', list.map(x=>x.path)); } catch {}
+                  } catch (e) { try { const dbg = localStorage.getItem('DEBUG_FSA')==='1'; if (dbg) console.warn('[FSA] Quick reopen failed, fallback to picker', e); } catch {} chooseLocalFolder(); }
                 }} title="打开上次的本地工程">↺ 重新打开上次工程</button>
               )}
               <input

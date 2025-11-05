@@ -1,6 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveElementId, resolveFromBraces, resolveNumberFromBraces } from '../utils/ParamResolver';
 import { Animator } from '../browser/Animator';
 
 export class FlipCardHandler extends BaseCommandHandler {
@@ -9,12 +9,13 @@ export class FlipCardHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    let elementId: string | undefined = resolveIdFromBraces(p.elementId, context);
+    let elementId: string | undefined = resolveElementId(p.elementId, context);
     if (!elementId) return this.createErrorResult('Missing required parameter: elementId');
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(elementId) : null;
     if (!node) return this.createErrorResult(`Element not found: ${elementId}`);
     const animTarget: any = (node as any).__animLayer || node;
+    const visual: any = (node as any).__content || node;
 
     // 解析前/后贴图 URL
     const resolveUrl = (idOrUrl?: string): string | undefined => {
@@ -23,15 +24,19 @@ export class FlipCardHandler extends BaseCommandHandler {
       return res?.url || idOrUrl;
     };
 
-    const backUrl = resolveUrl(p.backResourceId || p.backSrc);
+    const backIdOrUrl = resolveFromBraces<string>(p.backResourceId || p.backSrc, context);
+    const backUrl = resolveUrl(backIdOrUrl);
     const rememberedFront = (node as any).__frontSrc as string | undefined;
-    const frontUrl = resolveUrl(p.frontResourceId || p.frontSrc) || rememberedFront || this.getCurrentTextureUrl(node);
+    const frontIdOrUrl = resolveFromBraces<string>(p.frontResourceId || p.frontSrc, context);
+    const frontUrl = resolveUrl(frontIdOrUrl) || rememberedFront || this.getCurrentTextureUrl(visual);
     if (!backUrl) return this.createErrorResult('Missing backResourceId/backSrc');
 
-    const total = Math.max(100, Number(p.duration) || 600);
+    const durFromVar = resolveNumberFromBraces(p.duration, context);
+    const total = Math.max(100, Number(durFromVar != null ? durFromVar : p.duration) || 600);
     const half = Math.floor(total / 2);
-    const easing: any = p.easing || 'easeInOutQuad';
-    const showBack: boolean = p.showBack !== false; // 默认翻到背面
+    const easing: any = resolveFromBraces<string>(p.easing, context) || p.easing || 'easeInOutQuad';
+    const rawShowBack = resolveFromBraces<any>(p.showBack, context);
+    const showBack: boolean = (rawShowBack === undefined || rawShowBack === null) ? (p.showBack !== false) : !!rawShowBack; // 默认翻到背面
 
     const animator = new Animator();
     // 使用中心翻转（仅首次调整）
@@ -55,10 +60,10 @@ export class FlipCardHandler extends BaseCommandHandler {
     await animator.animate(animTarget as any, from1, to1, half, easing);
 
     // 中点：切贴图
-    const prevRenderable = (node as any).renderable ?? true;
-    (node as any).renderable = false;
-    this.setTexture(node, showBack ? backUrl : frontUrl, context);
-    await new Promise<void>(resolve => requestAnimationFrame(() => { (node as any).renderable = prevRenderable; resolve(); }));
+    const prevRenderable = (visual as any).renderable ?? true;
+    (visual as any).renderable = false;
+    this.setTexture(visual, showBack ? backUrl : frontUrl, context);
+    await new Promise<void>(resolve => requestAnimationFrame(() => { (visual as any).renderable = prevRenderable; resolve(); }));
 
     // 第二半：从 0 回到 1
     const from2 = { ...this.stateToAnim(animTarget) };

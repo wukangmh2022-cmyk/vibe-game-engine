@@ -1,6 +1,7 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { Animator } from './Animator';
+import { resolveElementId, interpolateBraces } from '../utils/ParamResolver';
 
 const ANIM_JSON_CACHE: Map<string, any> = new Map();
 
@@ -10,7 +11,7 @@ export class AnimateLoopHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    const id: string = p.elementId;
+    const id: string = resolveElementId(p.elementId, context) as any;
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
     const rm: any = context.renderManager as any;
     const node = rm?.getNode ? rm.getNode(id) : null;
@@ -21,7 +22,9 @@ export class AnimateLoopHandler extends BaseCommandHandler {
 
     try { if ((node as any).__loopCancel) { (node as any).__loopCancel(); (node as any).__loopCancel = null; } } catch {}
 
-    const animId: string | undefined = p.animId || p.animationId;
+    const animId: string | undefined = (typeof (p.animId || p.animationId) === 'string')
+      ? (interpolateBraces(String(p.animId || p.animationId), context) as string)
+      : (p.animId || p.animationId);
     const durationOverride = p.duration ?? p.period ?? p.cycle ?? (p.seconds != null ? Number(p.seconds) * 1000 : undefined);
 
     if (animId && elementNode) {

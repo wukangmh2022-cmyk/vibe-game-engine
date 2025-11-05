@@ -70,6 +70,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 - id：建议使用 snake-case，须在本关内唯一。
 - type：大小写固定，需与引擎支持的名称一致（如下表）。
 - parameters：即使没有参数，也写成空对象 {}。某些指令（如 IF_CONDITION、SET_CLICKABLE）parameters 还会带有 falseCommands、commands、trueCommands 等子数组参数，是可以多次嵌套组成复杂逻辑的，但建议不超过 4 层。
+> 说明：SHOW_IMAGE 的 elementId/parentId 以及 position.x/position.y 支持写 "{var}"，会在运行时从变量中取值。
 
 ### 3.2 资源展示类
 
@@ -147,7 +148,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
   - 或者用 EMIT_SIGNAL + custom 事件，将检查逻辑解耦到事件（推荐在提示中写清触发关系）。
 - 不再在 CHECK_IN_AREA 中传入元素 ID，使用系统变量 last_drop_element_ID / last_drop_resource_ID 即可得知当前命中的元素与资源。
 - 拖拽命中后，判断正确投递资源ID后，建议更新 varCount 等变量；提交时只做汇总校验（例如 varCount>=2）。
-- 可用系统变量：命中后 last_drop_element_ID、last_drop_resource_ID；切换选中时 lastChangingSelectStateID（SET_SELECTABLE 或 SET_CLICKABLE: toggle_selected 时）。
+- 可用系统变量：命中后 last_drop_element_ID、last_drop_resource_ID；切换选中时 lastChangingSelectStateID（SET_SELECTABLE 或 SET_CLICKABLE: toggle_selected 时）；点击时 lastClickID（SET_CLICKABLE）。
 - 输出前删除未知字段与空壳对象，保持字段命名与类型严格符合模板。
 
 ### 3.8 资源与皮肤使用准则（示例）
@@ -190,6 +191,66 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
     "options": [ { "id": "opt-start", "text": "开始", "commands": [] } ]
   }
 }
+
+---
+
+## 3.9 脚本指令（仅文本脚本）
+
+用于在流程中执行一小段脚本来修改变量或元素属性（不调用其他指令）。支持 if/for/while 等原生语法。
+
+【指令概览】
+- type: "SCRIPT" 或 "script"
+- parameters:
+  - code: 必填，脚本文本
+  - unsafe: 可选，布尔；为 true 时开放更多元素便捷接口
+
+【脚本可用 API】
+- 安全模式（默认）：
+  - setVar(key, value), getVar(key)
+  - rand(min, max), randInt(min, max)
+  - updateElement(elementId, updates)
+  - args（从 parameters.args 透传的对象）
+- 不受限模式（unsafe=true）：在安全模式基础上，额外提供便捷元素接口 E：
+  - E.get(id), E.exists(id)
+  - E.pos(id) → { x, y }
+  - E.setPos(id, x, y)
+  - E.moveBy(id, dx, dy)
+  - E.setVisible(id, bool)
+  - E.setAlpha(id, a)
+  - E.setScale(id, sx[, sy])
+  - E.setZIndex(id, z)
+  - 读取：
+    - E.getPos(id) / E.pos(id) → { x, y }
+    - E.getVisible(id) → boolean | undefined
+    - E.getAlpha(id) → number | undefined
+    - E.getScale(id) → { x, y } | undefined    // 渲染后缩放
+    - E.getZIndex(id) → number | undefined
+    - E.getRotation(id) → number | undefined   // 渲染后旋转
+    - E.getSize(id) → { width, height } | undefined // 渲染后尺寸
+    - E.getResourceId(id) → string | undefined
+  - E.getFirstChild(id) → 返回第一个元素子节点（不存在则 undefined）
+  - E.update(id, updates)
+
+【示例 JSON - 随机定位已创建元素】
+{
+  "id": "place_random",
+  "type": "SCRIPT",
+  "parameters": {
+    "unsafe": true,
+    "code": "const id='actor_1'; E.setPos(id, randInt(0,1280), randInt(0,720));"
+  }
+}
+
+【示例 JSON - 生成随机坐标写入变量】
+{
+  "id": "rand_xy",
+  "type": "SCRIPT",
+  "parameters": {
+    "code": "setVar('randX', randInt(0,1280)); setVar('randY', randInt(0,720));"
+  }
+}
+
+> 提醒：脚本仅用于便捷地设置变量或更新元素属性；不要在脚本内部尝试触发其他引擎指令。
 
 ---
 
@@ -237,7 +298,7 @@ events 数组中的每个对象：
   3) “提交”交互：
      - 方案A：提交按钮（SHOW_IMAGE）+ SET_CLICKABLE(onClick=commands)，在其 commands 内、使用 CHECK_IN_AREA可以监听不同的资源ID落入此区域（命中目标区域时执行子命令，根据last_drop_element_ID、last_drop_resource_ID变量可获取元素ID、资源ID）。
   4) 最后用 IF_CONDITION（例如 varCount >= 目标数量）判断是否完成，true 分支显示胜利文本 + NEXT_LEVEL，false 分支显示失败提示。
-  5) CHECK_IN_AREA可用系统变量 last_drop_element_ID / last_drop_resource_ID；若用 SET_SELECTABLE 或 SET_CLICKABLE(toggle_selected) 进行点选/选中，切换时会写入系统变量： lastChangingSelectStateID。
+  5) CHECK_IN_AREA可用系统变量 last_drop_element_ID / last_drop_resource_ID；若用 SET_SELECTABLE 或 SET_CLICKABLE(toggle_selected) 进行点选/选中，切换时会写入系统变量：lastChangingSelectStateID；若用 SET_CLICKABLE 进行点击（onClick 任意），点击时会写入：lastClickID。
 
 ### 5.3 翻牌/记忆类（翻卡匹配）
 

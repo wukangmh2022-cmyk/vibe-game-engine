@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { GameProject } from '../types';
 import './VariableSwitchManager.css';
+import { VarMetaStore } from '../services/VarMetaStore';
+import { varLiveStore } from '../services/VarLiveStore';
 
 interface Variable {
   key: string;
@@ -42,21 +44,41 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
   const [formData, setFormData] = useState<any>({});
   const [liveVars, setLiveVars] = useState<Record<string, any>>({});
   const [liveSwitches, setLiveSwitches] = useState<Record<string, boolean>>({});
+  const [tempVarKeys, setTempVarKeys] = useState<Set<string>>(new Set());
+  const [tempVarValues, setTempVarValues] = useState<Record<string, any[]>>({});
+  const [tempSwitchKeys, setTempSwitchKeys] = useState<Set<string>>(new Set());
+  const [varMode, setVarMode] = useState<Record<string,'temp'|'global'|'mixed'>>({});
 
   // 监听运行时变量/开关变更（预览时生效）
   useEffect(() => {
     const onVar = (e: any) => {
       try {
-        const { key, newValue } = (e as CustomEvent).detail || {};
+        const { key, newValue, temporary } = (e as CustomEvent).detail || {};
         if (!key) return;
         setLiveVars(prev => ({ ...prev, [key]: newValue }));
+        varLiveStore.updateVar(key, newValue);
+        // track temp overlays
+        const sm: any = (window as any).__RUNTIME_STATE_MANAGER__;
+        const values: any[] = sm?.getTempValues?.(key) || [];
+        if (temporary || (values && values.length)) {
+          setTempVarKeys(prev => new Set(prev).add(key));
+          setTempVarValues(prev => ({ ...prev, [key]: values }));
+        }
       } catch {}
     };
     const onSw = (e: any) => {
       try {
-        const { key, newValue } = (e as CustomEvent).detail || {};
+        const { key, newValue, temporary } = (e as CustomEvent).detail || {};
         if (!key) return;
         setLiveSwitches(prev => ({ ...prev, [key]: !!newValue }));
+        varLiveStore.updateSwitch(key, !!newValue);
+        try {
+          const sm: any = (window as any).__RUNTIME_STATE_MANAGER__;
+          const values: boolean[] = (typeof sm?.getTempSwitchValues === 'function') ? (sm.getTempSwitchValues(key) || []) : [];
+          if (temporary || (values && values.length)) {
+            setTempSwitchKeys(prev => new Set(prev).add(key));
+          }
+        } catch {}
       } catch {}
     };
     window.addEventListener('editor:variable_changed', onVar as any);
@@ -69,16 +91,63 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
         if (st) {
           if (st.variables && typeof st.variables === 'object') setLiveVars({ ...(st.variables as any) });
           if (st.switches && typeof st.switches === 'object') setLiveSwitches({ ...(st.switches as any) });
+          varLiveStore.setFromSnapshot(st);
         }
+        // temp snapshot
+        try {
+          const keys = Object.keys((st?.variables || {}) as any);
+          const addKey = (k: string) => {
+            const vals: any[] = sm?.getTempValues?.(k) || [];
+            if (vals.length) {
+              setTempVarKeys(prev => new Set(prev).add(k));
+              setTempVarValues(prev => ({ ...prev, [k]: vals }));
+            }
+            const swVals: boolean[] = sm?.getTempSwitchValues?.(k) || [];
+            if (swVals.length) setTempSwitchKeys(prev => new Set(prev).add(k));
+          };
+          keys.forEach(addKey);
+        } catch {}
       } catch {}
     };
     window.addEventListener('editor:runtime_mounted', onMounted);
+    const onStateRefresh = () => {
+      const sm: any = (window as any).__RUNTIME_STATE_MANAGER__;
+      const st = sm?.saveState?.();
+      if (st) {
+        setLiveVars({ ...(st.variables || {}) });
+        setLiveSwitches({ ...(st.switches || {}) });
+        varLiveStore.setFromSnapshot(st);
+      }
+      // clear temp overlays on level changes/reset/load
+      setTempVarKeys(new Set());
+      setTempVarValues({});
+      setTempSwitchKeys(new Set());
+    };
+    window.addEventListener('editor:level_changed', onStateRefresh as any);
+    window.addEventListener('editor:state_reset', onStateRefresh as any);
+    window.addEventListener('editor:state_loaded', onStateRefresh as any);
+    const unsub = VarMetaStore.subscribe(() => {
+      const all = VarMetaStore.getAll();
+      const m: any = {};
+      all.modes.forEach((v, k) => { m[k] = v; });
+      setVarMode(m);
+    });
+    // initial from meta store
+    const all0 = VarMetaStore.getAll();
+    const m0: any = {}; all0.modes.forEach((v, k) => { m0[k] = v; }); setVarMode(m0);
+    // initial from last live snapshot
+    const lv0 = varLiveStore.getVars(); setLiveVars({ ...lv0 });
+    const ls0 = varLiveStore.getSwitches(); setLiveSwitches({ ...ls0 });
     // 组件挂载后也尝试拉一次（例如首次进入预览时）
     setTimeout(onMounted, 0);
     return () => {
       window.removeEventListener('editor:variable_changed', onVar as any);
       window.removeEventListener('editor:switch_changed', onSw as any);
       window.removeEventListener('editor:runtime_mounted', onMounted);
+      window.removeEventListener('editor:level_changed', onStateRefresh as any);
+      window.removeEventListener('editor:state_reset', onStateRefresh as any);
+      window.removeEventListener('editor:state_loaded', onStateRefresh as any);
+      unsub();
     };
   }, []);
 
@@ -97,6 +166,9 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
       if (t === 'set_selectable') {
         const k = p?.variableKey; if (k) { varTypes.set(k, 'boolean'); }
         varTypes.set('lastChangingSelectStateID', 'string');
+      }
+      if (t === 'set_clickable') {
+        varTypes.set('lastClickID', 'string');
       }
       if (t === 'set_switch') {
         const k = p?.key; if (k) switchKeys.add(k);
@@ -129,15 +201,25 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
   const BUILTIN_VARIABLES: Array<{ key: string; type: Variable['type']; value: any }> = [
     { key: 'last_drop_element_ID', type: 'string', value: '' },
     { key: 'last_drop_resource_ID', type: 'string', value: '' },
-    { key: 'lastChangingSelectStateID', type: 'string', value: '' }
+    { key: 'lastChangingSelectStateID', type: 'string', value: '' },
+    { key: 'lastClickID', type: 'string', value: '' }
   ];
 
   const { varTypes: derivedVarTypes, switchKeys: derivedSwitchKeys } = collectDerivedKeys(project as any);
+  // Expose inferred types as a temporary editor-only table for other panels
+  try {
+    const hints: Record<string, string> = {};
+    derivedVarTypes.forEach((t, k) => { if (t) hints[k] = t; });
+    (window as any).__EDITOR_VAR_TYPE_HINTS__ = hints;
+  } catch {}
 
   // 从项目中提取显式变量和开关
   const projectVariables: Variable[] = project?.globalVariables 
     ? Object.entries(project.globalVariables).map(([key, value]) => ({ key, value, type: typeof value as any }))
     : [];
+
+  // 定时刷新临时覆盖状态，避免仅依赖事件时机导致误判
+  // No polling; temp overlays update on events/runtime mount only
   const projectSwitches: Switch[] = project?.globalSwitches
     ? Object.entries(project.globalSwitches).map(([key, value]) => ({ key, value }))
     : [];
@@ -152,17 +234,14 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
     });
     BUILTIN_VARIABLES.forEach(b => { if (!used.has(b.key)) { out.push({ key: b.key, value: b.value, type: b.type, source: 'builtin' }); used.add(b.key); } });
     // 运行时：把预览时产生但工程未声明的变量也显示出来（例如 sys_choice_N）
-    try {
-      const isSysChoice = (key: string) => /^sys_choice_\d+$/.test(String(key));
-      Object.keys(liveVars || {}).forEach((k) => {
-        if (isSysChoice(k) && !used.has(k)) {
-          const v = (liveVars as any)[k];
-          const t: any = (typeof v === 'boolean') ? 'boolean' : (typeof v === 'number') ? 'number' : (typeof v === 'object') ? 'object' : 'string';
-          out.push({ key: k, value: v, type: t, source: 'runtime' });
-          used.add(k);
-        }
-      });
-    } catch {}
+    Object.keys(liveVars || {}).forEach((k) => {
+      if (!used.has(k)) {
+        const v = (liveVars as any)[k];
+        const t: any = (typeof v === 'boolean') ? 'boolean' : (typeof v === 'number') ? 'number' : (typeof v === 'object') ? 'object' : 'string';
+        out.push({ key: k, value: v, type: t, source: 'runtime' });
+        used.add(k);
+      }
+    });
     return out.sort((a, b) => a.key.localeCompare(b.key));
   })();
 
@@ -357,19 +436,35 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                     <div className="item-info">
                       <div className="item-name">{variable.key}</div>
                       <div className="item-value">
-                        {formatValue(variable.value, variable.type)}
+                        {!(varMode[variable.key] === 'temp') && (
+                          <>{formatValue(variable.value, variable.type)}</>
+                        )}
                         {liveVars.hasOwnProperty(variable.key) && (
                           <span style={{ marginLeft: 8, fontSize: 12, color: '#17a2b8' }} title="运行时当前值">
                             → {formatValue(liveVars[variable.key], variable.type)}
                           </span>
                         )}
+                        {(varMode[variable.key] === 'temp') && (
+                          <span style={{ marginLeft: 8, fontSize: 12, color: '#ff9800' }} title="临时覆盖值（并行）">
+                            临: {(tempVarValues[variable.key] || []).join(', ')}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <div 
-                      className="item-type" 
-                      style={{ backgroundColor: getTypeColor(variable.type) + '20', color: getTypeColor(variable.type) }}
-                    >
-                      {variable.type}
+                    <div className="item-badges">
+                      {varMode[variable.key] === 'temp' ? (
+                        <span className="item-badge temp" title="临时变量">临</span>
+                      ) : varMode[variable.key] === 'mixed' ? (
+                        <span className="item-badge temp" title="混用（临时与全局并存，需清理）" style={{ background:'#ffe6e6', color:'#e53935', borderColor:'#ffcdd2' }}>混</span>
+                      ) : (
+                        <span className="item-badge global" title="全局变量">全</span>
+                      )}
+                      <span 
+                        className="item-type" 
+                        style={{ backgroundColor: getTypeColor(variable.type) + '20', color: getTypeColor(variable.type) }}
+                      >
+                        {variable.type}
+                      </span>
                     </div>
                     {variable.type === 'number' && variable.source === 'project' && (
                       <div className="variable-operations">
@@ -455,13 +550,29 @@ export const VariableSwitchManager: React.FC<VariableSwitchManagerProps> = ({
                     <div className="item-info">
                       <div className="item-name">{switchItem.key}</div>
                       <div className="item-value">
-                        {switchItem.value ? '开启' : '关闭'}
+                        {!(varMode[switchItem.key] === 'temp') && (
+                          <>{switchItem.value ? '开启' : '关闭'}</>
+                        )}
                         {liveSwitches.hasOwnProperty(switchItem.key) && (
                           <span style={{ marginLeft: 8, fontSize: 12, color: '#17a2b8' }} title="运行时当前值">
                             → {liveSwitches[switchItem.key] ? '开启' : '关闭'}
                           </span>
                         )}
+                        {(varMode[switchItem.key] === 'temp') && (
+                          <span style={{ marginLeft: 8, fontSize: 12, color: '#ff9800' }} title="临时开关覆盖">
+                            临
+                          </span>
+                        )}
                       </div>
+                    </div>
+                    <div className="item-badges">
+                      {varMode[switchItem.key] === 'temp' ? (
+                        <span className="item-badge temp" title="临时开关">临</span>
+                      ) : varMode[switchItem.key] === 'mixed' ? (
+                        <span className="item-badge temp" title="混用（临时与全局并存，需清理）" style={{ background:'#ffe6e6', color:'#e53935', borderColor:'#ffcdd2' }}>混</span>
+                      ) : (
+                        <span className="item-badge global" title="全局开关">全</span>
+                      )}
                     </div>
                     <div className="item-actions">
                       {switchItem.source === 'project' && (

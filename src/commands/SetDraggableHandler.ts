@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveElementId } from '../utils/ParamResolver';
 
 /**
  * 设置元素可拖拽指令处理器
@@ -8,7 +9,8 @@ export class SetDraggableHandler extends BaseCommandHandler {
   readonly type = CommandType.SET_DRAGGABLE;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
-    const { elementId, draggable = true, constraints } = command.parameters;
+    const { elementId: rawId, draggable = true, constraints } = command.parameters;
+    const elementId: string | undefined = resolveElementId(rawId, context) || rawId;
     
     if (!elementId) {
       return this.createErrorResult('Missing required parameter: elementId');

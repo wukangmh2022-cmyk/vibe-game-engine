@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CommandTemplate, CommandParameterDef, GameProject } from '../types';
 import './CommandParameterEditor.css';
 import vfs from '../utils/vfs';
@@ -25,6 +26,24 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
   // SHOW_IMAGE: original image size + proportional scale UI
   const [origImageSize, setOrigImageSize] = useState<{ w: number; h: number } | null>(null);
   const [imageScale, setImageScale] = useState<number>(1);
+  // Tooltip visibility for script/expr helpers
+  const [showCodeHelp, setShowCodeHelp] = useState(false);
+  const [showExprHelp, setShowExprHelp] = useState(false);
+  const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
+
+  const showTip = (text: string) => (ev: React.MouseEvent<HTMLElement>) => {
+    try {
+      const r = (ev.currentTarget as HTMLElement).getBoundingClientRect();
+      const maxW = 520;
+      const pad = 8;
+      let x = Math.min(window.innerWidth - maxW - pad, Math.max(pad, r.right - maxW));
+      const y = Math.min(window.innerHeight - 40, r.bottom + pad);
+      setTip({ text, x, y });
+    } catch {
+      setTip({ text, x: 12, y: 12 });
+    }
+  };
+  const hideTip = () => setTip(null);
 
   // 键盘快捷键：ESC 关闭，Enter 保存（在 textarea 中的回车不拦截）
   useEffect(() => {
@@ -226,9 +245,18 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     return root;
   };
 
-  // Infer variable type from project: prefer globalVariables; fallback to scanning level commands
+  // Infer variable type: prefer editor hints -> globals -> command scan
   const inferVariableType = (key: string): 'number' | 'boolean' | 'string' | undefined => {
     try {
+      // 0) Editor temporary hints
+      try {
+        const hints = (window as any).__EDITOR_VAR_TYPE_HINTS__ as Record<string, string> | undefined;
+        if (hints && hints[key]) {
+          const t = hints[key];
+          if (t === 'number' || t === 'boolean') return t;
+          return 'string';
+        }
+      } catch {}
       // 1) Prefer explicit globalVariables typing
       const gv = project?.globalVariables as any;
       if (gv && Object.prototype.hasOwnProperty.call(gv, key)) {
@@ -343,6 +371,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
 
   const handleSave = () => {
     if (!validateParams()) return;
+    
     // Normalize expression-type parameters to engine schema
     const opTokenMap: Record<string, string> = { '==': 'eq', '!=': 'ne', '>': 'gt', '<': 'lt', '>=': 'gte', '<=': 'lte' };
     const tokenToSymbol: Record<string, string> = { eq: '==', ne: '!=', gt: '>', lt: '<', gte: '>=', lte: '<=' };
@@ -373,6 +402,39 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           const val = (isAbsoluteUrl || isAbsolutePath || hasScenePrefix) ? raw : `scene/${raw}`;
           normalized = setByPath(normalized, 'url', val);
         }
+      }
+    } catch {}
+    // Coerce SET_ELEMENT_STYLE numeric-like text fields; drop empty keys ("不修改")
+    try {
+      const typeUp = String((template as any).type || '').toUpperCase();
+      if (typeUp === 'SET_ELEMENT_STYLE') {
+        const get = (p: string) => getByPath(normalized, p);
+        const set = (p: string, v: any) => { normalized = setByPath(normalized, p, v); };
+        const del = (p: string) => {
+          const segs = p.split('.');
+          const last = segs.pop()!;
+          let obj: any = normalized;
+          for (const k of segs) { if (!obj || typeof obj !== 'object') return; obj = obj[k]; }
+          if (obj && typeof obj === 'object') { delete obj[last]; }
+        };
+        // Drop empty display
+        const disp = get('style.display');
+        if (disp === '' || disp == null) del('style.display');
+        // Alpha / Scale / zIndex: parse numeric when provided; drop empties
+        const coerceNum = (path: string) => {
+          const raw = get(path);
+          if (raw == null || raw === '') { del(path); return; }
+          const n = Number(raw);
+          if (!Number.isNaN(n)) set(path, n);
+        };
+        coerceNum('style.alpha');
+        coerceNum('style.scale');
+        coerceNum('style.zIndex');
+        // If style becomes empty object, remove it to avoid noisy writes
+        try {
+          const st = (normalized as any).style;
+          if (st && typeof st === 'object' && Object.keys(st).length === 0) delete (normalized as any).style;
+        } catch {}
       }
     } catch {}
     try {
@@ -459,6 +521,39 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           }
         }
         normalized = setByPath(normalized, 'condition.value', out);
+      }
+    } catch {}
+    // Editor-only: update variable type hints & mode when saving SET_VARIABLE/SET_SWITCH
+    try {
+      const tUpper = String(template.type || '').toUpperCase();
+      const p: any = normalized || {};
+      const hints: any = (window as any).__EDITOR_VAR_TYPE_HINTS__ || {};
+      const modes: any = (window as any).__EDITOR_VAR_MODE__ || {};
+      if (tUpper === 'SET_VARIABLE' && p?.key) {
+        // decide type from op/value
+        const op = String(p.op || 'set').toLowerCase();
+        let hinted: 'number'|'boolean'|'string' = 'string';
+        if (op === 'add' || op === 'sub' || op === 'mul' || op === 'div') hinted = 'number';
+        else if (typeof p.value === 'number') hinted = 'number';
+        else if (typeof p.value === 'boolean') hinted = 'boolean';
+        else if (typeof p.value === 'string') {
+          const s = p.value.trim();
+          if (/^-?\d+(?:\.\d+)?$/.test(s)) hinted = 'number';
+          else if (/^(true|false)$/i.test(s)) hinted = 'boolean';
+          else hinted = 'string';
+        }
+        hints[p.key] = hinted;
+        modes[p.key] = (p.temporary === true) ? 'temp' : 'global';
+        (window as any).__EDITOR_VAR_TYPE_HINTS__ = hints;
+        (window as any).__EDITOR_VAR_MODE__ = modes;
+        try { window.dispatchEvent(new CustomEvent('editor:var_mode_refreshed')); } catch {}
+      }
+      if (tUpper === 'SET_SWITCH' && p?.key) {
+        hints[p.key] = 'boolean';
+        modes[p.key] = (p.temporary === true) ? 'temp' : 'global';
+        (window as any).__EDITOR_VAR_TYPE_HINTS__ = hints;
+        (window as any).__EDITOR_VAR_MODE__ = modes;
+        try { window.dispatchEvent(new CustomEvent('editor:var_mode_refreshed')); } catch {}
       }
     } catch {}
     onSave(normalized);
@@ -551,15 +646,109 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
             </>
           );
         }
+        // EMIT_SIGNAL.data 带 ? 提示
+        if (String((template as any).type || '').toUpperCase() === 'EMIT_SIGNAL' && param.name === 'data') {
+          const tipText = `用法示例:\n- 1, true, 'text', {var}, 'name_{var}'\n- 触发事件后在事件页用 $1,$2,$3… 读取\n- 支持 {var} 与内插；数字/布尔/null`;
+          return (
+            <div style={{ position:'relative', display:'flex', alignItems:'center', gap:8, width:'100%' }}>
+              <input type="text" {...commonProps} style={{ flex:1 }} />
+              <div
+                onMouseEnter={(e) => { showTip(tipText)(e); }}
+                onMouseLeave={() => hideTip()}
+                aria-label="数据载荷帮助"
+                style={{ width:18, height:18, borderRadius:9, background:'#e9ecef', color:'#495057', fontSize:12, lineHeight:'18px', textAlign:'center', cursor:'help' }}
+              >
+                ?
+              </div>
+            </div>
+          );
+        }
+        // SET_USER_DATA.value 带 ? 提示
+        if (String((template as any).type || '').toUpperCase() === 'SET_USER_DATA' && param.name === 'value') {
+          const tipText = `如何使用：\n- 写入跨场景的“用户变量”，按 sceneId+key 存储\n- op=set/add/sub/mul/div；数值运算需 value 为数字\n- 类型：自动识别 123 / true / false / null，其他按字符串\n- 持久化：当前实现写入浏览器 localStorage(user_data_sheet)；\n  如项目已集成登录与远端存储，运行时可在收到写入后异步同步至服务端`;
+          return (
+            <div style={{ position:'relative', display:'flex', alignItems:'center', gap:8, width:'100%' }}>
+              <input type="text" {...commonProps} style={{ flex:1 }} />
+              <div
+                onMouseEnter={(e) => { showTip(tipText)(e); }}
+                onMouseLeave={() => hideTip()}
+                aria-label="用户变量帮助"
+                style={{ width:18, height:18, borderRadius:9, background:'#e9ecef', color:'#495057', fontSize:12, lineHeight:'18px', textAlign:'center', cursor:'help' }}
+              >
+                ?
+              </div>
+            </div>
+          );
+        }
         return (<input type="text" {...commonProps} />);
         
       case 'textarea':
-        return (
-          <textarea
-            {...commonProps}
-            rows={3}
-          />
-        );
+        {
+          const isScriptCode = param.name === 'code';
+          const isCondExpr = param.name === 'condition.expression';
+          const helpText = `可用 API:\n` +
+            `- setVar(name, value) / getVar(name) / setTempVar(name, value)\n` +
+            `- rand(min,max) / randInt(min,max) / wait(ms)\n` +
+            `- updateElement(id, updates)  // { position:{x,y}, scale:{x,y}, visible, style... }\n` +
+            `- 开启自由模式后可用接口： E.*：\n` +
+            `  E.get(id), E.exists(id), E.pos(id), E.getPos(id)\n` +
+            `  E.setPos(id,x,y), E.moveBy(id,dx,dy)\n` +
+            `  E.setVisible(id,b), E.setAlpha(id,a), E.setScale(id,sx[,sy]), E.setZIndex(id,z)\n` +
+            `  E.getVisible(id), E.getAlpha(id), E.getScale(id), E.getZIndex(id), E.getRotation(id), E.getSize(id)\n` +
+            `  E.getResourceId(id), E.getFirstChild(id)\n` +
+            `- 远端用户(U/RemoteUser)：\n` +
+            `  await U.login(userId, password) / await U.register(userId, password)\n` +
+            `  await U.loginWithToken() #直接使用浏览器记录的上次缓存token来登录\n` +
+            `  await U.writeData(sceneId, key, value) / const { data } = await U.readData(sceneId, key?)\n` +
+            `  await U.logout()`;
+          if (isCondExpr) {
+            const onInputAutoResize = (e: React.FormEvent<HTMLTextAreaElement>) => {
+              const ta = e.currentTarget;
+              ta.style.height = 'auto';
+              ta.style.height = Math.min(240, Math.max(28, ta.scrollHeight)) + 'px';
+            };
+            return (
+              <div style={{ position:'relative' }}>
+                <textarea
+                  {...commonProps}
+                  rows={1}
+                  onInput={onInputAutoResize}
+                  style={{ width:'100%', resize:'none', overflow:'hidden' }}
+                />
+                <div
+                  onMouseEnter={(e) => { setShowExprHelp(true); showTip(`用法提示:\n- 读取变量: getVar('name')\n- 比较: >, <, ==, !=, >=, <=\n- 逻辑: &&, ||, !\n- 字符串: getVar('txt').includes('xx')\n- 也可写简短脚本表达式（按 true/false 判断）`)(e); }}
+                  onMouseLeave={() => { setShowExprHelp(false); hideTip(); }}
+                  aria-label="表达式帮助"
+                  style={{ position:'absolute', top:4, right:4, width:18, height:18, borderRadius:9, background:'#e9ecef', color:'#495057', fontSize:12, lineHeight:'18px', textAlign:'center', cursor:'help' }}
+                >
+                  ?
+                </div>
+              </div>
+            );
+          }
+          return (
+            <div style={{ position: isScriptCode ? 'relative' as const : 'initial' }}>
+              <textarea
+                {...commonProps}
+                rows={isScriptCode ? 14 : 3}
+                style={isScriptCode ? { width: '100%', minHeight: 220 } : { width: '100%' }}
+              />
+              {isScriptCode && (
+                <>
+                  <div
+                    onMouseEnter={(e) => { setShowCodeHelp(true); showTip(helpText)(e); }}
+                    onMouseLeave={() => { setShowCodeHelp(false); hideTip(); }}
+                    aria-label="脚本API帮助"
+                    style={{ position:'absolute', top:4, right:4, width:18, height:18, borderRadius:9, background:'#e9ecef', color:'#495057', fontSize:12, lineHeight:'18px', textAlign:'center', cursor:'help' }}
+                  >
+                    ?
+                  </div>
+                  {/* Tooltip via portal */}
+                </>
+              )}
+            </div>
+          );
+        }
         
       case 'number':
         return (
@@ -682,6 +871,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               {...commonProps}
               className="resource-dropdown"
               title="可从项目资源面板拖拽资源到此处"
+              style={{ flex: 1, minWidth: 0 }}
             >
               <option value="">请选择资源...</option>
               {resourceOptions.map(option => (
@@ -690,20 +880,6 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                 </option>
               ))}
             </select>
-            <button
-              type="button"
-              style={{ fontSize: 12, padding: '4px 8px' }}
-              onClick={() => {
-                const res = (project?.resources || []).find(r => r.id === (getByPath(params, param.name) ?? ''));
-                if (res?.src) {
-                  try { window.open(res.src, '_blank'); } catch { alert('无法预览资源'); }
-                } else {
-                  alert('未选择或无法预览该资源');
-                }
-              }}
-            >
-              预览
-            </button>
             {resourceOptions.length === 0 && (
               <div className="no-options-hint">暂无可用资源，请先添加资源文件（支持拖拽）</div>
             )}
@@ -822,6 +998,10 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
 
   return (
     <div className="command-parameter-editor">
+      {tip && createPortal(
+        <div style={{ position:'fixed', top: tip.y, left: tip.x, maxWidth: 520, padding:'8px 10px', background:'#212529', color:'#f8f9fa', borderRadius:6, boxShadow:'0 2px 8px rgba(0,0,0,0.25)', fontSize:12, whiteSpace:'pre-wrap', zIndex: 9999 }}>
+          {tip.text}
+        </div>, document.body)}
       <div className="editor-backdrop" onClick={onCancel} />
       <div className="editor-modal">
         <div className="editor-header">
@@ -849,6 +1029,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
               const getParam = (n: string) => template.parameters.find(p => p.name === n)!;
               const tUpper = String(template.type).toUpperCase();
               const suppressed = new Set<string>();
+              let fireworkGridInjected = false;
               // 若模板明确标记 elementId 为 editorHidden，则隐藏（否则允许编辑 elementId）
               try {
                 const eidParam = (template.parameters || []).find(p => p.name === 'elementId') as any;
@@ -885,6 +1066,73 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                 // defer simple fields to compact grid
                 if (isSimple(param)) {
                   // do not consume now; let compact grid render it after
+                  continue;
+                }
+                // FIREWORK_BURST: render elementId as normal then compact grid for others (3 per row)
+                if (tUpper === 'FIREWORK_BURST' && param.name === 'elementId' && !fireworkGridInjected) {
+                  // render elementId field normally
+                  consumed.add('elementId');
+                  rows.push(
+                    <div key="fw-elementId" className="parameter-group">
+                      <label className="parameter-label">{param.label || '元素ID'}</label>
+                      {renderParameterInput(param)}
+                    </div>
+                  );
+                  // collect remaining visible params into compact grid
+                  const gridItems: any[] = [];
+                  (template.parameters || []).forEach((p) => {
+                    if ((p as any).editorHidden) { consumed.add(p.name); return; }
+                    if (p.name === 'elementId') return;
+                    if (suppressed.has(p.name)) return;
+                    if (!shouldShow(p)) return;
+                    consumed.add(p.name);
+                    gridItems.push(
+                      <div key={`fw-${p.name}`} className="parameter-compact-item">
+                        <label className="parameter-label">{p.label || p.name}{p.required && <span className="required">*</span>}</label>
+                        {renderParameterInput(p)}
+                      </div>
+                    );
+                  });
+                  if (gridItems.length) {
+                    rows.push(
+                      <div key="fw-compact-grid" className="parameter-compact-grid">
+                        {gridItems}
+                      </div>
+                    );
+                  }
+                  fireworkGridInjected = true;
+                  continue;
+                }
+                // SHOW_IMAGE: elementId + resourceId + visible on one row
+                if (tUpper === 'SHOW_IMAGE' && param.name === 'elementId' && hasParam('resourceId') && hasParam('visible')) {
+                  const ve = !suppressed.has('elementId') && shouldShow(getParam('elementId') as any);
+                  const vr = shouldShow(getParam('resourceId') as any);
+                  const vv = shouldShow(getParam('visible') as any);
+                  consumed.add('elementId'); consumed.add('resourceId'); consumed.add('visible');
+                  rows.push(
+                    <div key="showimg-id-res-vis" className="parameter-group">
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {ve && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, flex:1, minWidth:0 }}>
+                            <label className="parameter-label">{getParam('elementId')?.label || '元素ID'}</label>
+                            {renderParameterInput(getParam('elementId'))}
+                          </div>
+                        )}
+                        {vr && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, flex:1, minWidth:0 }}>
+                            <label className="parameter-label">{getParam('resourceId')?.label || '资源ID'}</label>
+                            {renderParameterInput(getParam('resourceId'))}
+                          </div>
+                        )}
+                        {vv && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, width:180 }}>
+                            <label className="parameter-label">{getParam('visible')?.label || '初始可见'}</label>
+                            {renderParameterInput(getParam('visible'))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
                   continue;
                 }
                 // position group
@@ -997,6 +1245,88 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
                       </div>
                     );
                   }
+                  continue;
+                }
+                // SHOW_IMAGE: parentId + zIndex + rotation aligned as three columns
+                if (tUpper === 'SHOW_IMAGE' && param.name === 'parentId' && hasParam('zIndex') && hasParam('rotation')) {
+                  const vp = shouldShow(getParam('parentId') as any);
+                  const vz = shouldShow(getParam('zIndex') as any);
+                  const vr = shouldShow(getParam('rotation') as any);
+                  consumed.add('parentId'); consumed.add('zIndex'); consumed.add('rotation');
+                  rows.push(
+                    <div key="showimg-parent-z-rot" className="parameter-group">
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {vp && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, flex: 1, minWidth:0 }}>
+                            <label className="parameter-label">{getParam('parentId')?.label || '父元素ID'}</label>
+                            {renderParameterInput(getParam('parentId'))}
+                          </div>
+                        )}
+                        {vz && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, width: 180 }}>
+                            <label className="parameter-label">{getParam('zIndex')?.label || '层级(zIndex)'}</label>
+                            {renderParameterInput(getParam('zIndex'))}
+                          </div>
+                        )}
+                        {vr && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, width: 180 }}>
+                            <label className="parameter-label">{getParam('rotation')?.label || '旋转(度)'}</label>
+                            {renderParameterInput(getParam('rotation'))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                  continue;
+                }
+                // SHOW_IMAGE: group animation entry pair
+                if (tUpper === 'SHOW_IMAGE' && param.name === 'animation.entry.animId' && hasParam('animation.entry.duration')) {
+                  const va = shouldShow(getParam('animation.entry.animId') as any);
+                  const vd = shouldShow(getParam('animation.entry.duration') as any);
+                  consumed.add('animation.entry.animId'); consumed.add('animation.entry.duration');
+                  rows.push(
+                    <div key="showimg-entry-anim" className="parameter-group">
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {va && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, flex:1, minWidth:0 }}>
+                            <label className="parameter-label">{getParam('animation.entry.animId')?.label || '入场动画ID'}</label>
+                            {renderParameterInput(getParam('animation.entry.animId'))}
+                          </div>
+                        )}
+                        {vd && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, width: 200 }}>
+                            <label className="parameter-label">{getParam('animation.entry.duration')?.label || '入场时长(ms)'}</label>
+                            {renderParameterInput(getParam('animation.entry.duration'))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                  continue;
+                }
+                // SHOW_IMAGE: group animation loop pair
+                if (tUpper === 'SHOW_IMAGE' && param.name === 'animation.loop.animId' && hasParam('animation.loop.duration')) {
+                  const va = shouldShow(getParam('animation.loop.animId') as any);
+                  const vd = shouldShow(getParam('animation.loop.duration') as any);
+                  consumed.add('animation.loop.animId'); consumed.add('animation.loop.duration');
+                  rows.push(
+                    <div key="showimg-loop-anim" className="parameter-group">
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {va && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, flex:1, minWidth:0 }}>
+                            <label className="parameter-label">{getParam('animation.loop.animId')?.label || '循环动画ID'}</label>
+                            {renderParameterInput(getParam('animation.loop.animId'))}
+                          </div>
+                        )}
+                        {vd && (
+                          <div style={{ display:'flex', flexDirection:'column', gap:4, width: 200 }}>
+                            <label className="parameter-label">{getParam('animation.loop.duration')?.label || '循环时长(ms)'}</label>
+                            {renderParameterInput(getParam('animation.loop.duration'))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
                   continue;
                 }
                 // default single field

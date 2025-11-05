@@ -44,7 +44,7 @@ export const CommandListPanel: React.FC<CommandListPanelProps> = ({
     SHOW_CHOICES: '显示选项', CHOICES: '显示选项',
     SHOW_BUTTON: '显示按钮', BUTTON: '显示按钮',
     SET_CLICKABLE: '设置可点击', SET_SELECTABLE: '设置可选中', CHECK_IN_AREA: '检测区域内',
-    ANIMATE_IN: '入场动画', ANIMATE_LOOP: '循环动画', BGM_PLAY: '播放BGM', BGM_STOP: '停止BGM', SE_PLAY: '播放SE',
+    ANIMATE_IN: '入场动画', ANIMATE_OUT: '出场动画', ANIMATE_LOOP: '循环动画', BGM_PLAY: '播放BGM', BGM_STOP: '停止BGM', SE_PLAY: '播放SE',
     FIREWORK_BURST: '烟花特效', IF_CONDITION: '条件分支', EVENT_GROUP: '事件组'
   };
 

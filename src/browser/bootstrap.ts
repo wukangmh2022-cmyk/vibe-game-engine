@@ -11,13 +11,16 @@ import { BrowserAudioManager } from './BrowserAudioManager';
 import { PixiRendererManager } from './PixiRendererManager';
 import { PixiCheckInAreaHandler } from './PixiCheckInAreaHandler';
 import { AnimateInHandler } from './AnimateInHandler';
+import { AnimateOutHandler } from './AnimateOutHandler';
 import { AnimateLoopHandler } from './AnimateLoopHandler';
 import { PixiSetElementStyleHandler } from './PixiSetElementStyleHandler';
 import { FlipCardHandler } from '../commands/FlipCardHandler';
 import { SetClickableHandler } from '../commands/SetClickableHandler';
 import SetSelectableHandler from '../commands/SetSelectableHandler';
 import StopAnimationHandler from '../commands/StopAnimationHandler';
+import ScriptAssignHandler from '../commands/ScriptAssignHandler';
 import { FireworkBurstHandler } from './FireworkBurstHandler';
+import ChangeSelectStateHandler from '../commands/ChangeSelectStateHandler';
 import { GameCommand } from '../types';
 import { attachPixiUi } from './ui/PixiUiLayer';
 
@@ -71,6 +74,7 @@ export async function mountRuntime(
   const audioManager: any = (window as any).__AUDIO_MANAGER__ || new BrowserAudioManager();
   try { (window as any).__AUDIO_MANAGER__ = audioManager; } catch {}
   const logger = console as any;
+  try { const { RemoteUser } = await import('../index'); (window as any).__REMOTE_USER__ = (RemoteUser as any)?.instance || RemoteUser; } catch {}
 
   const executor = new CommandExecutor(
     stateManager as any,
@@ -87,12 +91,15 @@ export async function mountRuntime(
   executor.registerHandler(new PixiSetDraggableHandler());
   executor.registerHandler(new PixiCheckInAreaHandler());
   executor.registerHandler(new AnimateInHandler());
+  executor.registerHandler(new AnimateOutHandler());
   executor.registerHandler(new AnimateLoopHandler());
   executor.registerHandler(new PixiSetElementStyleHandler());
   executor.registerHandler(new FlipCardHandler());
   executor.registerHandler(new SetClickableHandler());
   executor.registerHandler(new SetSelectableHandler());
+  executor.registerHandler(new ChangeSelectStateHandler());
   executor.registerHandler(new StopAnimationHandler());
+  executor.registerHandler(new ScriptAssignHandler());
   // Allow external toggling of selected state (used by SET_CLICKABLE toggle_selected)
   try { const { SetSelectedHandler } = await import('../commands/SetSelectedHandler'); executor.registerHandler(new (SetSelectedHandler as any)()); } catch {}
   executor.registerHandler(new FireworkBurstHandler());
@@ -195,7 +202,14 @@ export async function mountRuntime(
           (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
         }
         if (tr.type === 'custom' && (tr as any).target) {
-          onLevel((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
+          onLevel((tr as any).target, async (eventData?: any) => {
+            try {
+              const args: any[] = Array.isArray(eventData?.args) ? eventData.args : (Array.isArray(eventData) ? eventData : []);
+              const inst = stateManager.beginEventInstance(stateManager.newEventInstanceId());
+              try { args.forEach((v, i) => stateManager.setTempVariable(`$${i+1}`, v)); } catch {}
+              try { await executor.executeCommands(ev.commands as GameCommand[]); } finally { stateManager.endEventInstance(inst); }
+            } catch { await executor.executeCommands(ev.commands as GameCommand[]); }
+          });
         }
         if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
           const expr = (tr as any).condition.expression as string;
@@ -205,9 +219,13 @@ export async function mountRuntime(
             onLevel(name, async (eventData: any) => {
               const eventVar = { type: name, ...(eventData || {}) };
               try {
+                const getVar = (key: string) => stateManager?.getVariable?.(String(key));
                 if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
                   executor.updateContext({ event: eventVar, lastEvent: eventVar } as any);
-                  await executor.executeCommands(ev.commands as GameCommand[]);
+                  const args: any[] = Array.isArray(eventData?.args) ? eventData.args : (Array.isArray(eventData) ? eventData : []);
+                  const inst = stateManager.beginEventInstance(stateManager.newEventInstanceId());
+                  try { args.forEach((v, i) => stateManager.setTempVariable(`$${i+1}`, v)); } catch {}
+                  try { await executor.executeCommands(ev.commands as GameCommand[]); } finally { stateManager.endEventInstance(inst); }
                 }
               } catch {}
             });
@@ -223,10 +241,10 @@ export async function mountRuntime(
     const pos = cmdPos.get(targetId);
     if (!pos) { console.warn('jump target not indexed:', targetId); return; }
     const { arr, idx } = pos;
-    for (let i = Math.max(0, idx); i < arr.length; i++) {
-      // eslint-disable-next-line no-await-in-loop
-      await executor.executeCommand(arr[i] as GameCommand);
-    }
+    // Execute the remaining commands within a single temporary scope (event-instance scoped)
+    const start = Math.max(0, idx);
+    const slice = (arr as GameCommand[]).slice(start);
+    await executor.executeCommands(slice);
   };
   eventManager.on('jump_to_requested', (payload: any) => {
     const target = payload?.target; if (!target) return;
@@ -241,7 +259,7 @@ export async function mountRuntime(
       // Determine current original index by stored marker or by id lookup
       let curIdx: number = typeof (game as any).__currentOriginalIndex === 'number' ? (game as any).__currentOriginalIndex : Math.max(0, orig.findIndex(lv => lv?.id === level?.id));
       const nextIdx = curIdx + 1;
-      if (!(nextIdx < orig.length)) { (logger || console).info('[runtime] no more levels'); return; }
+      if (!(nextIdx < orig.length)) { try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] no more levels'); } catch {} return; }
       const hasEditorRedirect = typeof (window as any).__PIXICANVAS_REDIRECT__ === 'function';
       if (hasEditorRedirect) {
         // Reorder by original ordering so next original level becomes first
@@ -259,13 +277,11 @@ export async function mountRuntime(
       clearLevelListeners();
       Object.entries(level?.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
       wireLevelTriggers(level);
-      for (const cmd of (level?.commands || []) as GameCommand[]) {
-        // eslint-disable-next-line no-await-in-loop
-        await executor.executeCommand(cmd);
-      }
+      // Execute whole level root commands in a single temporary scope
+      await executor.executeCommands((level?.commands || []) as GameCommand[]);
       try { (game as any).__currentOriginalIndex = nextIdx; } catch {}
     } catch (e) {
-      (logger || console).warn('[runtime] next_level handling failed', e);
+      try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).warn('[runtime] next_level handling failed', e); } catch {}
     }
   });
 
@@ -285,7 +301,7 @@ export async function mountRuntime(
       const levelIndex = (payload && typeof payload.levelIndex !== 'undefined') ? Number(payload.levelIndex) : undefined;
       // Special token: 'this' means reload current scene
       if (typeof raw === 'string' && raw.trim().toLowerCase() === 'this') {
-        (logger || console).info('[runtime] scene_redirect (reload current)', { raw });
+        try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] scene_redirect (reload current)', { raw }); } catch {}
         const fn = (window as any).__PIXICANVAS_REDIRECT__;
         if (typeof fn === 'function') {
           try { fn({ reload: true, currentLevelId: level?.id }); } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT reload failed', e); }
@@ -293,7 +309,7 @@ export async function mountRuntime(
         }
       }
       const url = resolveUrl(raw);
-      (logger || console).info('[runtime] scene_redirect', { raw, url, levelIndex });
+      try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] scene_redirect', { raw, url, levelIndex }); } catch {}
       const fn = (window as any).__PIXICANVAS_REDIRECT__;
       if (typeof fn === 'function') {
         try {
@@ -308,7 +324,7 @@ export async function mountRuntime(
       // fallback to postMessage for editor-runtime.html / web runtime
       try { (window as any).postMessage?.({ type: 'LOAD_GAME_JSON', payload: url }, '*'); } catch {}
     } catch (e) {
-      (logger || console).warn('scene_redirect handler failed', e);
+      try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).warn('scene_redirect handler failed', e); } catch {}
     }
   });
 
@@ -330,7 +346,7 @@ export async function mountRuntime(
         await executor.executeCommand(cmd);
       }
     } catch (e) {
-      (logger || console).warn('[runtime] top-level commands run failed', e);
+      try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).warn('[runtime] top-level commands run failed', e); } catch {}
     }
   })();
 

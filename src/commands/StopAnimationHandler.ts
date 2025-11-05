@@ -1,12 +1,13 @@
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { CommandType, CommandContext, CommandResult, GameCommand } from '../types';
+import { resolveElementId } from '../utils/ParamResolver';
 
 export class StopAnimationHandler extends BaseCommandHandler {
   readonly type = CommandType.STOP_ANIMATION as any;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p: any = command.parameters || {};
-    const id: string | undefined = p.elementId;
+    const id: string | undefined = resolveElementId(p.elementId, context);
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
     try {
       const rm: any = (context as any).renderManager;
@@ -27,4 +28,3 @@ export class StopAnimationHandler extends BaseCommandHandler {
 }
 
 export default StopAnimationHandler;
-

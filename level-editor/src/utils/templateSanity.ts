@@ -40,7 +40,7 @@ export function runTemplateSanityChecks(): { ok: boolean; results: TemplateCheck
 
       // 4) simple conventions by type
       const up = String(tpl.type).toUpperCase();
-      const mustHaveElement = new Set(['SHOW_IMAGE','SHOW_TEXT','ANIMATE_IN','ANIMATE_LOOP','SET_CLICKABLE','SET_DRAGGABLE','FLIP_CARD']);
+      const mustHaveElement = new Set(['SHOW_IMAGE','SHOW_TEXT','ANIMATE_IN','ANIMATE_OUT','ANIMATE_LOOP','SET_CLICKABLE','SET_DRAGGABLE','FLIP_CARD']);
       if (mustHaveElement.has(up)) {
         if (!hasParam(tpl, 'elementId')) { ok = false; messages.push('missing elementId field'); }
       }
@@ -96,4 +96,3 @@ export function runAndLogTemplateSanity(): void {
     console.info('[TemplateSanity] All templates passed');
   }
 }
-

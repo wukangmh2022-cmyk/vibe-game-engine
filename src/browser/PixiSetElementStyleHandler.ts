@@ -1,6 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveElementId } from '../utils/ParamResolver';
 
 /**
  * Pixi 版 SET_ELEMENT_STYLE
@@ -11,7 +11,7 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    let id: string | undefined = resolveIdFromBraces(p.elementId, context);
+    let id: string | undefined = resolveElementId(p.elementId, context);
     const style = (p.style || {}) as any;
     if (!id || typeof style !== 'object') {
       return this.createErrorResult('Missing required parameter: elementId/style');
@@ -30,10 +30,11 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
         if (style.visibility !== undefined) {
           (updates as any).visible = style.visibility !== 'hidden';
         }
-        // opacity
-        if (style.opacity !== undefined) {
+        // opacity / alpha（两者等价，优先支持 opacity，但兼容 alpha）
+        if (style.opacity !== undefined || style.alpha !== undefined) {
           const node = rm.getNode ? rm.getNode(id) : null;
-          if (node) node.alpha = Number(style.opacity);
+          const val = (style.opacity !== undefined) ? Number(style.opacity) : Number(style.alpha);
+          if (node && !Number.isNaN(val)) (node as any).alpha = val;
         }
         // z-index (layering)
         if (style.zIndex !== undefined) {
@@ -84,7 +85,10 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
           const bgUpdates: any = {};
           if (style.display !== undefined) bgUpdates.visible = style.display !== 'none';
           if (style.visibility !== undefined) bgUpdates.visible = style.visibility !== 'hidden';
-          if (style.opacity !== undefined) { try { bgNode.alpha = Number(style.opacity); } catch {} }
+          if (style.opacity !== undefined || style.alpha !== undefined) {
+            const val = (style.opacity !== undefined) ? Number(style.opacity) : Number(style.alpha);
+            try { if (!Number.isNaN(val)) (bgNode as any).alpha = val; } catch {}
+          }
           if (style.zIndex !== undefined) { try { (bgNode as any).zIndex = Number(style.zIndex); (bgNode as any).parent?.sortChildren?.(); } catch {} }
           if (style.left !== undefined || style.top !== undefined) {
             const bx = style.left !== undefined ? Number(style.left) : undefined;

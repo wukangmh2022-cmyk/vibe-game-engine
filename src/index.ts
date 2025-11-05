@@ -11,8 +11,10 @@ import { StateManager } from './core/StateManager';
 import { EventManager } from './core/EventManager';
 import { CommandExecutor, BaseCommandHandler } from './core/CommandExecutor';
 import { Logger, LogLevel } from './utils/Logger';
+import RemoteUser from './core/RemoteUser';
 
 export { GameRuntime, StateManager, EventManager, CommandExecutor, BaseCommandHandler };
+export { RemoteUser };
 
 // 导出指令处理器
 export * from './commands';
@@ -57,6 +59,7 @@ export default {
   EventManager,
   CommandExecutor,
   Logger,
+  RemoteUser,
   VERSION,
   createGameRuntime
 };

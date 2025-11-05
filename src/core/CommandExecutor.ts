@@ -96,6 +96,11 @@ export class CommandExecutor {
    * 执行单个指令
    */
   async executeCommand(command: GameCommand): Promise<CommandResult> {
+    const sm: any = (this.context as any).stateManager;
+    const createdScope = sm && typeof sm.hasActiveTempScope === 'function' && !sm.hasActiveTempScope();
+    if (createdScope && typeof sm.beginTempScope === 'function') {
+      try { sm.beginTempScope(); } catch {}
+    }
     if (this.aborted) {
       return { success: true, data: { aborted: true } } as CommandResult;
     }
@@ -192,37 +197,90 @@ export class CommandExecutor {
         success: false,
         error: errorMessage
       };
+    } finally {
+      if (createdScope && typeof sm.endTempScope === 'function') {
+        try { sm.endTempScope(); } catch {}
+      }
     }
   }
 
   /**
    * 批量执行指令
    */
-  async executeCommands(commands: GameCommand[]): Promise<CommandResult[]> {
+  async executeCommands(commands: GameCommand[], opts?: { instanceId?: number }): Promise<CommandResult[]> {
     const results: CommandResult[] = [];
-    
+    const realSM: any = (this.context as any).stateManager as any;
+    const hasInst = realSM && typeof realSM.getCurrentInstanceId === 'function' && typeof realSM.newEventInstanceId === 'function';
+    const inherited = hasInst ? realSM.getCurrentInstanceId() : null;
+    const instanceId = (typeof inherited === 'number') ? inherited : (opts && typeof opts.instanceId === 'number') ? opts.instanceId : (hasInst ? 0 : null);
+
+    // Build a stateManager proxy that always reads/writes to instanceId (0 for main flow)
+    const smProxy: any = (() => {
+      if (instanceId == null || !realSM) return realSM;
+      const p: any = {};
+      p.getVariable = (k: string) => realSM.getVariableFor ? realSM.getVariableFor(instanceId, k) : realSM.getVariable(k);
+      p.getSwitch = (k: string) => realSM.getSwitchFor ? realSM.getSwitchFor(instanceId, k) : realSM.getSwitch(k);
+      p.setTempVariable = (k: string, v: any) => realSM.setTempVariableFor ? realSM.setTempVariableFor(instanceId, k, v) : realSM.setTempVariable(k, v);
+      p.setTempSwitch = (k: string, v: boolean) => realSM.setTempSwitchFor ? realSM.setTempSwitchFor(instanceId, k, v) : realSM.setTempSwitch(k, v);
+      const passthrough = ['setVariable','setSwitch','saveState','loadState','reset','getAllVariables','getAllSwitches','setVariables','setSwitches','getTempValues','hasTemp','getTempSwitchValues','hasTempSwitch','getCurrentInstanceId'];
+      for (const m of passthrough) { if (typeof realSM[m] === 'function') p[m] = realSM[m].bind(realSM); }
+      return p;
+    })();
+
+    // Scoped executor to preserve same instanceId for nested calls
+    const scopedExecutor: any = {
+      executeCommands: (cmds: GameCommand[]) => this.executeCommands(cmds, { instanceId } as any),
+      executeCommand: async (cmd: GameCommand) => {
+        const r = await this.executeCommands([cmd], { instanceId } as any);
+        return Array.isArray(r) && r.length ? r[0] : ({ success: true } as CommandResult);
+      }
+    };
+
+    const localCtx: any = { ...this.context, stateManager: smProxy, executor: scopedExecutor };
+
+    const runOne = async (command: GameCommand): Promise<CommandResult> => {
+      if (this.aborted) return { success: true, data: { aborted: true } } as any;
+      let handler = this.handlers.get(command.type as any);
+      if (!handler && typeof (command as any).type === 'string') {
+        const original = String((command as any).type);
+        const normalized = original.toLowerCase();
+        const candidates: string[] = [normalized];
+        if (!normalized.startsWith('show_')) { candidates.push(`show_${normalized}`); candidates.push(`SHOW_${normalized}`); }
+        const aliasMap: Record<string, string[]> = { button: ['show_button','SHOW_BUTTON'], choices: ['show_choices','SHOW_CHOICES'], text: ['show_text','SHOW_TEXT'], update_text: ['update_text','UPDATE_TEXT'], call_event: ['emit_signal','EMIT_SIGNAL'], 'fireworks':['firework_burst'],'firework':['firework_burst'],'particle_effect':['firework_burst'],'粒子特效':['firework_burst'],'烟花':['firework_burst'] };
+        if (aliasMap[normalized]) candidates.push(...aliasMap[normalized]);
+        candidates.push(original);
+        for (const key of candidates) { handler = this.handlers.get(key as any); if (handler) break; }
+      }
+      if (!handler) { const error = `No handler found for command type: ${command.type}`; this.logger.error(error, { command }); return { success: false, error }; }
+      const validation = handler.validate(command);
+      if (!validation.valid) { const error = `Command validation failed: ${validation.errors.map(e => e.message).join(', ')}`; this.logger.error(error, { command, validation }); return { success: false, error }; }
+      try {
+        if (this.aborted) return { success: true, data: { aborted: true } } as any;
+        this.logger.debug(`Executing command: ${command.type}`, { command });
+        localCtx.eventManager.emit('command_start', { command });
+        const result = await handler.execute(command, localCtx);
+        localCtx.eventManager.emit('command_complete', { command, result });
+        this.logger.debug(`Command executed successfully: ${command.type}`, { result });
+        return result;
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.error(`Command execution failed: ${command.type}`, { command, error });
+        localCtx.eventManager.emit('command_error', { command, error: errorMessage });
+        return { success: false, error: errorMessage };
+      }
+    };
+
     for (const command of commands) {
       if (this.aborted) break;
-      const result = await this.executeCommand(command);
+      const result = await runOne(command);
       results.push(result);
-      
-      // 如果指令执行失败且没有设置继续执行标志，停止执行
-      if (!result.success && !command.metadata?.continueOnError) {
-        this.logger.warn('Stopping command execution due to failure', { command, result });
-        break;
-      }
-      
-      // 如果指令指定了下一个指令，跳转执行
+      if (!result.success && !command.metadata?.continueOnError) { this.logger.warn('Stopping command execution due to failure', { command, result }); break; }
       if (result.nextCommand) {
         if (this.aborted) break;
         const nextCommand = commands.find(cmd => cmd.id === result.nextCommand);
-        if (nextCommand) {
-          const nextResult = await this.executeCommand(nextCommand);
-          results.push(nextResult);
-        }
+        if (nextCommand) { const nextResult = await runOne(nextCommand); results.push(nextResult); }
       }
     }
-    
     return results;
   }
 

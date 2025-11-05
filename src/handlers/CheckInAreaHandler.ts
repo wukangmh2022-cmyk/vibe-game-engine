@@ -9,7 +9,7 @@ export class CheckInAreaHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     try {
-      const { area, commands, checkMode = 'center' } = command.parameters || {};
+      const { area, commands, checkMode = 'center', outside = false } = command.parameters || {};
       const stateManager = context.stateManager as any;
       // 仅根据 parameters.elementId 判断监听模式；不再从状态变量回退解析
       let elementId: string | undefined = command.parameters?.elementId;
@@ -57,10 +57,11 @@ export class CheckInAreaHandler extends BaseCommandHandler {
       // 以元素中心点检测是否在区域内
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
-      const isInArea = (cx >= ax && cx <= ax + aw && cy >= ay && cy <= ay + ah);
+      const inArea = (cx >= ax && cx <= ax + aw && cy >= ay && cy <= ay + ah);
+      const isHit = outside ? !inArea : inArea;
 
       // 命中时设置系统变量，并执行子命令
-      if (isInArea) {
+      if (isHit) {
         try {
           const resourceId = (element.dataset && (element.dataset.resourceId || element.dataset.resourceID)) || '';
           context.stateManager.setVariable('last_drop_element_ID', elementId);
@@ -74,13 +75,15 @@ export class CheckInAreaHandler extends BaseCommandHandler {
 
       const resultData = {
         elementId,
-        isInArea,
+        inArea,
+        isHit,
+        outside: !!outside,
         checkMode,
         area,
         center: { x: cx, y: cy }
       };
 
-      context.logger?.info(`Area check for element ${elementId}: ${isInArea}`, resultData);
+      context.logger?.info(`Area check for element ${elementId}: hit=${isHit} (inArea=${inArea}, outside=${!!outside})`, resultData);
 
       return {
         success: true,

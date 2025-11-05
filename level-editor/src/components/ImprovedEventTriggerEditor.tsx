@@ -61,7 +61,7 @@ export const ImprovedEventTriggerEditor: React.FC<ImprovedEventTriggerEditorProp
 
       {triggerType === 'custom' && (
         <div className="form-group">
-          <label>受体信号ID(target):</label>
+          <label>事件页被触发的信号ID(target):</label>
           <input
             type="text"
             value={target}

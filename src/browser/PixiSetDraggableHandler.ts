@@ -87,7 +87,7 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
         if (acceptOk && intersects(z)) {
           const payload = { dropZoneId: z.id, draggedElementId: id, dragType };
           // 便于调试：在控制台打印一次
-          try { console.log('[emit] drop:success', payload); } catch {}
+          try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_EMIT') === '1'; if (dbg) console.log('[emit] drop:success', payload); } catch {}
           try {
             state?.setVariable?.('last_drop_element_ID', id);
             const resId = (node as any).resourceId || '';
@@ -95,7 +95,7 @@ export class PixiSetDraggableHandler extends BaseCommandHandler {
           } catch {}
           context.eventManager.emit('drop:success', payload);
           // 同时按投放区ID发出专属信号，便于无需表达式的事件监听
-          try { console.log('[emit]', z.id, payload); } catch {}
+          try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_EMIT') === '1'; if (dbg) console.log('[emit]', z.id, payload); } catch {}
           context.eventManager.emit(z.id, payload);
           break;
         }

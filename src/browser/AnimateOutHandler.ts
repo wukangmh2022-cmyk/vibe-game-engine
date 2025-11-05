@@ -7,8 +7,8 @@ import { resolveElementId, interpolateBraces } from '../utils/ParamResolver';
 // Cache parsed animation JSON to avoid repeated fetch/allocations
 const ANIM_JSON_CACHE: Map<string, any> = new Map();
 
-export class AnimateInHandler extends BaseCommandHandler {
-  readonly type = CommandType.ANIMATE_IN;
+export class AnimateOutHandler extends BaseCommandHandler {
+  readonly type = CommandType.ANIMATE_OUT;
   private animator = new Animator();
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
@@ -23,56 +23,73 @@ export class AnimateInHandler extends BaseCommandHandler {
     const animTarget: any = (node as any).__animLayer || node;
 
     const preset: string = p.preset || 'fade';
-    const duration: number = p.duration ?? 800;
-    const easing: keyof typeof Easings = p.easing || (preset === 'bounce' ? 'easeOutBounce' : preset === 'back' ? 'easeOutBack' : preset === 'elastic' ? 'easeOutElastic' : 'easeOutQuad');
+    const duration: number = p.duration ?? 600;
+    const easing: keyof typeof Easings = p.easing || (preset === 'back' ? 'easeInBack' : 'easeInQuad');
+    const hideAfter: boolean = p.hideAfter !== false; // 默认结束后隐藏
 
     const useResource = !!(p.animId || p.animationId);
     if (useResource && elementNode) {
-      const specRaw = p.animId || p.animationId;
-      const spec = typeof specRaw === 'string' ? interpolateBraces(specRaw, context) : specRaw;
+      const raw = p.animId || p.animationId;
+      const spec = (typeof raw === 'string') ? interpolateBraces(raw, context) : raw;
       try {
-        await elementNode.setEntryTimeline(spec, { duration: p.duration, resolver: (id: string) => this.loadAnimationData(id, context) });
+        // 触发一次性出场时间线（沿用 entry 的接口）
+        await elementNode.setEntryTimeline(spec, { duration: p.duration, resolver: (id: string) => this.loadAnimationData(id, context), holdOnEnd: true });
       } catch {}
-      return this.createSuccessResult({ elementId: id, animId: spec, nonBlocking: true });
+
+      // 结束后隐藏（基于资源时间线时长或覆盖时长）
+      const ms = await this.resolveTimelineDurationMs(spec, p.duration, context).catch(() => duration);
+      if (hideAfter && typeof setTimeout === 'function') {
+        setTimeout(() => {
+          try {
+            context.executor?.executeCommand?.({ id: `hide_${id}_${Date.now()}` as any, type: CommandType.SET_ELEMENT_STYLE as any, parameters: { elementId: id, style: { display: 'none' } } } as any);
+          } catch {}
+        }, Math.max(0, Number(ms) || duration));
+      }
+      return this.createSuccessResult({ elementId: id, animId: spec, duration: ms, hideAfter, nonBlocking: true });
     }
 
+    // 预设：从当前状态到“离场”状态
     let from: any = p.from ? { ...p.from } : {};
     let to: any = p.to ? { ...p.to } : {};
 
     if (!p.from && !p.to) {
       switch (preset) {
         case 'fade':
-          from = { alpha: 0 };
-          to = { alpha: 1 };
+          from = { alpha: 1 };
+          to = { alpha: 0 };
           break;
-        case 'bounce':
-          from = { y: -40, alpha: 0.8 };
-          to = { y: 0, alpha: 1 };
+        case 'scaleOut':
+          from = { scale: 1, alpha: 1 };
+          to = { scale: 0.2, alpha: 0 };
           break;
-        case 'scaleIn':
-          from = { scale: 0.2, alpha: 0.8 };
-          to = { scale: 1, alpha: 1 };
-          break;
-        case 'moveIn': {
+        case 'moveOut': {
           const dir = p.direction || 'up';
           const offset = p.offset ?? 60;
-          if (dir === 'up') from = { y: offset, alpha: 0.8 };
-          else if (dir === 'down') from = { y: -offset, alpha: 0.8 };
-          else if (dir === 'left') from = { x: offset, alpha: 0.8 };
-          else from = { x: -offset, alpha: 0.8 };
-          to = { x: 0, y: 0, alpha: 1 };
+          if (dir === 'up') to = { y: -offset, alpha: 0 };
+          else if (dir === 'down') to = { y: offset, alpha: 0 };
+          else if (dir === 'left') to = { x: -offset, alpha: 0 };
+          else to = { x: offset, alpha: 0 };
+          from = { x: 0, y: 0, alpha: 1 };
           break;
         }
         default:
-          from = { alpha: 0 };
-          to = { alpha: 1 };
+          from = { alpha: 1 };
+          to = { alpha: 0 };
           break;
       }
     }
 
-    try { elementNode?.resetAnimation?.(); } catch {}
-    this.animator.animate(animTarget, from, to, duration, easing);
-    return this.createSuccessResult({ elementId: id, preset, duration, easing, nonBlocking: true });
+    try { (node as any)?.__elementNode?.resetAnimation?.(); } catch {}
+    // 非阻塞：后台播放并在完成后根据需要隐藏
+    const promise = this.animator.animate(animTarget, from, to, duration, easing);
+    if (hideAfter) {
+      promise.then(() => {
+        try {
+          context.executor?.executeCommand?.({ id: `hide_${id}_${Date.now()}` as any, type: CommandType.SET_ELEMENT_STYLE as any, parameters: { elementId: id, style: { display: 'none' } } } as any);
+        } catch {}
+      }).catch(() => {});
+    }
+    return this.createSuccessResult({ elementId: id, preset, duration, easing, hideAfter, nonBlocking: true });
   }
 
   private async loadAnimationData(specIdOrUrl: string, context: CommandContext): Promise<any | null> {
@@ -108,6 +125,29 @@ export class AnimateInHandler extends BaseCommandHandler {
     }
   }
 
+  private async resolveTimelineDurationMs(spec: string, override: number | undefined, context: CommandContext): Promise<number> {
+    if (override != null && Number(override) >= 0) return Number(override);
+    const data = await this.loadAnimationData(spec, context);
+    if (!data) return 600;
+    const parseMs = (v: any): number => {
+      if (v == null) return 0;
+      if (typeof v === 'number') return v;
+      const s = String(v).trim();
+      if (/^\d+(\.\d+)?s$/i.test(s)) return Math.round(parseFloat(s) * 1000);
+      if (/^\d+(\.\d+)?ms$/i.test(s)) return Math.round(parseFloat(s));
+      const n = Number(s);
+      return Number.isFinite(n) ? n : 0;
+    };
+    if (data.duration != null) return parseMs(data.duration);
+    const list = Array.isArray(data.timeline) ? data.timeline : [];
+    let maxT = 0;
+    for (const k of list) {
+      const t = parseMs(k?.time);
+      if (t > maxT) maxT = t;
+    }
+    return maxT || 600;
+  }
+
   private async resolveAnimationUrl(spec: string, context: CommandContext): Promise<string | null> {
     if (!spec) return null;
     const rm: any = (context as any).resourceManager;
@@ -137,3 +177,5 @@ export class AnimateInHandler extends BaseCommandHandler {
     } catch { return spec; }
   }
 }
+
+export default AnimateOutHandler;

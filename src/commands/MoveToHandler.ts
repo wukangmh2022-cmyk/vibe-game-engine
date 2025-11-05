@@ -1,6 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces, resolveNumberFromBraces } from '../utils/ParamResolver';
+import { resolveElementId, resolveNumberFromBraces } from '../utils/ParamResolver';
 
 /**
  * 移动动画指令处理器
@@ -11,7 +11,7 @@ export class MoveToHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const { x, y, duration, easing, relative, keepOnMinusOne = true } = command.parameters || {};
-    const elementId = resolveIdFromBraces(command.parameters?.elementId, context);
+    const elementId = resolveElementId(command.parameters?.elementId, context);
     
     if (!elementId) {
       return this.createErrorResult('Missing required parameter: elementId');

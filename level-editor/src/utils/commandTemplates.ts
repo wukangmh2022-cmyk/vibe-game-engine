@@ -14,18 +14,21 @@ export enum CommandCategory {
 export const COMMAND_TEMPLATES: CommandTemplate[] = [
   {
     type: CommandType.SET_ELEMENT_STYLE,
-    name: '显隐元素',
-    description: '变更元素的显示/隐藏',
+    name: '显隐元素(缩放/透明度等)',
+    description: '变更元素的显示/隐藏，以及缩放、透明度等参数',
     category: CommandCategory.DISPLAY,
     icon: '🎨',
     color: '#607D8B',
     parameters: [
-      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '目标元素ID' },
       { name: 'style.display', label: '显示(display)', type: 'select', required: false, defaultValue: '', options: [
-        { value: '', label: '不修改' }, { value: 'block', label: 'block' }, { value: 'none', label: 'none' }
+        { value: '', label: '不修改' },
+        { value: 'block', label: '显示(block)' },
+        { value: 'none', label: '隐藏(none)' }
       ], description: '是否显示该元素' },
-      { name: 'style.zIndex', label: '层级(zIndex)', type: 'number', required: false, description: '显示层级，数值越大越靠上' },
-      { name: 'style.scale', label: '缩放(scale)', type: 'number', required: false, description: '统一缩放（例如 0.6）' }
+      { name: 'style.alpha', label: '透明度(alpha)', type: 'text', required: false, placeholder: '不修改（0~1）', description: '0~1 之间；留空=不修改' },
+      { name: 'style.scale', label: '缩放(scale)', type: 'text', required: false, placeholder: '不修改（例如 0.6）', description: '统一缩放；留空=不修改' },
+      { name: 'style.zIndex', label: '层级(zIndex)', type: 'text', required: false, placeholder: '不修改', description: '显示层级，数值越大越靠上；留空=不修改' }
     ]
   },
   {
@@ -36,12 +39,25 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🧨',
     color: '#FF9800',
     parameters: [
-      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: false },
-      { name: 'attachToId', label: '挂载到元素（支持 {var}）', type: 'text', required: false },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: false, description: '作为起点与挂载目标（仅需填一次）' },
+      { name: 'attachToId', label: '挂载到元素', type: 'text', required: false, editorHidden: true },
+      { name: 'parentId', label: '父元素ID', type: 'text', required: false, description: '可选：挂载到已有元素（相对中心）。支持 {var} 与内插，如 bg{iii}' },
+      { name: 'x', label: 'X 坐标(可选)', type: 'number', required: false, description: '未指定元素ID时使用坐标' },
+      { name: 'y', label: 'Y 坐标(可选)', type: 'number', required: false, description: '未指定元素ID时使用坐标' },
       { name: 'resourceId', label: '粒子资源', type: 'resource', required: false, resourceKind: 'image' },
       { name: 'count', label: '粒子数量', type: 'number', required: false, defaultValue: 24 },
+      { name: 'speedMin', label: '最小初速', type: 'number', required: false, defaultValue: 3 },
+      { name: 'speedMax', label: '最大初速', type: 'number', required: false, defaultValue: 6 },
       { name: 'life', label: '寿命(ms)', type: 'number', required: false, defaultValue: 900 },
-      { name: 'gravity', label: '重力', type: 'number', required: false, defaultValue: 0.35 },
+      { name: 'gravity', label: '重力/加速度', type: 'number', required: false, defaultValue: 0.35 },
+      { name: 'fadeOut', label: '淡出', type: 'boolean', required: false, defaultValue: true },
+      { name: 'scaleMin', label: '最小缩放', type: 'number', required: false, defaultValue: 0.4 },
+      { name: 'scaleMax', label: '最大缩放', type: 'number', required: false, defaultValue: 0.9 },
+      { name: 'rotation', label: '随机旋转', type: 'boolean', required: false, defaultValue: true },
+      { name: 'blendMode', label: '混合模式', type: 'select', required: false, defaultValue: 'normal', options: [
+        { value: 'normal', label: 'normal' }, { value: 'add', label: 'add' }, { value: 'screen', label: 'screen' }, { value: 'multiply', label: 'multiply' }, { value: 'overlay', label: 'overlay' }, { value: 'lighten', label: 'lighten' }, { value: 'darken', label: 'darken' }
+      ] },
+      { name: 'tint', label: '颜色(tint)', type: 'text', required: false, description: '单色或多色，逗号分隔。例如：0xffee88 或 0xffaa00,0x88ccff' },
       { name: 'zIndex', label: '层级', type: 'number', required: false, defaultValue: 50 }
     ]
   },
@@ -94,7 +110,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '✨',
     color: '#FF9800',
     parameters: [
-      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '目标元素ID' },
       { name: 'mode', label: '动画来源', type: 'select', required: false, defaultValue: 'preset', options: [
         { value: 'preset', label: '预设动画' },
         { value: 'resource', label: '资源动画' }
@@ -117,6 +133,36 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     ]
   },
   {
+    type: CommandType.ANIMATE_OUT,
+    name: '出场动画',
+    description: '为元素添加一次性出场动画（可选：结束后隐藏）',
+    category: CommandCategory.ANIMATION,
+    icon: '💨',
+    color: '#FF9800',
+    parameters: [
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'mode', label: '动画来源', type: 'select', required: false, defaultValue: 'preset', options: [
+        { value: 'preset', label: '预设动画' },
+        { value: 'resource', label: '资源动画' }
+      ] },
+      { name: 'animId', label: '动画资源ID', type: 'resource', required: false, resourceKind: 'animation', showIf: { path: 'mode', equals: 'resource' } },
+      { name: 'preset', label: '动画预设', type: 'select', required: false, defaultValue: 'fade', options: [
+        { value: 'fade', label: '淡出' },
+        { value: 'scaleOut', label: '缩小离场' },
+        { value: 'moveOut', label: '位移离场' }
+      ], showIf: { path: 'mode', equals: 'preset' } },
+      { name: 'duration', label: '时长(ms)', type: 'number', required: false, defaultValue: 600, description: '预设：动画时长；资源：覆盖时间轴总时长（可选）' },
+      { name: 'direction', label: '方向', type: 'select', required: false, defaultValue: 'up', options: [
+        { value: 'up', label: '向上移出' },
+        { value: 'down', label: '向下移出' },
+        { value: 'left', label: '向左移出' },
+        { value: 'right', label: '向右移出' }
+      ], showIf: { path: 'preset', equals: 'moveOut' } },
+      { name: 'offset', label: '位移距离(px)', type: 'number', required: false, defaultValue: 60, showIf: { path: 'preset', equals: 'moveOut' } },
+      { name: 'hideAfter', label: '结束后隐藏元素', type: 'boolean', required: false, defaultValue: true, description: '参考“显隐元素”指令，等动画结束后将 display 设为 none' }
+    ]
+  },
+  {
     type: CommandType.ANIMATE_LOOP,
     name: '循环动画',
     description: '循环播放元素动画（悬浮/呼吸）',
@@ -124,7 +170,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🔁',
     color: '#FF9800',
     parameters: [
-      { name: 'elementId', label: '元素ID（支持 {var}）', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '目标元素ID' },
       { name: 'mode', label: '动画来源', type: 'select', required: false, defaultValue: 'preset', options: [
         { value: 'preset', label: '预设动画' },
         { value: 'resource', label: '资源动画' }
@@ -140,18 +186,31 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
   {
     type: CommandType.SET_SELECTABLE,
     name: '设置可选中',
-    description: '为元素开启可选中，支持选中/取消分支与选中特效/覆盖图',
+    description: '为元素开启可选中，支持选中/取消分支与选中特效/覆盖图。提示：分支子命令里若使用 {临时变量}（如 name_{val}），会在绑定时固定为当时的值。',
     category: CommandCategory.INTERACTION,
     icon: '✅',
     color: '#3F51B5',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '支持 {var} 与前后缀内插，如 card_{i}' },
       { name: 'selectable', label: '启用可选中', type: 'boolean', required: false, defaultValue: true },
-      { name: 'variableKey', label: '绑定变量名', type: 'text', required: false, description: '自动把选中状态写入此变量(true/false)' },
+      { name: 'variableKey', label: '绑定变量名', type: 'text', required: false, placeholder: '不填则不绑定', description: '自动把选中状态写入此变量(true/false)。支持 {var} 与内插，如 sel_{i}' },
       { name: 'singleSelect', label: '单选', type: 'boolean', required: false, defaultValue: false, description: '开启后，新的选中会自动取消上一个元素的选中（基于上次变更的元素ID）' },
       { name: 'overlayResourceId', label: '选中覆盖图', type: 'resource', required: false, resourceKind: 'image' },
-      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, resourceKind: 'animation', description: '可选：选中时播放的动画资源（留空为无特效）' }
+      { name: 'effect', label: '选中特效动画', type: 'resource', required: false, resourceKind: 'animation', description: '可选：选中时播放的动画资源（留空为无特效）' },
+      { name: 'clickGuardMs', label: '互斥点击等待(ms)', type: 'number', required: false, defaultValue: 0, description: '本交互指令运行后，在该时长内同类交互不可响应（全局对“可选中”类生效）' }
       // 子命令 onSelected/onCancelSelected 在指令树中编辑
+    ]
+  },
+  {
+    type: CommandType.CHANGE_SELECTED_STATE,
+    name: '变更选中状态',
+    description: '切换或设置元素的选中/取消选中，并自动执行“设置可选中”配置中的系统与用户分支',
+    category: CommandCategory.INTERACTION,
+    icon: '🔁',
+    color: '#3F51B5',
+    parameters: [
+      { name: 'elementId', label: '元素ID', type: 'text', required: true },
+      { name: 'selected', label: '设为选中', type: 'boolean', required: false, description: '留空=自动切换；true=设为选中；false=取消选中' }
     ]
   },
   // 检测区域内（简化版）
@@ -167,7 +226,9 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'area.x', label: '区域X', type: 'number', required: true, defaultValue: 0, description: '' },
       { name: 'area.y', label: '区域Y', type: 'number', required: true, defaultValue: 0, description: '' },
       { name: 'area.width', label: '区域宽', type: 'number', required: true, defaultValue: 100, description: '' },
-      { name: 'area.height', label: '区域高', type: 'number', required: true, defaultValue: 100, description: '提示：右下坐标 = (X + 宽, Y + 高)' }
+      { name: 'area.height', label: '区域高', type: 'number', required: true, defaultValue: 100, description: '提示：右下坐标 = (X + 宽, Y + 高)' },
+      { name: 'outside', label: '是否区域外', type: 'boolean', required: false, defaultValue: false, description: '开启后，命中条件改为“元素中心在区域外”' },
+      { name: 'requireEnter', label: '仅进入触发', type: 'boolean', required: false, defaultValue: false, description: '仅在穿越边界“进入目标空间”时触发：当未勾选“是否区域外”时，需要从区域外进入区域内；勾选后需要从区域内进入区域外' }
       // 子命令 commands[] 在指令树中编辑，不在此面板
       // 命中时会写入：last_drop_element_ID, last_drop_resource_ID
     ]
@@ -175,12 +236,12 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
   {
     type: CommandType.SET_CLICKABLE,
     name: '设置可点击',
-    description: '为元素开启/配置点击行为（可执行子命令）',
+    description: '为元素开启/配置点击行为（可执行子命令）。提示：子命令里若使用 {临时变量}（如 bg{iii}），会在绑定时固定为当时的值。',
     category: CommandCategory.INTERACTION,
     icon: '🖱️',
     color: '#3F51B5',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '目标元素ID；支持 {var} 或前后缀内插，如 card_{i}' },
       { name: 'clickable', label: '启用点击', type: 'boolean', required: false, defaultValue: true, description: '是否可被点击' },
       { name: 'blocking', label: '阻塞其他交互', type: 'boolean', required: false, defaultValue: false, description: '开启后，仅此元素可交互，直到子命令执行完毕' },
       { name: 'onClick', label: '点击动作', type: 'select', required: false, defaultValue: 'commands', options: [
@@ -203,7 +264,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🖐️',
     color: '#3F51B5',
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: true, description: '目标元素ID' },
+      { name: 'elementId', label: '元素ID（支持 {var} 内插）', type: 'text', required: true, description: '目标元素ID；支持 {var} 与内插，如 card_{i}' },
       { name: 'draggable', label: '启用拖拽', type: 'boolean', required: false, defaultValue: true, description: '是否可拖拽' }
     ]
   },
@@ -216,7 +277,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#4CAF50',
     spawnsElement: true,
     parameters: [
-      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（可编辑，默认等于指令ID）' },
+      { name: 'elementId', label: '元素ID', type: 'text', required: false, description: '目标元素ID（支持 {var} 与内插，如 card_{i}；默认等于指令ID）' },
       { name: 'resourceId', label: '资源ID', type: 'resource', required: true, description: '图片资源ID', resourceKind: 'image' },
       {
         name: 'position.x',
@@ -239,7 +300,8 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         label: '父元素ID',
         type: 'text',
         required: false,
-        description: '可选：挂载到已有元素下（相对其坐标）'
+        placeholder: '不填则无父元素',
+        description: '可选：挂载到已有元素下（相对其坐标）。支持 {var} 与内插，如 bg{iii}'
       },
       {
         name: 'size.width',
@@ -271,6 +333,14 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         defaultValue: 0,
         description: '层级'
       },
+      {
+        name: 'rotation',
+        label: '旋转(度)',
+        type: 'number',
+        required: false,
+        defaultValue: 0,
+        description: '顺时针旋转角度（度）'
+      },
       { name: 'animation.entry.animId', label: '入场动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '动画资源ID或URL。默认非阻塞，如需等待请在后续添加 WAIT 指令。' },
       { name: 'animation.entry.duration', label: '入场时长(ms)', type: 'number', required: false, description: '覆盖资源时间轴总时长（可选）' },
       { name: 'animation.loop.animId', label: '循环动画ID', type: 'resource', required: false, resourceKind: 'animation', description: '循环动画资源ID或URL。若同时设置入场动画，将在入场结束后自动开始循环。' },
@@ -294,7 +364,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     icon: '🗂️',
     color: '#607D8B',
     parameters: [
-      { name: 'sceneId', label: '分组ID(sceneId)', type: 'text', required: false, description: '用于写入 user_data_sheet.scene_data[sceneId]；不填用 __default__' },
+      { name: 'sceneId', label: '分组ID(sceneId)', type: 'text', required: false, placeholder: '默认：当前场景ID_关卡序号', description: '用于写入 user_data_sheet.scene_data[sceneId]；不填=当前场景ID_关卡序号（若无序号仅场景ID）' },
       { name: 'key', label: '键名', type: 'text', required: true },
       { name: 'op', label: '操作', type: 'select', required: false, defaultValue: 'set', options: [
         { value: 'set', label: '设为' },
@@ -303,7 +373,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'mul', label: '乘' },
         { value: 'div', label: '除' }
       ]},
-      { name: 'value', label: '值', type: 'text', required: true, description: '支持数字/布尔/字符串' }
+      { name: 'value', label: '值', type: 'text', required: true, description: '支持数字/布尔/字符串；支持 {var} 与内插（如 name_{i}）' }
     ]
   },
   {
@@ -571,7 +641,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         label: '变量名',
         type: 'text',
         required: true,
-        description: '变量名'
+        description: '变量名；若勾选“临时变量”，此变量可被“可点击/可选中”的子命令用作 {变量} 内插并在绑定时固定（类似捕获当前值）'
       },
       { name: 'op', label: '操作', type: 'select', required: false, defaultValue: 'set', options: [
         { value: 'set', label: '设为 (set)' },
@@ -580,7 +650,20 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'mul', label: '乘 (mul)' },
         { value: 'div', label: '除以 (div)' }
       ] },
-      { name: 'value', label: '值', type: 'text', required: true, description: '支持数字/布尔/字符串/null' }
+      { name: 'value', label: '值', type: 'text', required: true, description: '支持数字/布尔/字符串/null/{变量}花括号引用变量值/${var}_name内嵌写法需要多一个$' },
+      { name: 'temporary', label: '临时变量', type: 'boolean', required: false, defaultValue: false, description: '仅在当前事件页内有效；且若被“可点击/可选中”的子命令写在 {变量} 中，会在绑定时固定为当前值。' }
+    ]
+  },
+  {
+    type: 'script' as any,
+    name: '脚本',
+    description: '仅文本脚本：支持 if/for/while，默认提供 setVar/getVar、rand/randInt、updateElement（不调用其他指令）',
+    category: CommandCategory.SYSTEM,
+    icon: '🧩',
+    color: '#607D8B',
+    parameters: [
+      { name: 'code', label: '脚本文本', type: 'textarea', required: true, description: '可写 if/for/while 等。API: setVar/getVar/setTempVar, rand/randInt, updateElement, args。开启 unsafe=true 可用 E/RM。' },
+      { name: 'unsafe', label: '启用自由模式（可操作元素属性）', type: 'boolean', required: false, defaultValue: false, description: '允许使用 E/RM（E.setPos/E.moveBy/E.setScale…），请确保脚本来源可信' }
     ]
   },
   // {
@@ -630,7 +713,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
         { value: 'lte', label: '小于等于 (<=)' }
       ], description: '当类型为变量时生效', showIf: { path: 'condition.type', equals: 'variable' } },
       { name: 'condition.value', label: '比较值', type: 'text', required: false, placeholder: '例如: 10 / true / text', showIf: { path: 'condition.type', equals: 'variable' } },
-      { name: 'condition.expression', label: '表达式', type: 'textarea', required: false, placeholder: '如需表达式，请在此编写：例如 gameState.score > 100', showIf: { path: 'condition.type', equals: 'expression' } }
+      { name: 'condition.expression', label: '表达式', type: 'textarea', required: false, placeholder: '如需表达式，请在此编写：例如 getVal(\'score\') > 100', showIf: { path: 'condition.type', equals: 'expression' } }
     ]
   },
   {
@@ -728,10 +811,11 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       },
       {
         name: 'data',
-        label: '数据载荷',
-        type: 'textarea',
+        label: '数据载荷(逗号分隔)',
+        type: 'text',
         required: false,
-        description: '随信号发送的数据(JSON格式)'
+        placeholder: '例如：\'apple\', 12, true',
+        description: '使用逗号分隔参数，触发的事件页里时使用局部变量 $1..$n 来访问'
       }
     ]
   }

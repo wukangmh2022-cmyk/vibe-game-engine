@@ -812,6 +812,12 @@ const App: React.FC = () => {
     });
   };
 
+  // Rebuild editor variable meta via store when project/level updates
+  useEffect(() => {
+    const { VarMetaStore } = require('./services/VarMetaStore');
+    VarMetaStore.set(appState.currentProject as any);
+  }, [appState.currentProject, appState.currentLevelId]);
+
   // 持久化会话场景缓存，避免回初始页后丢失
   useEffect(() => {
     try { localStorage.setItem('editor:sessionScenes', JSON.stringify(appState.sessionScenes || [])); } catch {}

@@ -7,6 +7,12 @@ import { IStateManager, GameState, IEventManager } from '../types';
 export class StateManager implements IStateManager {
   private variables: Map<string, any> = new Map();
   private switches: Map<string, boolean> = new Map();
+  // Instance-local storage: each event instance has its own temp vars/switches
+  private tempVarsByInstance: Map<number, Map<string, any>> = new Map();
+  private tempSwitchesByInstance: Map<number, Map<string, boolean>> = new Map();
+  private instanceStack: number[] = [];
+  private nextInstanceId = 1;
+  private currentInstanceOverride: number | null = null;
   private eventManager: IEventManager;
   private currentLevel: string = '';
   private score: number = 0;
@@ -20,7 +26,45 @@ export class StateManager implements IStateManager {
    * 获取变量值
    */
   getVariable(key: string): any {
+    // Only read from the current event instance; otherwise fallback to global
+    const cur = this.getCurrentInstanceId();
+    if (cur != null) {
+      const m = this.tempVarsByInstance.get(cur);
+      if (m && m.has(key)) {
+        const v = m.get(key);
+        try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_VAR_READ') === '1'; if (dbg) (console as any).info?.('[VAR_READ]', { instance: cur, key, value: v }); } catch {}
+        return v;
+      }
+    }
+    const v = this.variables.get(key);
+    try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_VAR_READ') === '1'; if (dbg) (console as any).info?.('[VAR_READ]', { instance: cur, key, value: v }); } catch {}
+    return v;
+  }
+
+  // Explicit instance helpers (for CommandExecutor's scoped calls)
+  getVariableFor(instanceId: number, key: string): any {
+    const m = this.tempVarsByInstance.get(instanceId);
+    if (m && m.has(key)) return m.get(key);
     return this.variables.get(key);
+  }
+  getSwitchFor(instanceId: number, key: string): boolean {
+    const m = this.tempSwitchesByInstance.get(instanceId);
+    if (m && m.has(key)) return !!m.get(key);
+    return this.switches.get(key) || false;
+  }
+  setTempVariableFor(instanceId: number, key: string, value: any): void {
+    if (!this.tempVarsByInstance.has(instanceId)) this.tempVarsByInstance.set(instanceId, new Map());
+    const m = this.tempVarsByInstance.get(instanceId)!;
+    const oldValue = m.get(key);
+    m.set(key, value);
+    this.eventManager.emit('variable_changed', { key, oldValue, newValue: value, temporary: true });
+  }
+  setTempSwitchFor(instanceId: number, key: string, value: boolean): void {
+    if (!this.tempSwitchesByInstance.has(instanceId)) this.tempSwitchesByInstance.set(instanceId, new Map());
+    const m = this.tempSwitchesByInstance.get(instanceId)!;
+    const oldValue = m.get(key);
+    m.set(key, !!value);
+    this.eventManager.emit('switch_changed', { key, oldValue, newValue: !!value, temporary: true });
   }
 
   /**
@@ -42,7 +86,18 @@ export class StateManager implements IStateManager {
    * 获取开关状态
    */
   getSwitch(key: string): boolean {
-    return this.switches.get(key) || false;
+    const cur = this.getCurrentInstanceId();
+    if (cur != null) {
+      const m = this.tempSwitchesByInstance.get(cur);
+      if (m && m.has(key)) {
+        const v = !!m.get(key);
+        try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_VAR_READ') === '1'; if (dbg) (console as any).info?.('[SWITCH_READ]', { instance: cur, key, value: v }); } catch {}
+        return v;
+      }
+    }
+    const v = this.switches.get(key) || false;
+    try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_VAR_READ') === '1'; if (dbg) (console as any).info?.('[SWITCH_READ]', { instance: cur, key, value: v }); } catch {}
+    return v;
   }
 
   /**
@@ -173,6 +228,10 @@ export class StateManager implements IStateManager {
   reset(): void {
     this.variables.clear();
     this.switches.clear();
+    this.tempVarsByInstance.clear();
+    this.tempSwitchesByInstance.clear();
+    this.instanceStack = [];
+    this.nextInstanceId = 1;
     this.currentLevel = '';
     this.score = 0;
     this.progress = 0;
@@ -314,5 +373,105 @@ export class StateManager implements IStateManager {
       }, 0);
     }
     return 0;
+  }
+
+  // ===== Event instance APIs (preferred) =====
+  getCurrentInstanceId(): number | null {
+    if (this.currentInstanceOverride != null) return this.currentInstanceOverride;
+    return this.instanceStack.length ? this.instanceStack[this.instanceStack.length - 1] : null;
+  }
+  newEventInstanceId(): number { return this.nextInstanceId++; }
+  setCurrentInstance(id: number | null): void {
+    if (id == null) { this.currentInstanceOverride = null; return; }
+    this.currentInstanceOverride = id;
+    if (!this.tempVarsByInstance.has(id)) this.tempVarsByInstance.set(id, new Map());
+    if (!this.tempSwitchesByInstance.has(id)) this.tempSwitchesByInstance.set(id, new Map());
+  }
+  beginEventInstance(instanceId?: number): number {
+    const id = (typeof instanceId === 'number' && instanceId >= 0) ? instanceId : this.nextInstanceId++;
+    if (!this.tempVarsByInstance.has(id)) this.tempVarsByInstance.set(id, new Map());
+    if (!this.tempSwitchesByInstance.has(id)) this.tempSwitchesByInstance.set(id, new Map());
+    this.instanceStack.push(id);
+    return id;
+  }
+  endEventInstance(id: number): void {
+    const cur = this.getCurrentInstanceId();
+    if (cur === id) { this.instanceStack.pop(); }
+    // 清理实例存储，避免泄漏
+    this.tempVarsByInstance.delete(id);
+    this.tempSwitchesByInstance.delete(id);
+  }
+  // Backwards-compat scope APIs map to instance APIs
+  hasActiveTempScope(): boolean { return this.getCurrentInstanceId() != null; }
+  beginTempScope(): void { this.beginEventInstance(); }
+  endTempScope(): void { const cur = this.getCurrentInstanceId(); if (cur != null) this.endEventInstance(cur); }
+  setTempVariable(key: string, value: any): void {
+    const cur = this.getCurrentInstanceId();
+    if (cur == null) return; // no active instance; skip
+    if (!this.tempVarsByInstance.has(cur)) this.tempVarsByInstance.set(cur, new Map());
+    const m = this.tempVarsByInstance.get(cur)!;
+    const oldValue = m.get(key);
+    m.set(key, value);
+    this.eventManager.emit('variable_changed', { key, oldValue, newValue: value, temporary: true });
+  }
+  setTempSwitch(key: string, value: boolean): void {
+    const cur = this.getCurrentInstanceId();
+    if (cur == null) return; // no active instance; skip
+    if (!this.tempSwitchesByInstance.has(cur)) this.tempSwitchesByInstance.set(cur, new Map());
+    const m = this.tempSwitchesByInstance.get(cur)!;
+    const oldValue = m.get(key);
+    m.set(key, !!value);
+    this.eventManager.emit('switch_changed', { key, oldValue, newValue: !!value, temporary: true });
+  }
+
+  // Editor helpers (read-only)
+  getTempValues(key: string): any[] {
+    const out: any[] = [];
+    // Collect current instance first (if any), then others (stable order by id desc)
+    const cur = this.getCurrentInstanceId();
+    if (cur != null) {
+      const m = this.tempVarsByInstance.get(cur);
+      if (m && m.has(key)) out.push(m.get(key));
+    }
+    const ids = Array.from(this.tempVarsByInstance.keys()).sort((a,b)=>b-a);
+    for (const id of ids) {
+      if (id === cur) continue;
+      const m = this.tempVarsByInstance.get(id)!;
+      if (m.has(key)) out.push(m.get(key));
+    }
+    return out;
+  }
+  hasTemp(key: string): boolean {
+    if (this.getCurrentInstanceId() != null) {
+      const cur = this.getCurrentInstanceId()!;
+      const m = this.tempVarsByInstance.get(cur);
+      if (m && m.has(key)) return true;
+    }
+    for (const [, m] of this.tempVarsByInstance.entries()) { if (m.has(key)) return true; }
+    return false;
+  }
+  getTempSwitchValues(key: string): boolean[] {
+    const out: boolean[] = [];
+    const cur = this.getCurrentInstanceId();
+    if (cur != null) {
+      const m = this.tempSwitchesByInstance.get(cur);
+      if (m && m.has(key)) out.push(!!m.get(key));
+    }
+    const ids = Array.from(this.tempSwitchesByInstance.keys()).sort((a,b)=>b-a);
+    for (const id of ids) {
+      if (id === cur) continue;
+      const m = this.tempSwitchesByInstance.get(id)!;
+      if (m.has(key)) out.push(!!m.get(key));
+    }
+    return out;
+  }
+  hasTempSwitch(key: string): boolean {
+    if (this.getCurrentInstanceId() != null) {
+      const cur = this.getCurrentInstanceId()!;
+      const m = this.tempSwitchesByInstance.get(cur);
+      if (m && m.has(key)) return true;
+    }
+    for (const [, m] of this.tempSwitchesByInstance.entries()) { if (m.has(key)) return true; }
+    return false;
   }
 }

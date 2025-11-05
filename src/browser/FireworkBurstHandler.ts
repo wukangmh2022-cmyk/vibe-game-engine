@@ -1,6 +1,6 @@
 import { CommandType, CommandContext, CommandResult, GameCommand } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveIdFromBraces, interpolateBraces } from '../utils/ParamResolver';
 
 declare const PIXI: any;
 
@@ -37,8 +37,14 @@ export class FireworkBurstHandler extends BaseCommandHandler {
     const stage = rm?.getStage ? rm.getStage() : app?.stage;
     if (!stage) return this.createErrorResult('Pixi stage not available');
 
-    const elementId: string | undefined = resolveIdFromBraces(p.elementId, context) || p.elementId;
-    const attachToId: string | undefined = resolveIdFromBraces(p.attachToId || p.parentId || elementId, context) || p.attachToId || p.parentId || elementId;
+    const elementIdRaw: any = p.elementId;
+    const elementId: string | undefined = typeof elementIdRaw === 'string'
+      ? (resolveIdFromBraces(elementIdRaw, context) || interpolateBraces(elementIdRaw, context))
+      : elementIdRaw;
+    const attachRaw: any = p.attachToId || p.parentId || elementId;
+    const attachToId: string | undefined = typeof attachRaw === 'string'
+      ? (resolveIdFromBraces(attachRaw, context) || interpolateBraces(attachRaw, context))
+      : attachRaw;
     const attachNode = attachToId ? rm.getNode?.(attachToId) : undefined;
 
     let x = Number(p.x);
@@ -91,7 +97,33 @@ export class FireworkBurstHandler extends BaseCommandHandler {
     };
     if (textures.length === 0) textures.push(makeFallback());
 
-    const tints: number[] = Array.isArray(p.tint) ? p.tint : (p.tint != null ? [p.tint] : [0xffe066, 0xff8fab, 0x9bf6ff, 0xbdb2ff, 0xcaffbf]);
+    const parseTintValue = (s: string): number | null => {
+      if (!s) return null;
+      const t = s.trim();
+      if (t.startsWith('#')) {
+        const hex = t.length === 4 ? ('#' + t[1] + t[1] + t[2] + t[2] + t[3] + t[3]) : t;
+        try { return parseInt('0x' + hex.slice(1)); } catch { return null; }
+      }
+      if (/^0x/i.test(t)) { const n = Number(t); return Number.isFinite(n) ? n : null; }
+      const n = Number(t);
+      return Number.isFinite(n) ? n : null;
+    };
+    const toTintArray = (val: any): number[] => {
+      if (Array.isArray(val)) {
+        const arr = val.map(v => (typeof v === 'number' ? v : (typeof v === 'string' ? parseTintValue(v) : null))).filter((v): v is number => typeof v === 'number');
+        return arr.length ? arr : [0xffe066, 0xff8fab, 0x9bf6ff, 0xbdb2ff, 0xcaffbf];
+      }
+      if (typeof val === 'string') {
+        const parts = val.split(',');
+        const arr = parts.map(p => parseTintValue(p)).filter((v): v is number => typeof v === 'number');
+        if (arr.length) return arr;
+        const single = parseTintValue(val);
+        return single != null ? [single] : [0xffe066, 0xff8fab, 0x9bf6ff, 0xbdb2ff, 0xcaffbf];
+      }
+      if (typeof val === 'number') return [val];
+      return [0xffe066, 0xff8fab, 0x9bf6ff, 0xbdb2ff, 0xcaffbf];
+    };
+    const tints: number[] = toTintArray(p.tint);
     const bmStr: string = String(p.blendMode || p.blend || 'normal').toLowerCase();
     const BM = (globalThis as any).PIXI?.BLEND_MODES;
     const bmMap: Record<string, any> = BM ? {

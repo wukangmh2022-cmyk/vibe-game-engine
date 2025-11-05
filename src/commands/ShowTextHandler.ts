@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { resolveElementId } from '../utils/ParamResolver';
 
 /**
  * 显示文本指令处理器
@@ -29,7 +30,7 @@ export class ShowTextHandler extends BaseCommandHandler {
     if (style.zIndex === undefined) {
       style.zIndex = 5; // 默认高于背景，低于标题
     }
-    const elementId = p.elementId || p.id || `text_${Date.now()}`;
+    const elementId = resolveElementId(p.elementId, context) || p.id || `text_${Date.now()}`;
     
     if (!text) {
       return this.createErrorResult('Missing required parameter: text');

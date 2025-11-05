@@ -1,6 +1,7 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { ExpressionParser } from '../utils/ExpressionParser';
+import { resolveFromBraces, resolveNumberFromBraces } from '../utils/ParamResolver';
 
 /**
  * 设置变量指令处理器
@@ -30,13 +31,18 @@ export class SetVariableHandler extends BaseCommandHandler {
         let next: any;
         if (op === 'set') {
           // 直接按原值设置，仅支持 boolean/number/string
+          // 支持从变量占位 {var} 解析
+          const resolved = resolveFromBraces<any>(value, context);
+          value = resolved;
           if (value && typeof value === 'object') {
             return this.createErrorResult('Invalid value: object is not allowed. Use numeric/string/boolean or expression string.');
           }
           next = value;
         } else {
           const current = Number(stateManager.getVariable(variableKey) ?? 0);
-          const num = typeof value === 'number' ? value : Number(value);
+          // 支持从变量占位 {var} 解析为数字
+          const resolvedNum = resolveNumberFromBraces(value, context);
+          const num = (resolvedNum != null) ? resolvedNum : (typeof value === 'number' ? value : Number(value));
           if (Number.isNaN(current) || Number.isNaN(num)) {
             return this.createErrorResult('Numeric operation requires numeric values');
           }
@@ -48,7 +54,11 @@ export class SetVariableHandler extends BaseCommandHandler {
             default: return this.createErrorResult(`Unknown op: ${op}`);
           }
         }
-        stateManager.setVariable(variableKey, next);
+        if (command.parameters?.temporary) {
+          stateManager.setTempVariable?.(variableKey, next);
+        } else {
+          stateManager.setVariable(variableKey, next);
+        }
         context.logger.debug(`Variable ${variableKey} op=${op} set to ${next}`);
         return this.createSuccessResult({ key: variableKey, value: next, op });
       }
@@ -58,12 +68,20 @@ export class SetVariableHandler extends BaseCommandHandler {
         const parser = new ExpressionParser(stateManager);
         value = parser.parse(value);
       }
-      // 若传入对象但未声明 expression=true，则判为无效（避免兼容错误 JSON）
+      // 若未启用表达式，先解析 {var} 占位
+      if (!expression) {
+        value = resolveFromBraces<any>(value, context);
+      }
+      // 若仍为对象，判为无效（避免错误 JSON）
       if (!expression && value && typeof value === 'object') {
         return this.createErrorResult('Invalid value: object not supported. Set expression=true and provide an expression string, or use op+value.');
       }
 
-      stateManager.setVariable(variableKey, value);
+      if (command.parameters?.temporary) {
+        stateManager.setTempVariable?.(variableKey, value);
+      } else {
+        stateManager.setVariable(variableKey, value);
+      }
       
       context.logger.debug(`Variable set: ${variableKey} = ${value}`);
       

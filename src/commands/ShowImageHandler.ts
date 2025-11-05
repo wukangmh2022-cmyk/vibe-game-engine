@@ -2,7 +2,7 @@ import { CommandType, GameCommand, CommandContext, CommandResult, ElementConfig 
 // Cache parsed animation JSON by resolved URL/id to avoid repeated fetch/allocations
 const ANIM_JSON_CACHE: Map<string, any> = new Map();
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces, resolveFromBraces, resolveNumberFromBraces } from '../utils/ParamResolver';
+import { resolveIdFromBraces, resolveFromBraces, resolveNumberFromBraces, interpolateBraces } from '../utils/ParamResolver';
 
 export class ShowImageHandler extends BaseCommandHandler {
   readonly type = CommandType.SHOW_IMAGE;
@@ -11,7 +11,10 @@ export class ShowImageHandler extends BaseCommandHandler {
     const params = command.parameters || {};
     // 兼容 V2：elementId/resourceId/position/size；同时兼容旧版：src/x/y/width/height/id
     // Allow elementId/parentId to be provided as {var}
-    const resolvedElementId = resolveIdFromBraces(params.elementId, context) || params.elementId || params.id;
+    let resolvedElementId: any = resolveIdFromBraces(params.elementId, context) || params.elementId || params.id;
+    if (typeof resolvedElementId === 'string') {
+      resolvedElementId = interpolateBraces(resolvedElementId, context);
+    }
     const elementId = resolvedElementId || `image_${Date.now()}`;
     const resourceId = params.resourceId;
     let src: string | undefined = params.src;
@@ -29,8 +32,19 @@ export class ShowImageHandler extends BaseCommandHandler {
     if (Number.isNaN(y)) y = 0;
     const width = params.width ?? size.width;
     const height = params.height ?? size.height;
-    const parentId: string | undefined = resolveIdFromBraces(params.parentId || params.parentElementId, context);
+    const parentRaw: any = params.parentId || params.parentElementId;
+    const parentId: string | undefined = (typeof parentRaw === 'string')
+      ? (resolveIdFromBraces(parentRaw, context) || interpolateBraces(parentRaw, context))
+      : parentRaw;
     const align: string | undefined = params.align || params.alignment;
+    // rotation: editor uses degrees, runtime needs radians
+    let rotationRad: number | undefined;
+    try {
+      const rRaw: any = params.rotation;
+      const rNum = resolveNumberFromBraces(rRaw, context);
+      const deg = (rNum != null ? rNum : (rRaw != null ? Number(rRaw) : undefined));
+      if (deg != null && !Number.isNaN(deg)) rotationRad = Number(deg) * Math.PI / 180;
+    } catch {}
 
     // 若提供了 resourceId 尝试从资源管理器解析 url/src
     if (!src && resourceId && (context as any).resourceManager?.getResource) {
@@ -122,6 +136,7 @@ export class ShowImageHandler extends BaseCommandHandler {
           } catch {}
         }
         if (Object.keys(mergedStyle).length) (updates as any).style = mergedStyle;
+        if (rotationRad != null) (updates as any).rotation = rotationRad;
         // Apply updates; if renderer throws (rare), fallback to safe recreate
         try {
           rm.updateElement?.(elementId, updates);
@@ -170,6 +185,7 @@ export class ShowImageHandler extends BaseCommandHandler {
         parentId,
         style: Object.keys(mergedStyle).length ? mergedStyle : undefined
       };
+      if (rotationRad != null) (elementConfig as any).rotation = rotationRad;
       // Preserve resourceId for downstream handlers (e.g., CHECK_IN_AREA)
       (elementConfig as any).resourceId = resourceId || undefined;
 
@@ -202,8 +218,10 @@ export class ShowImageHandler extends BaseCommandHandler {
     const elementNode: any = (node as any).__elementNode;
     if (!elementNode) return;
 
-    const entrySpec: string | undefined = anim?.entry?.animId || anim?.entry?.animationId;
-    const loopSpec: string | undefined = anim?.loop?.animId || anim?.loop?.animationId;
+    let entrySpec: string | undefined = anim?.entry?.animId || anim?.entry?.animationId;
+    let loopSpec: string | undefined = anim?.loop?.animId || anim?.loop?.animationId;
+    if (typeof entrySpec === 'string') entrySpec = interpolateBraces(entrySpec, context);
+    if (typeof loopSpec === 'string') loopSpec = interpolateBraces(loopSpec, context);
     const entryDuration = anim?.entry?.duration ?? anim?.entry?.period ?? anim?.entry?.cycle ?? (anim?.entry?.seconds != null ? Number(anim.entry.seconds) * 1000 : undefined);
     const loopDuration = anim?.loop?.duration ?? anim?.loop?.period ?? anim?.loop?.cycle ?? (anim?.loop?.seconds != null ? Number(anim.loop.seconds) * 1000 : undefined);
     const resolver = (spec: string) => this.loadAnimationData(spec, context);

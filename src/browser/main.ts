@@ -9,6 +9,7 @@ import { BrowserAudioManager } from './BrowserAudioManager';
 import { PixiRendererManager } from './PixiRendererManager';
 import { PixiCheckInAreaHandler } from './PixiCheckInAreaHandler';
 import { AnimateInHandler } from './AnimateInHandler';
+import { AnimateOutHandler } from './AnimateOutHandler';
 import { AnimateLoopHandler } from './AnimateLoopHandler';
 import { PixiSetElementStyleHandler } from './PixiSetElementStyleHandler';
 import { FlipCardHandler } from '../commands/FlipCardHandler';
@@ -74,6 +75,7 @@ async function bootstrap() {
   executor.registerHandler(new PixiSetDraggableHandler());
   executor.registerHandler(new PixiCheckInAreaHandler());
   executor.registerHandler(new AnimateInHandler());
+  executor.registerHandler(new AnimateOutHandler());
   executor.registerHandler(new AnimateLoopHandler());
   executor.registerHandler(new PixiSetElementStyleHandler());
   executor.registerHandler(new FlipCardHandler());
@@ -203,6 +205,8 @@ async function bootstrap() {
   } catch {}
   // 2) Load level-specific initial state (overrides globals when overlapping)
   Object.entries(level.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
+  // Expose current level index for downstream commands/handlers (e.g., user data sceneId default)
+  try { stateManager.setVariable('levelIndex', levelIndex); } catch {}
 
   // Register level events (tracked for cleanup)
   for (const ev of level.events || []) {
@@ -212,26 +216,37 @@ async function bootstrap() {
         (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
       }
       if (tr.type === 'custom' && (tr as any).target) {
-        onLevel((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
+        onLevel((tr as any).target, async (eventData?: any) => {
+          try {
+            // Start a temp instance and inject $1..$n from payload args
+            const args: any[] = Array.isArray(eventData?.args) ? eventData.args : (Array.isArray(eventData) ? eventData : []);
+            const instId = stateManager.beginEventInstance(stateManager.newEventInstanceId());
+            try { args.forEach((v, i) => stateManager.setTempVariable(`$${i+1}`, v)); } catch {}
+            try { await executor.executeCommands(ev.commands as GameCommand[]); } finally { stateManager.endEventInstance(instId); }
+          } catch { await executor.executeCommands(ev.commands as GameCommand[]); }
+        });
       }
       if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
         const expr = (tr as any).condition.expression as string;
         const m = /event\.type\s*===\s*'([^']+)'/.exec(expr || '');
         if (m) {
           const name = m[1];
-          onLevel(name, async (eventData: any) => {
-            const eventVar = { type: name, ...(eventData || {}) };
-            try {
+            onLevel(name, async (eventData: any) => {
+              const eventVar = { type: name, ...(eventData || {}) };
+              try {
+              const getVar = (key: string) => stateManager?.getVariable?.(String(key));
               if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
-                // 将事件变量注入执行上下文，供 IF_CONDITION 表达式使用
                 executor.updateContext({ event: eventVar, lastEvent: eventVar } as any);
-                await executor.executeCommands(ev.commands as GameCommand[]);
+                const args: any[] = Array.isArray(eventData?.args) ? eventData.args : (Array.isArray(eventData) ? eventData : []);
+                const instId = stateManager.beginEventInstance(stateManager.newEventInstanceId());
+                try { args.forEach((v, i) => stateManager.setTempVariable(`$${i+1}`, v)); } catch {}
+                try { await executor.executeCommands(ev.commands as GameCommand[]); } finally { stateManager.endEventInstance(instId); }
               }
-            } catch {}
-          });
+              } catch {}
+            });
+          }
         }
       }
-    }
   }
 
   // Handle jump_to_requested: resume execution from target within its original array
@@ -269,7 +284,14 @@ async function bootstrap() {
           (async () => { await executor.executeCommands(ev.commands as GameCommand[]); })();
         }
         if (tr.type === 'custom' && (tr as any).target) {
-          onLevel((tr as any).target, async () => { await executor.executeCommands(ev.commands as GameCommand[]); });
+          onLevel((tr as any).target, async (eventData?: any) => {
+            try {
+              const args: any[] = Array.isArray(eventData?.args) ? eventData.args : (Array.isArray(eventData) ? eventData : []);
+              const instId = stateManager.beginEventInstance(stateManager.newEventInstanceId());
+              try { args.forEach((v, i) => stateManager.setTempVariable(`$${i+1}`, v)); } catch {}
+              try { await executor.executeCommands(ev.commands as GameCommand[]); } finally { stateManager.endEventInstance(instId); }
+            } catch { await executor.executeCommands(ev.commands as GameCommand[]); }
+          });
         }
         if (tr.type === 'custom' && (tr as any).condition?.type === 'expression') {
           const expr = (tr as any).condition.expression as string;
@@ -281,7 +303,10 @@ async function bootstrap() {
               try {
                 if (eval(expr.replace(/\bevent\b/g, 'eventVar'))) {
                   executor.updateContext({ event: eventVar, lastEvent: eventVar } as any);
-                  await executor.executeCommands(ev.commands as GameCommand[]);
+                  const args: any[] = Array.isArray(eventData?.args) ? eventData.args : (Array.isArray(eventData) ? eventData : []);
+                  const instId = stateManager.beginEventInstance(stateManager.newEventInstanceId());
+                  try { args.forEach((v, i) => stateManager.setTempVariable(`$${i+1}`, v)); } catch {}
+                  try { await executor.executeCommands(ev.commands as GameCommand[]); } finally { stateManager.endEventInstance(instId); }
                 }
               } catch {}
             });
@@ -303,6 +328,7 @@ async function bootstrap() {
     if (!(nextIdx < orig.length)) { console.info('[Runtime] No more levels in current JSON'); return; }
     game = { ...(game as any), levels: [ orig[nextIdx], ...orig.filter((_, i) => i !== nextIdx) ], __originalLevels: orig, __currentOriginalIndex: nextIdx } as any;
     levelIndex = 0; level = game.levels[0];
+    try { stateManager.setVariable('levelIndex', levelIndex); } catch {}
     await wireLevel(level);
   });
 

@@ -29,7 +29,7 @@ export async function saveLastHandle(handle: any): Promise<void> {
       tx.onerror = () => reject(tx.error);
       tx.objectStore(STORE).put(handle, 'last');
     });
-    try { console.info('[FSA] Saved last directory handle'); } catch {}
+    try { const dbg = (window as any)?.localStorage?.getItem?.('DEBUG_FSA') === '1'; if (dbg) console.info('[FSA] Saved last directory handle'); } catch {}
   } catch {}
 }
 
@@ -43,7 +43,7 @@ export async function loadLastHandle(): Promise<any | null> {
       req.onsuccess = () => resolve((req.result as any) || null);
       req.onerror = () => reject(req.error);
     });
-    try { console.info('[FSA] Loaded last handle:', !!handle); } catch {}
+    try { const dbg = (window as any)?.localStorage?.getItem?.('DEBUG_FSA') === '1'; if (dbg) console.info('[FSA] Loaded last handle:', !!handle); } catch {}
     return handle;
   } catch { return null; }
 }
@@ -51,10 +51,10 @@ export async function loadLastHandle(): Promise<any | null> {
 export async function verifyPermission(handle: any, mode: 'read' | 'readwrite' = 'read'): Promise<boolean> {
   try {
     const qs = await (handle as any).queryPermission?.({ mode });
-    try { console.info('[FSA] queryPermission:', qs); } catch {}
+    try { const dbg = (window as any)?.localStorage?.getItem?.('DEBUG_FSA') === '1'; if (dbg) console.info('[FSA] queryPermission:', qs); } catch {}
     if (qs === 'granted') return true;
     const rs = await (handle as any).requestPermission?.({ mode });
-    try { console.info('[FSA] requestPermission:', rs); } catch {}
+    try { const dbg = (window as any)?.localStorage?.getItem?.('DEBUG_FSA') === '1'; if (dbg) console.info('[FSA] requestPermission:', rs); } catch {}
     return rs === 'granted';
   } catch { return false; }
 }
@@ -79,7 +79,8 @@ export async function buildFileMapFromHandle(dirHandle: any): Promise<Map<string
   await walk(dirHandle, '');
   try {
     const preview = Array.from(map.keys()).slice(0, 10);
-    console.info('[FSA] Built file map:', map.size, 'entries. sample:', preview);
+    const dbg = (window as any)?.localStorage?.getItem?.('DEBUG_FSA') === '1';
+    if (dbg) console.info('[FSA] Built file map:', map.size, 'entries. sample:', preview);
   } catch {}
   return map;
 }

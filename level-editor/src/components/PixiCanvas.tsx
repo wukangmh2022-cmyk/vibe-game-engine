@@ -147,6 +147,9 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
             };
             em.on('variable_changed', relay('editor:variable_changed'));
             em.on('switch_changed', relay('editor:switch_changed'));
+            em.on('level_changed', relay('editor:level_changed'));
+            em.on('state_reset', relay('editor:state_reset'));
+            em.on('state_loaded', relay('editor:state_loaded'));
             em.on('command_start', (d: any) => relay('editor:runtime_command')({ id: d?.command?.id, status: 'start', command: d?.command }));
             em.on('command_complete', (d: any) => relay('editor:runtime_command')({ id: d?.command?.id, status: (d?.result?.success === false ? 'error' : 'complete'), result: d?.result, command: d?.command }));
             em.on('command_error', (d: any) => relay('editor:runtime_command')({ id: d?.command?.id, status: 'error', error: d?.error, command: d?.command }));
