@@ -259,12 +259,17 @@ export async function mountRuntime(
       // Determine current original index by stored marker or by id lookup
       let curIdx: number = typeof (game as any).__currentOriginalIndex === 'number' ? (game as any).__currentOriginalIndex : Math.max(0, orig.findIndex(lv => lv?.id === level?.id));
       const nextIdx = curIdx + 1;
+      try {
+        const curId = level?.id; const nextId = orig[nextIdx]?.id;
+        console.info('[runtime] NEXT_LEVEL requested', { curIdx, curId, nextIdx, nextId, total: orig.length });
+      } catch {}
       if (!(nextIdx < orig.length)) { try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] no more levels'); } catch {} return; }
       const hasEditorRedirect = typeof (window as any).__PIXICANVAS_REDIRECT__ === 'function';
       if (hasEditorRedirect) {
         // Reorder by original ordering so next original level becomes first
         const reorderedLevels = [ orig[nextIdx], ...orig.filter((_, i) => i !== nextIdx) ];
         const reordered = { ...(game as any), levels: reorderedLevels, __originalLevels: orig, __currentOriginalIndex: nextIdx } as any;
+        try { console.info('[runtime] NEXT_LEVEL redirect via editor', { nextIdx, nextId: orig[nextIdx]?.id }); } catch {}
         // Let editor perform a full runtime remount with the updated JSON
         await eventManager.emit('scene_redirect', reordered);
         return;
@@ -299,9 +304,18 @@ export async function mountRuntime(
     try {
       const raw = payload && (payload.url || payload.scene || payload.path) || payload;
       const levelIndex = (payload && typeof payload.levelIndex !== 'undefined') ? Number(payload.levelIndex) : undefined;
+      try {
+        const curArr: any[] = Array.isArray((game as any)?.levels) ? (game as any).levels : [];
+        const curIdx = Math.max(0, curArr.findIndex(lv => lv?.id === level?.id));
+        console.info('[runtime] SCENE_REDIRECT received', { raw, levelIndex, curLevelId: level?.id, curIdx, sceneId: (game as any)?.id });
+      } catch {}
       // Special token: 'this' means reload current scene
       if (typeof raw === 'string' && raw.trim().toLowerCase() === 'this') {
-        try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] scene_redirect (reload current)', { raw }); } catch {}
+        try {
+          const curArr: any[] = Array.isArray((game as any)?.levels) ? (game as any).levels : [];
+          const curIdx = Math.max(0, curArr.findIndex(lv => lv?.id === level?.id));
+          console.info('[runtime] scene_redirect (reload current)', { raw, resolvedIdx: (typeof levelIndex === 'number' ? levelIndex : curIdx), targetId: (typeof levelIndex === 'number' ? curArr[levelIndex]?.id : level?.id), sceneId: (game as any)?.id });
+        } catch {}
         const fn = (window as any).__PIXICANVAS_REDIRECT__;
         if (typeof fn === 'function') {
           try { fn({ reload: true, currentLevelId: level?.id }); } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT reload failed', e); }
@@ -309,7 +323,7 @@ export async function mountRuntime(
         }
       }
       const url = resolveUrl(raw);
-      try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] scene_redirect', { raw, url, levelIndex }); } catch {}
+      try { console.info('[runtime] scene_redirect (url)', { raw, url, levelIndex, sceneId: (game as any)?.id }); } catch {}
       const fn = (window as any).__PIXICANVAS_REDIRECT__;
       if (typeof fn === 'function') {
         try {
