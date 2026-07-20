@@ -1,0 +1,297 @@
+{
+  "assetGenerationModel": "gpt-image-2",
+  "jobs": [
+    {
+      "id": "job.res.map.start_town.base",
+      "resourceId": "res.map.start_town.base",
+      "kind": "rpg.map.base",
+      "outputPath": "assets/maps/start_town/base.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/start_town_base.txt"
+    },
+    {
+      "id": "job.res.map.start_town.overlay.light",
+      "resourceId": "res.map.start_town.overlay.light",
+      "kind": "rpg.map.overlay_light",
+      "outputPath": "assets/maps/start_town/overlay_light.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/start_town_overlay_light.txt",
+      "dependsOn": [
+        "res.map.start_town.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/start_town/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.start_town.overlay.occlusion",
+      "resourceId": "res.map.start_town.overlay.occlusion",
+      "kind": "rpg.map.overlay_occlusion",
+      "outputPath": "assets/maps/start_town/overlay_occlusion.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/start_town_overlay_occlusion.txt",
+      "dependsOn": [
+        "res.map.start_town.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/start_town/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.start_town.mask",
+      "resourceId": "res.map.start_town.mask",
+      "kind": "rpg.map.passability_mask",
+      "outputPath": "assets/maps/start_town/mask.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/start_town_mask.txt",
+      "dependsOn": [
+        "res.map.start_town.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/start_town/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.start_town.objects",
+      "resourceId": "res.map.start_town.objects",
+      "kind": "rpg.map.object_layer",
+      "outputPath": "assets/maps/start_town/objects.json",
+      "status": "planned"
+    },
+    {
+      "id": "job.res.map.forest_path.base",
+      "resourceId": "res.map.forest_path.base",
+      "kind": "rpg.map.base",
+      "outputPath": "assets/maps/forest_path/base.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/forest_path_base.txt"
+    },
+    {
+      "id": "job.res.map.forest_path.overlay.light",
+      "resourceId": "res.map.forest_path.overlay.light",
+      "kind": "rpg.map.overlay_light",
+      "outputPath": "assets/maps/forest_path/overlay_light.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/forest_path_overlay_light.txt",
+      "dependsOn": [
+        "res.map.forest_path.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/forest_path/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.forest_path.overlay.occlusion",
+      "resourceId": "res.map.forest_path.overlay.occlusion",
+      "kind": "rpg.map.overlay_occlusion",
+      "outputPath": "assets/maps/forest_path/overlay_occlusion.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/forest_path_overlay_occlusion.txt",
+      "dependsOn": [
+        "res.map.forest_path.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/forest_path/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.forest_path.mask",
+      "resourceId": "res.map.forest_path.mask",
+      "kind": "rpg.map.passability_mask",
+      "outputPath": "assets/maps/forest_path/mask.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/forest_path_mask.txt",
+      "dependsOn": [
+        "res.map.forest_path.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/forest_path/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.forest_path.objects",
+      "resourceId": "res.map.forest_path.objects",
+      "kind": "rpg.map.object_layer",
+      "outputPath": "assets/maps/forest_path/objects.json",
+      "status": "planned"
+    },
+    {
+      "id": "job.res.map.old_ruins.base",
+      "resourceId": "res.map.old_ruins.base",
+      "kind": "rpg.map.base",
+      "outputPath": "assets/maps/old_ruins/base.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/old_ruins_base.txt"
+    },
+    {
+      "id": "job.res.map.old_ruins.overlay.light",
+      "resourceId": "res.map.old_ruins.overlay.light",
+      "kind": "rpg.map.overlay_light",
+      "outputPath": "assets/maps/old_ruins/overlay_light.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/old_ruins_overlay_light.txt",
+      "dependsOn": [
+        "res.map.old_ruins.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/old_ruins/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.old_ruins.overlay.occlusion",
+      "resourceId": "res.map.old_ruins.overlay.occlusion",
+      "kind": "rpg.map.overlay_occlusion",
+      "outputPath": "assets/maps/old_ruins/overlay_occlusion.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/old_ruins_overlay_occlusion.txt",
+      "dependsOn": [
+        "res.map.old_ruins.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/old_ruins/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.old_ruins.mask",
+      "resourceId": "res.map.old_ruins.mask",
+      "kind": "rpg.map.passability_mask",
+      "outputPath": "assets/maps/old_ruins/mask.png",
+      "status": "planned",
+      "promptFile": "prompts/maps/old_ruins_mask.txt",
+      "dependsOn": [
+        "res.map.old_ruins.base"
+      ],
+      "inputImages": [
+        {
+          "root": "project",
+          "path": "assets/maps/old_ruins/base.png",
+          "role": "aligned base map"
+        }
+      ]
+    },
+    {
+      "id": "job.res.map.old_ruins.objects",
+      "resourceId": "res.map.old_ruins.objects",
+      "kind": "rpg.map.object_layer",
+      "outputPath": "assets/maps/old_ruins/objects.json",
+      "status": "planned"
+    },
+    {
+      "id": "job.res.actor.hero.walk",
+      "resourceId": "res.actor.hero.walk",
+      "kind": "rpg.character.walksheet",
+      "outputPath": "assets/characters/hero/walk.png",
+      "status": "planned",
+      "inputImages": [
+        {
+          "root": "skill",
+          "path": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+          "role": "walk-only base sheet"
+        }
+      ],
+      "baseSheetId": "base.walk.male_human",
+      "baseSheetPath": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+      "promptFile": "prompts/characters/hero_walk.txt"
+    },
+    {
+      "id": "job.res.actor.npc.guide.walk",
+      "resourceId": "res.actor.npc.guide.walk",
+      "kind": "rpg.character.walksheet",
+      "outputPath": "assets/characters/npc_guide/walk.png",
+      "status": "planned",
+      "inputImages": [
+        {
+          "root": "skill",
+          "path": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+          "role": "walk-only base sheet"
+        }
+      ],
+      "baseSheetId": "base.walk.male_human",
+      "baseSheetPath": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+      "promptFile": "prompts/characters/npc_guide_walk.txt"
+    },
+    {
+      "id": "job.res.actor.npc.artisan.walk",
+      "resourceId": "res.actor.npc.artisan.walk",
+      "kind": "rpg.character.walksheet",
+      "outputPath": "assets/characters/npc_artisan/walk.png",
+      "status": "planned",
+      "inputImages": [
+        {
+          "root": "skill",
+          "path": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+          "role": "walk-only base sheet"
+        }
+      ],
+      "baseSheetId": "base.walk.male_human",
+      "baseSheetPath": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+      "promptFile": "prompts/characters/npc_artisan_walk.txt"
+    },
+    {
+      "id": "job.res.actor.npc.elder.walk",
+      "resourceId": "res.actor.npc.elder.walk",
+      "kind": "rpg.character.walksheet",
+      "outputPath": "assets/characters/npc_elder/walk.png",
+      "status": "planned",
+      "inputImages": [
+        {
+          "root": "skill",
+          "path": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+          "role": "walk-only base sheet"
+        }
+      ],
+      "baseSheetId": "base.walk.male_human",
+      "baseSheetPath": "assets/base-sheets/headed-walk-only/male_human_walk.png",
+      "promptFile": "prompts/characters/npc_elder_walk.txt"
+    },
+    {
+      "id": "job.res.actor.monster.guardian.walk",
+      "resourceId": "res.actor.monster.guardian.walk",
+      "kind": "rpg.character.walksheet",
+      "outputPath": "assets/characters/monster_guardian/walk.png",
+      "status": "planned",
+      "inputImages": [
+        {
+          "root": "skill",
+          "path": "assets/base-sheets/headed-walk-only/minotaur_walk.png",
+          "role": "walk-only base sheet"
+        }
+      ],
+      "baseSheetId": "base.walk.minotaur",
+      "baseSheetPath": "assets/base-sheets/headed-walk-only/minotaur_walk.png",
+      "promptFile": "prompts/characters/monster_guardian_walk.txt"
+    }
+  ]
+}

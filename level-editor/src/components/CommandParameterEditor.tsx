@@ -245,6 +245,18 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     return root;
   };
 
+  useEffect(() => {
+    const typeUp = String((template as any).type || '').toUpperCase();
+    if (typeUp !== 'SCENE_REDIRECT') return;
+    setParams(prev => {
+      const raw = getByPath(prev, 'levelIndex');
+      if (raw != null && typeof raw !== 'string') {
+        return setByPath(prev, 'levelIndex', String(raw));
+      }
+      return prev;
+    });
+  }, [template]);
+
   // Infer variable type: prefer editor hints -> globals -> command scan
   const inferVariableType = (key: string): 'number' | 'boolean' | 'string' | undefined => {
     try {
@@ -616,17 +628,19 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
     const isCheckInArea = templateTypeUp === 'CHECK_IN_AREA';
     const areaHintNeeded = isCheckInArea && (param.name === 'area.height');
     switch (param.type) {
-      case 'text':
+      case 'text': {
+        const textValue = typeof value === 'string' ? value : (value == null ? '' : String(value));
+        const textProps = { ...commonProps, value: textValue };
         // 在 IF_CONDITION.condition.key 以及 SET_VARIABLE/SET_SWITCH.key 提供变量下拉/自动完成（datalist，不限制新建）
         if (param.name === 'condition.key') {
           const listId = `varlist-${param.name}`;
           const options = getAllVariableOptions();
-          const curKey = String(value || '');
+          const curKey = textValue || '';
           const t = curKey ? inferVariableType(curKey) : undefined;
           const typeText = t === 'boolean' ? '布尔' : t === 'number' ? '数字' : t === 'string' ? '字符串' : '未知';
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%' }}>
-              <input type="text" list={listId} {...commonProps} style={{ flex: 1 }} />
+              <input type="text" list={listId} {...textProps} style={{ flex: 1 }} />
               <span style={{ color: '#6c757d', fontSize: 12 }}>类型: {typeText}</span>
               <datalist id={listId}>
                 {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
@@ -639,7 +653,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           const options = getAllVariableOptions();
           return (
             <>
-              <input type="text" list={listId} {...commonProps} />
+              <input type="text" list={listId} {...textProps} />
               <datalist id={listId}>
                 {options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </datalist>
@@ -651,7 +665,7 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
           const tipText = `用法示例:\n- 1, true, 'text', {var}, 'name_{var}'\n- 触发事件后在事件页用 $1,$2,$3… 读取\n- 支持 {var} 与内插；数字/布尔/null`;
           return (
             <div style={{ position:'relative', display:'flex', alignItems:'center', gap:8, width:'100%' }}>
-              <input type="text" {...commonProps} style={{ flex:1 }} />
+              <input type="text" {...textProps} style={{ flex:1 }} />
               <div
                 onMouseEnter={(e) => { showTip(tipText)(e); }}
                 onMouseLeave={() => hideTip()}
@@ -665,10 +679,10 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
         }
         // SET_USER_DATA.value 带 ? 提示
         if (String((template as any).type || '').toUpperCase() === 'SET_USER_DATA' && param.name === 'value') {
-          const tipText = `如何使用：\n- 写入跨场景的“用户变量”，按 sceneId+key 存储\n- op=set/add/sub/mul/div；数值运算需 value 为数字\n- 类型：自动识别 123 / true / false / null，其他按字符串\n- 持久化：当前实现写入浏览器 localStorage(user_data_sheet)；\n  如项目已集成登录与远端存储，运行时可在收到写入后异步同步至服务端`;
+          const tipText = `如何使用：\n- 写入“用户变量”\n- op=set/add/sub/mul/div；数值运算需 value 为数字\n- 类型：自动识别 123 / true / false / null，其他按字符串\n- 同步策略：本地立即可用；后台按队列顺序写入远端；\n  已登录时，读取 user.get() 会自动拉取最新远端值\n- key 支持 {var} 与内插，可用系统变量：{_sceneName} / {_levelIndex}`;
           return (
             <div style={{ position:'relative', display:'flex', alignItems:'center', gap:8, width:'100%' }}>
-              <input type="text" {...commonProps} style={{ flex:1 }} />
+              <input type="text" {...textProps} style={{ flex:1 }} />
               <div
                 onMouseEnter={(e) => { showTip(tipText)(e); }}
                 onMouseLeave={() => hideTip()}
@@ -680,7 +694,8 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
             </div>
           );
         }
-        return (<input type="text" {...commonProps} />);
+        return (<input type="text" {...textProps} />);
+      }
         
       case 'textarea':
         {
@@ -696,10 +711,13 @@ export const CommandParameterEditor: React.FC<CommandParameterEditorProps> = ({
             `  E.setVisible(id,b), E.setAlpha(id,a), E.setScale(id,sx[,sy]), E.setZIndex(id,z)\n` +
             `  E.getVisible(id), E.getAlpha(id), E.getScale(id), E.getZIndex(id), E.getRotation(id), E.getSize(id)\n` +
             `  E.getResourceId(id), E.getFirstChild(id)\n` +
-            `- 远端用户(U/RemoteUser)：\n` +
-            `  await U.login(userId, password) / await U.register(userId, password)\n` +
-            `  await U.loginWithToken() #直接使用浏览器记录的上次缓存token来登录\n` +
-            `  await U.writeData(sceneId, key, value) / const { data } = await U.readData(sceneId, key?)\n` +
+            `- 场景/关卡： getSceneId() / getSceneName() / getLevelIndex()\n` +
+            `- 用户变量（本地优先 + 后台顺序远端同步；已登录时 get() 自动拉取最新）：\n` +
+            `  await user.get(key)\n` +
+            `  await user.set(key, value)\n` +
+            `  await user.add(key, delta)\n` +
+            `- 登录/注册： await U.login(userId, password) / await U.register(userId, password)\n` +
+            `  await U.loginWithToken()  # 使用缓存 token 登录\n` +
             `  await U.logout()`;
           if (isCondExpr) {
             const onInputAutoResize = (e: React.FormEvent<HTMLTextAreaElement>) => {

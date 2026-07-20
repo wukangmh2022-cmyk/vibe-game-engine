@@ -1,0 +1,63 @@
+{
+  "id": "ev_spawn_mosquitoes",
+  "name": "每2秒刷2只蚊子（共20只）",
+  "triggers": [
+    { "type": "custom", "target": "start" }
+  ],
+  "commands": [
+    { "id": "init_total", "type": "set_variable", "parameters": { "key": "total", "op": "set", "value": 0 } },
+    {
+      "id": "loop_outer",
+      "type": "loop",
+      "parameters": {
+        "loopType": "while",
+        "variable": "outerIter",
+        "commands": [
+          { "id": "break_outer_if_done", "type": "break", "parameters": { "condition": { "type": "variable", "key": "total", "operator": "gte", "value": 20 } } },
+          { "id": "init_pair", "type": "set_variable", "parameters": { "key": "pairCount", "op": "set", "value": 0 } },
+          {
+            "id": "loop_inner",
+            "type": "loop",
+            "parameters": {
+              "loopType": "while",
+              "variable": "innerIter",
+              "commands": [
+                { "id": "break_inner_if_pair2", "type": "break", "parameters": { "condition": { "type": "variable", "key": "pairCount", "operator": "gte", "value": 2 } } },
+                { "id": "break_inner_if_done", "type": "break", "parameters": { "condition": { "type": "variable", "key": "total", "operator": "gte", "value": 20 } } },
+                { "id": "calc_curIndex", "type": "set_variable", "parameters": { "key": "curIndex", "expression": true, "value": "${total} + 1" } },
+                { "id": "inc_total", "type": "set_variable", "parameters": { "key": "total", "op": "add", "value": 1 } },
+                
+                {
+                  "id": "show_one_mosquito",
+                  "type": "show_image",
+                  "parameters": {
+                    "elementId": "{curIndex}",
+                    "resourceId": "res_mosquito",
+                    "visible": true,
+                    "style": { "anchorX": 0.5, "anchorY": 0.5 }
+                  }
+                },
+                { "id": "rand_xy", "type": "script", "parameters": { "unsafe": true, "code": "const id=String(getVar('curIndex')); E.setPos(id, randInt(0,1280), randInt(0,720));" } },
+                {
+                  "id": "make_clickable",
+                  "type": "set_clickable",
+                  "parameters": {
+                    "elementId": "{curIndex}",
+                    "clickable": true,
+                    "onClick": "commands",
+                    "commands": [
+                      { "id": "score_{curIndex}", "type": "add_score", "parameters": { "points": 1 } },
+                      { "id": "hide_{curIndex}", "type": "set_element_style", "parameters": { "elementId": "{curIndex}", "style": { "display": "none" } } }
+                    ]
+                  }
+                },
+                { "id": "inc_pair", "type": "set_variable", "parameters": { "key": "pairCount", "op": "add", "value": 1 } }
+              ]
+            }
+          },
+          { "id": "wait_2s", "type": "wait", "parameters": { "duration": 2000 } }
+        ]
+      }
+    }
+  ]
+}

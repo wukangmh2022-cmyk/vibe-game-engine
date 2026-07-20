@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, Condition } from '../types';
 import { BaseCommandHandler, CommandExecutor } from '../core/CommandExecutor';
+import { getGlobalCommandModifiers } from '../core/commandModifiers';
 
 /**
  * 循环指令处理器
@@ -37,6 +38,9 @@ export class LoopHandler extends BaseCommandHandler {
         context.audioManager,
         context.logger
       );
+      if (!context.executor) {
+        try { executor.setCommandModifiers(getGlobalCommandModifiers()); } catch {}
+      }
       // 轻量日志辅助（可通过控制台过滤 [loop]）
       const log = (...args: any[]) => { try { (context as any)?.logger?.info?.('[loop]', ...args); } catch { try { console.info('[loop]', ...args); } catch {} } };
       const loopId = (command as any)?.id || 'loop';

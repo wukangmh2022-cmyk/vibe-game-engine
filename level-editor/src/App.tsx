@@ -16,6 +16,7 @@ import { AIGenerateModal } from './components/AIGenerateModal';
 import './App.css';
 import { runAndLogTemplateSanity } from './utils/templateSanity';
 import vfs from './utils/vfs';
+import { attachRuntimeSceneUrl } from './utils/sceneMeta';
 
 interface AppState {
   currentProject: GameProject | null;
@@ -394,7 +395,9 @@ const App: React.FC = () => {
     });
   };
 
-  const handleLoadJson = async (gameData: any, baseOverride?: string) => {
+  const handleLoadJson = async (gameData: any, baseOverride?: string, scenePath?: string | null, sourceHint?: string | null) => {
+    const resolvedBase = (typeof baseOverride === 'string') ? baseOverride : (appState.projectBase || '');
+    try { attachRuntimeSceneUrl(gameData, { base: resolvedBase, scenePath: scenePath || undefined, source: sourceHint || undefined }); } catch {}
     if (gameData.levels && Array.isArray(gameData.levels)) {
       // 规范化：将 if_condition 的开关型与可识别的表达式型条件统一为变量型
       const normalizeConditionsDeep = (list: any[]): any[] => {
@@ -879,6 +882,8 @@ const App: React.FC = () => {
       } catch { return; }
     }
 
+    try { attachRuntimeSceneUrl(gameData, { base: appState.projectBase, scenePath: savePath }); } catch {}
+
     // 2) 写入 VFS（folder → local Map; idb → IndexedDB）
     try { vfs.writeScene(savePath, gameData); } catch {}
 
@@ -901,7 +906,7 @@ const App: React.FC = () => {
       const response = await fetch('/00project/scene/adventure-choice-game-v2.json');
       if (response.ok) {
         const gameData = await response.json();
-        handleLoadJson(gameData);
+        handleLoadJson(gameData, undefined, 'scene/adventure-choice-game-v2.json', '/00project/scene/adventure-choice-game-v2.json');
       } else {
         alert('测试数据文件未找到');
       }
@@ -1136,7 +1141,6 @@ const App: React.FC = () => {
                 const cfg = {
                   project_name: appState.currentProject?.name || 'exported-project',
                   'scene-tree': { curnode: root, child_node: children },
-                  user_data_sheet: { user_nickname: 'default', scene_data: {} },
                   version: appState.currentProject?.version || '1.0.0'
                 };
                 out['config.json'] = JSON.stringify(cfg, null, 2);
@@ -1166,7 +1170,7 @@ const App: React.FC = () => {
             try { vfs.setProjectBase(base || ''); } catch {}
             setAppState(prev => ({ ...prev, projectBase: base, currentScenePath: sceneRel, isHome: false, unsaved: false, hasOpenedProject: true }));
             try { if (vfs.getBackend() === 'folder') { psSetKey(base || ''); psUpsert(base || '', { path: sceneRel, lastEditedAt: Date.now() }); } } catch {}
-            handleLoadJson(data, base);
+            handleLoadJson(data, base, sceneRel);
           }}
         />
       ) : (

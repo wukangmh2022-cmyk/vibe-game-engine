@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Grey translucent circular overlay -->
+  <circle cx="40" cy="40" r="34" fill="#6b7280" fill-opacity="0.28" />
+
+  <!-- Center square panel (light cyan with cyan stroke) -->
+  <rect x="12" y="12" width="56" height="56" rx="4" ry="4"
+        fill="#5ee5ff" fill-opacity="0.18" stroke="#38cfe2" stroke-width="2" stroke-opacity="0.9" />
+
+  <!-- Corner dots (subtle white squares) -->
+  <g fill="#ffffff" fill-opacity="0.65">
+    <rect x="16" y="16" width="4" height="4" rx="1" />
+    <rect x="60" y="16" width="4" height="4" rx="1" />
+    <rect x="16" y="60" width="4" height="4" rx="1" />
+    <rect x="60" y="60" width="4" height="4" rx="1" />
+  </g>
+
+  <!-- Edge accent bars: yellow + blue small segments around four sides -->
+  <!-- Top -->
+  <rect x="18" y="6" width="12" height="2" fill="#FFD24D" />
+  <rect x="50" y="6" width="12" height="2" fill="#35C2FF" />
+  <!-- Bottom -->
+  <rect x="18" y="72" width="12" height="2" fill="#35C2FF" />
+  <rect x="50" y="72" width="12" height="2" fill="#FFD24D" />
+  <!-- Left -->
+  <rect x="6" y="18" width="2" height="12" fill="#FFD24D" />
+  <rect x="6" y="50" width="2" height="12" fill="#35C2FF" />
+  <!-- Right -->
+  <rect x="72" y="18" width="2" height="12" fill="#35C2FF" />
+  <rect x="72" y="50" width="2" height="12" fill="#FFD24D" />
+</svg>
+

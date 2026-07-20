@@ -359,13 +359,12 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
   {
     type: CommandType.SET_USER_DATA as any,
     name: '设置用户变量',
-    description: '写入跨场景用户数据（保存在 config.json:user_data_sheet.scene_data[sceneId] 中；当前实现为浏览器 localStorage 同结构）',
+    description: '写入用户变量（本地立即生效；后台按队列顺序同步远端；无需填写 sceneId）',
     category: CommandCategory.SYSTEM,
     icon: '🗂️',
     color: '#607D8B',
     parameters: [
-      { name: 'sceneId', label: '分组ID(sceneId)', type: 'text', required: false, placeholder: '默认：当前场景ID_关卡序号', description: '用于写入 user_data_sheet.scene_data[sceneId]；不填=当前场景ID_关卡序号（若无序号仅场景ID）' },
-      { name: 'key', label: '键名', type: 'text', required: true },
+      { name: 'key', label: '键名', type: 'text', required: true, description: '支持 {var} 与内插（如 score_{_sceneName}_{_levelIndex}）' },
       { name: 'op', label: '操作', type: 'select', required: false, defaultValue: 'set', options: [
         { value: 'set', label: '设为' },
         { value: 'add', label: '加' },
@@ -385,7 +384,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
     color: '#9C27B0',
     parameters: [
       { name: 'url', label: '目标场景', type: 'text', required: true, placeholder: 'entry.json 或 this', description: '可填绝对URL、相对路径（自动加 scene/ 前缀），或填 this 重启进入当前场景' },
-      { name: 'levelIndex', label: '关卡索引', type: 'number', required: false, description: '可选：进入目标场景中的第几个关卡（从 0 开始）' }
+      { name: 'levelIndex', label: '关卡索引', type: 'text', required: false, description: '可选：进入目标场景中的第几个关卡（从 0 开始，支持 {var} 或内插）' }
     ]
   },
   {
@@ -411,6 +410,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'ui.paddingX', label: '按钮左右内边距', type: 'number', required: false, defaultValue: 12 },
       { name: 'ui.paddingY', label: '按钮上下内边距', type: 'number', required: false, defaultValue: 8 },
       { name: 'ui.color', label: '按钮文字颜色', type: 'color', required: false, defaultValue: '#ffffff' },
+      { name: 'ui.zIndex', label: 'Z 轴层级', type: 'number', required: false, defaultValue: 100, description: '控制显示层级，数值越大越靠上' },
       { name: 'ui.buttonSkinId', label: '按钮样式ID', type: 'text', required: false },
       { name: 'ui.selectedSkinId', label: '选中态皮肤ID', type: 'text', required: false, showIf: { path: 'multiSelect', equals: true }, description: '用于多选模式下显示选中高亮皮肤。提示：sys_choice_N 为系统提供的选中态变量（true/false）。' }
     ]
@@ -514,6 +514,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       { name: 'style.dropShadowDistance', label: '投影距离', type: 'number', required: false, defaultValue: 2 },
       { name: 'style.maxWidth', label: '最大宽度(px)', type: 'text', required: false, defaultValue: 999, description: '如 600 或 600px' },
       { name: 'style.textAlign', label: '对齐', type: 'select', required: false, defaultValue: 'left', options: [ { value: 'left', label: '左' }, { value: 'center', label: '中' }, { value: 'right', label: '右' } ] },
+      { name: 'style.zIndex', label: 'Z 轴层级', type: 'number', required: false, defaultValue: 5, description: '控制文本层级，数值越大越靠上' },
       { name: 'skinId', label: '背景框样式', type: 'text', required: false, description: '九宫格背景皮肤ID（如 dialog-default-9slice）' },
       { name: 'padding', label: '内边距', type: 'number', required: false, defaultValue: 20, description: '皮肤背景内边距' },
       { name: 'blocking', label: '阻塞继续', type: 'boolean', required: false, defaultValue: false, description: '是否阻塞流程直到用户继续' },

@@ -5,6 +5,7 @@ import './PixiCanvas.css';
 // New: library-style runtime mount API (import directly to avoid bundling extras)
 import { mountRuntime, MountedRuntime } from '../../../src/browser/bootstrap';
 import vfs from '../utils/vfs';
+import { buildModifierMap, setGlobalCommandModifiers } from '../../../src/core/commandModifiers';
 
 interface PixiCanvasProps {
   // 兼容旧 props（原始预览用法）
@@ -103,13 +104,14 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
       let cancelled = false;
       (async () => {
         try {
-          // Reorder levels so that currentLevelId (if provided) is first
+          // Keep level order; derive startLevelIndex from currentLevelId if provided
           let toMount: any = gameData;
+          let startLevelIndex: number | undefined = undefined;
           try {
             if (currentLevelId && Array.isArray((gameData as any)?.levels)) {
-              const levels = [...(gameData as any).levels];
-              const idx = levels.findIndex((lv: any) => lv?.id === currentLevelId);
-              if (idx > 0) { const [lv] = levels.splice(idx, 1); levels.unshift(lv); toMount = { ...(gameData as any), levels }; }
+              const levels = (gameData as any).levels as any[];
+              const idx = Math.max(0, levels.findIndex((lv: any) => lv?.id === currentLevelId));
+              if (idx >= 0) startLevelIndex = idx;
             }
           } catch {}
           // Inject project-level skins from config.json into runtime data first
@@ -128,8 +130,15 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
               try { return await vfs.getURL(relPath); } catch { return undefined; }
             };
           } catch {}
+          try {
+            const mods = await vfs.readJSON<any>('modify.json');
+            if (mods) setGlobalCommandModifiers(buildModifierMap(mods));
+            else setGlobalCommandModifiers(null);
+          } catch {
+            setGlobalCommandModifiers(null);
+          }
           const container = canvasRef.current as HTMLElement;
-          const mounted = await mountRuntime(container, toMount, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
+          const mounted = await mountRuntime(container, toMount, { width: canvasWidth, height: canvasHeight, pixi: PIXI, startLevelIndex });
           if (cancelled) { try { mounted.dispose(); } catch {} return; }
           runtimeRef.current = mounted;
           // Track current scene data for future 'this' reloads
@@ -215,26 +224,45 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
           // Handle scene redirects coming from runtime
           (window as any).__PIXICANVAS_REDIRECT__ = async (urlOrData: any) => {
             try {
+              // Ensure only the latest redirect wins; abort earlier ones mid-flight
+              const win: any = (window as any);
+              const mySeq: number = (win.__REDIRECT_SEQ__ = (win.__REDIRECT_SEQ__ || 0) + 1);
+              const isLatest = () => win.__REDIRECT_SEQ__ === mySeq;
               const base: string = (window as any).__ASSET_BASE__ || '/00project/';
               let data: any = urlOrData;
+              // Debug info for resolved target index within target scene file
+              let __dbgResolvedAbsIdx: number | undefined = undefined;
+              let __dbgTargetLevelId: string | undefined = undefined;
+              let __dbgSource: string = '';
+              let __dbgUrl: string | undefined = undefined;
+              // Runtime option: start level index to pass without reordering
+              let __startLevelIndex: number | undefined = undefined;
               // Support special reload token with optional currentLevelId preservation
               if (urlOrData && typeof urlOrData === 'object' && (urlOrData.reload === true)) {
                 const payload: any = urlOrData;
                 const cur = currentDataRef.current || gameData;
+                data = cur;
+                __dbgSource = 'reload-current';
                 if (cur && payload.currentLevelId) {
                   try {
                     const levels = Array.isArray((cur as any).levels) ? [ ...(cur as any).levels ] : [];
                     const idx = levels.findIndex((lv: any) => lv?.id === payload.currentLevelId);
-                    const reordered = (idx >= 0) ? { ...(cur as any), levels: [ levels[idx], ...levels.filter((_: any, i: number) => i !== idx) ] } : cur;
-                    data = reordered;
-                  } catch { data = cur; }
-                } else {
-                  data = cur;
+                    if (idx >= 0) { __dbgResolvedAbsIdx = idx; __dbgTargetLevelId = payload.currentLevelId; __startLevelIndex = idx; }
+                  } catch {}
                 }
               } else if (typeof urlOrData === 'string') {
                 const token = String(urlOrData || '').trim();
                 if (token.toLowerCase() === 'this') {
                   data = currentDataRef.current || gameData;
+                  try {
+                    __dbgSource = 'this';
+                    const rt = runtimeRef.current as any;
+                    const curLevelId = rt?.stateManager?.getCurrentLevel?.();
+                    if (curLevelId && Array.isArray((data as any)?.levels)) {
+                      const idx = (data as any).levels.findIndex((lv: any) => lv?.id === curLevelId);
+                      if (idx >= 0) { __dbgResolvedAbsIdx = idx; __dbgTargetLevelId = curLevelId; __startLevelIndex = idx; }
+                    }
+                  } catch {}
                 } else {
                   const relRaw = String(urlOrData || '');
                   const rel1 = relRaw.replace(/^\.\//, '').replace(/^\/+/, '');
@@ -247,10 +275,12 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
                     const u = (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relRaw) || relRaw.startsWith('/'))
                       ? urlOrData
                       : (base.endsWith('/') ? (base + rel1) : (base + '/' + rel1));
-                    console.info('[PixiCanvas] redirect fetch', u);
+                    { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[PixiCanvas] redirect fetch', u); }
                     const res = await fetch(u);
                     data = await res.json();
                   }
+                  __dbgSource = 'url:string';
+                  __dbgUrl = rel1;
                 }
               } else if (urlOrData && typeof urlOrData === 'object' && (urlOrData.url || urlOrData.data)) {
                 // Object form: { url, levelIndex? } or { data, levelIndex? }
@@ -258,6 +288,10 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
                 if (obj.data) {
                   data = obj.data;
                 } else if (obj.url) {
+                  if (obj.url && typeof obj.url === 'object') {
+                    // Editor handoff: raw scene object passed in url field
+                    data = obj.url;
+                  } else {
                   const relRaw = String(obj.url || '');
                   const rel1 = relRaw.replace(/^\.\//, '').replace(/^\/+/, '');
                   const fromVfs = await vfs.readScene(rel1.startsWith('scene/') ? rel1 : `scene/${rel1}`);
@@ -268,21 +302,60 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
                     const u = (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(relRaw) || relRaw.startsWith('/'))
                       ? obj.url
                       : (base.endsWith('/') ? (base + rel1) : (base + '/' + rel1));
-                    console.info('[PixiCanvas] redirect fetch', u);
+                    { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[PixiCanvas] redirect fetch', u); }
                     const res = await fetch(u);
                     data = await res.json();
+                  }
+                  __dbgUrl = rel1;
                   }
                 }
                 // Apply target levelIndex if provided
                 const li = (typeof obj.levelIndex === 'number') ? obj.levelIndex : (obj.levelIndex != null ? Number(obj.levelIndex) : undefined);
                 if (data && Array.isArray((data as any).levels) && typeof li === 'number' && li >= 0 && li < ((data as any).levels as any[]).length) {
-                  try {
-                    const lv = (data as any).levels[li];
-                    const rest = (data as any).levels.filter((_: any, i: number) => i !== li);
-                    data = { ...(data as any), levels: [ lv, ...rest ] };
-                  } catch {}
+                  __dbgSource = 'object';
+                  __dbgResolvedAbsIdx = li;
+                  try { __dbgTargetLevelId = (data as any).levels?.[li]?.id; } catch {}
+                  __startLevelIndex = li; // no reordering; pass index to runtime
                 }
+              } else if (urlOrData && typeof urlOrData === 'object') {
+                // Raw scene object: may include __originalLevels + __currentOriginalIndex
+                __dbgSource = 'object:raw';
+                try {
+                  const explicitIdx = (urlOrData as any)?.levelIndex;
+                  const abs = (typeof explicitIdx === 'number') ? explicitIdx : (urlOrData as any)?.__currentOriginalIndex;
+                  if (typeof abs === 'number') {
+                    __dbgResolvedAbsIdx = abs;
+                    try { __dbgTargetLevelId = (urlOrData as any)?.__originalLevels?.[abs]?.id; } catch {}
+                    __startLevelIndex = abs;
+                  } else {
+                    const firstId = (urlOrData as any)?.levels?.[0]?.id;
+                    if (firstId && Array.isArray((urlOrData as any)?.__originalLevels)) {
+                      const found = (urlOrData as any).__originalLevels.findIndex((lv: any) => lv?.id === firstId);
+                      if (found >= 0) { __dbgResolvedAbsIdx = found; __dbgTargetLevelId = firstId; __startLevelIndex = found; }
+                    } else if (Array.isArray((urlOrData as any)?.levels)) {
+                      // fallback: derive from levels array only
+                      __dbgResolvedAbsIdx = 0;
+                      try { __dbgTargetLevelId = (urlOrData as any)?.levels?.[0]?.id; } catch {}
+                      __startLevelIndex = 0;
+                    }
+                  }
+                } catch {}
               }
+              // After data prepared, log final absolute target index within the target scene file
+              try {
+                const total = Array.isArray((data as any)?.levels) ? (data as any).levels.length : undefined;
+                if (typeof __dbgResolvedAbsIdx !== 'number' && typeof total === 'number' && total >= 1) {
+                  __dbgResolvedAbsIdx = 0;
+                  try { __dbgTargetLevelId = (data as any).levels?.[0]?.id; } catch {}
+                }
+                const logIdx = (typeof __dbgResolvedAbsIdx === 'number') ? __dbgResolvedAbsIdx : 0;
+                const logSceneId = (data as any)?.id;
+                let logLevelId: any = __dbgTargetLevelId;
+                if (!logLevelId) { try { logLevelId = (data as any)?.levels?.[logIdx]?.id; } catch {} }
+                console.info('[redirect]', { sceneId: logSceneId, levelIndex: logIdx, levelId: logLevelId });
+              } catch {}
+              // If another redirect was requested during async work, abort this one
+              if (!isLatest()) { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[PixiCanvas] redirect aborted (newer redirect in flight)'); return; }
               // Inject project-level skins from config.json before remount
               try {
                 const cfg = await vfs.readJSON<any>('config.json');
@@ -294,17 +367,19 @@ export const PixiCanvas: React.FC<PixiCanvasProps> = ({
               // Ensure resource URLs (including skins) are rewritten to blob:/local URLs when using VFS
               try { vfs.rewriteResourceURLs(data); } catch {}
               // re-mount
+              if (!isLatest()) { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[PixiCanvas] redirect aborted before remount (newer redirect)'); return; }
               const prev = runtimeRef.current; runtimeRef.current = null;
               // Soft dispose on redirect to preserve BGM across scenes
               if (prev) { try { prev.dispose(); } catch {} }
               if (canvasRef.current) canvasRef.current.innerHTML = '';
               const container2 = canvasRef.current as HTMLElement;
-          const mounted2 = await mountRuntime(container2, data, { width: canvasWidth, height: canvasHeight, pixi: PIXI });
-          runtimeRef.current = mounted2;
-          // update current scene data ref after redirect
-          currentDataRef.current = data;
-          const s2 = (typeof scale === 'number') ? scale : computeAutoScale();
-          applyScale(s2);
+              const mounted2 = await mountRuntime(container2, data, { width: canvasWidth, height: canvasHeight, pixi: PIXI, startLevelIndex: __startLevelIndex });
+              if (!isLatest()) { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[PixiCanvas] redirect aborted after remount (newer redirect)'); try { (mounted2 as any)?.hardDispose?.(); } catch {} return; }
+              runtimeRef.current = mounted2;
+              // update current scene data ref after redirect
+              currentDataRef.current = data;
+              const s2 = (typeof scale === 'number') ? scale : computeAutoScale();
+              applyScale(s2);
           try {
             (window as any).__RUNTIME_EVENT_MANAGER__ = mounted2.eventManager;
             (window as any).__RUNTIME_STATE_MANAGER__ = mounted2.stateManager;

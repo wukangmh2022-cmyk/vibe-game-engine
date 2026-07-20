@@ -140,6 +140,7 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       assignIf('color', command.parameters?.color || command.parameters?.ui?.color);
       assignIf('gapX', pick(command.parameters?.ui, ['gapX','gapx','gap_x','gap-x']) ?? pick(command.parameters, ['gapX','gapx','gap_x','gap-x']));
       assignIf('gapY', pick(command.parameters?.ui, ['gapY','gapy','gap_y','gap-y']) ?? pick(command.parameters, ['gapY','gapy','gap_y','gap-y']));
+      assignIf('zIndex', command.parameters?.zIndex ?? command.parameters?.ui?.zIndex);
       assignIf('tileNineSlice', (command.parameters as any)?.tileNineSlice != null ? !!(command.parameters as any)?.tileNineSlice : ((command.parameters as any)?.ui?.tileNineSlice != null ? !!(command.parameters as any)?.ui?.tileNineSlice : undefined));
 
       context.eventManager?.emit('choices_displayed', {

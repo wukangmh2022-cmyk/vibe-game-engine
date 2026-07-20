@@ -1,6 +1,6 @@
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { CommandType, CommandContext, CommandResult, GameCommand } from '../types';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveElementId } from '../utils/ParamResolver';
 
 export class ChangeSelectStateHandler extends BaseCommandHandler {
   readonly type = CommandType.CHANGE_SELECTED_STATE as any;
@@ -11,7 +11,7 @@ export class ChangeSelectStateHandler extends BaseCommandHandler {
     const exec = (context as any).executor;
     const rm: any = (context as any).renderManager;
 
-    let id: string | undefined = resolveIdFromBraces(p.elementId, context) || p.elementId;
+    let id: string | undefined = resolveElementId(p.elementId, context) || p.elementId;
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
 
     const node: any = rm?.getNode ? rm.getNode(id) : undefined;

@@ -1,0 +1,8 @@
+Use case: style-transfer
+Asset type: RPG walk-only character spritesheet
+Primary request: Edit the supplied base walking spritesheet into 工匠 for this game: 雾瀑边境：唐风旅人在瀑布森林城镇寻找避瘴香，进入古遗迹封印雾兽
+Input image role: The supplied image is the exact pose/grid/template to preserve.
+Style/medium: 2D RPG pixel-art walking spritesheet, readable at 64x64 per frame.
+Composition/framing: Preserve exact 576x256 canvas, 9 columns x 4 rows, 64x64 cells, row order down/left/right/up, transparent background.
+Animation contract: walk-only. Do not add attack, hit, death, cast, jump, dash, extra rows, extra columns, or text.
+Character constraints: Keep the silhouette animatable and feet aligned to the same baseline. Change only costume, colors, species details, props, and identity.

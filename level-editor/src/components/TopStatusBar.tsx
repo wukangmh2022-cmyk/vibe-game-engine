@@ -10,7 +10,7 @@ interface TopStatusBarProps {
   onCreateLevel?: () => void; // 新增：创建关卡
   onDeleteLevel?: (levelId: string) => void; // 新增：删除关卡
   onLoadTestData?: () => void; // 可选：加载测试数据
-  onLoadJson: (gameData: any) => void;
+  onLoadJson: (gameData: any, baseOverride?: string, scenePath?: string | null, sourceHint?: string | null) => void;
   onSaveJson: () => void;
   isPlaying: boolean;
   onPlayToggle: (playing: boolean) => void;
@@ -44,7 +44,7 @@ export const TopStatusBar: React.FC<TopStatusBarProps> = ({
       reader.onload = (e) => {
         try {
           const gameData = JSON.parse(e.target?.result as string);
-          onLoadJson(gameData);
+          onLoadJson(gameData, undefined, undefined, file?.name || undefined);
         } catch (error) {
           alert('JSON文件格式错误');
         }

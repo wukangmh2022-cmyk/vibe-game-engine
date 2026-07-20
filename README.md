@@ -52,3 +52,9 @@ npm install
 npm run build
 npm start
 ```
+
+## RPG Image-Map Runtime
+
+Experimental RPG support lives on the `rpg` branch. It adds full-image map rendering, RPG actors, simple movement, passability-mask sampling, overlay light/occlusion layers, and a browser debug API.
+
+See [docs/rpg-image-map-runtime.md](docs/rpg-image-map-runtime.md).

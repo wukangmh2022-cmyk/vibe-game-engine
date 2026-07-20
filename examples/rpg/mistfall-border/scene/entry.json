@@ -1,0 +1,996 @@
+{
+  "id": "game.雾瀑边境",
+  "name": "雾瀑边境",
+  "version": "0.1.0",
+  "globalVariables": {
+    "var.rpg.currentMap": "map.start_town",
+    "var.quest.main.stage": 0
+  },
+  "globalSwitches": {
+    "sw.quest.main.completed": false
+  },
+  "resources": [
+    {
+      "id": "res.map.start_town.base",
+      "type": "image",
+      "url": "assets/maps/start_town/base.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.base"
+      }
+    },
+    {
+      "id": "res.map.start_town.overlay.light",
+      "type": "image",
+      "url": "assets/maps/start_town/overlay_light.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.overlay_light"
+      }
+    },
+    {
+      "id": "res.map.start_town.overlay.occlusion",
+      "type": "image",
+      "url": "assets/maps/start_town/overlay_occlusion.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.overlay_occlusion"
+      }
+    },
+    {
+      "id": "res.map.start_town.mask",
+      "type": "image",
+      "url": "assets/maps/start_town/mask.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.passability_mask"
+      }
+    },
+    {
+      "id": "res.map.start_town.objects",
+      "type": "json",
+      "url": "assets/maps/start_town/objects.json",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.object_layer"
+      }
+    },
+    {
+      "id": "res.map.forest_path.base",
+      "type": "image",
+      "url": "assets/maps/forest_path/base.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.base"
+      }
+    },
+    {
+      "id": "res.map.forest_path.overlay.light",
+      "type": "image",
+      "url": "assets/maps/forest_path/overlay_light.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.overlay_light"
+      }
+    },
+    {
+      "id": "res.map.forest_path.overlay.occlusion",
+      "type": "image",
+      "url": "assets/maps/forest_path/overlay_occlusion.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.overlay_occlusion"
+      }
+    },
+    {
+      "id": "res.map.forest_path.mask",
+      "type": "image",
+      "url": "assets/maps/forest_path/mask.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.passability_mask"
+      }
+    },
+    {
+      "id": "res.map.forest_path.objects",
+      "type": "json",
+      "url": "assets/maps/forest_path/objects.json",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.object_layer"
+      }
+    },
+    {
+      "id": "res.map.old_ruins.base",
+      "type": "image",
+      "url": "assets/maps/old_ruins/base.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.base"
+      }
+    },
+    {
+      "id": "res.map.old_ruins.overlay.light",
+      "type": "image",
+      "url": "assets/maps/old_ruins/overlay_light.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.overlay_light"
+      }
+    },
+    {
+      "id": "res.map.old_ruins.overlay.occlusion",
+      "type": "image",
+      "url": "assets/maps/old_ruins/overlay_occlusion.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.overlay_occlusion"
+      }
+    },
+    {
+      "id": "res.map.old_ruins.mask",
+      "type": "image",
+      "url": "assets/maps/old_ruins/mask.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.passability_mask"
+      }
+    },
+    {
+      "id": "res.map.old_ruins.objects",
+      "type": "json",
+      "url": "assets/maps/old_ruins/objects.json",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.map.object_layer"
+      }
+    },
+    {
+      "id": "res.actor.hero.walk",
+      "type": "image",
+      "url": "assets/characters/hero/walk.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.character.walksheet",
+        "frameWidth": 64,
+        "frameHeight": 64
+      }
+    },
+    {
+      "id": "res.actor.npc.guide.walk",
+      "type": "image",
+      "url": "assets/characters/npc_guide/walk.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.character.walksheet",
+        "frameWidth": 64,
+        "frameHeight": 64
+      }
+    },
+    {
+      "id": "res.actor.npc.artisan.walk",
+      "type": "image",
+      "url": "assets/characters/npc_artisan/walk.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.character.walksheet",
+        "frameWidth": 64,
+        "frameHeight": 64
+      }
+    },
+    {
+      "id": "res.actor.npc.elder.walk",
+      "type": "image",
+      "url": "assets/characters/npc_elder/walk.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.character.walksheet",
+        "frameWidth": 64,
+        "frameHeight": 64
+      }
+    },
+    {
+      "id": "res.actor.monster.guardian.walk",
+      "type": "image",
+      "url": "assets/characters/monster_guardian/walk.png",
+      "preload": true,
+      "metadata": {
+        "kind": "rpg.character.walksheet",
+        "frameWidth": 64,
+        "frameHeight": 64
+      }
+    }
+  ],
+  "audio": {
+    "globalVolume": 1,
+    "soundVolume": 1,
+    "musicVolume": 0.8,
+    "muted": false
+  },
+  "levels": [
+    {
+      "id": "level.start_town",
+      "name": "起始城镇",
+      "initialState": {
+        "currentLevel": "level.start_town",
+        "variables": {
+          "var.rpg.currentMap": "map.start_town",
+          "var.quest.main.stage": 0
+        },
+        "switches": {},
+        "score": 0,
+        "progress": 0,
+        "timestamp": 0
+      },
+      "commands": [
+        {
+          "id": "cmd.start.town.load.001",
+          "type": "rpg_load_image_map",
+          "parameters": {
+            "mapId": "map.start_town",
+            "spawnPointId": "spawn.main_square",
+            "heroActorId": "actor.hero"
+          }
+        },
+        {
+          "id": "cmd.start.town.npc.guide.001",
+          "type": "rpg_set_actor",
+          "parameters": {
+            "actorId": "actor.npc.guide",
+            "mapId": "map.start_town",
+            "x": 900,
+            "y": 1010,
+            "direction": "right"
+          }
+        },
+        {
+          "id": "cmd.start.town.npc.artisan.001",
+          "type": "rpg_set_actor",
+          "parameters": {
+            "actorId": "actor.npc.artisan",
+            "mapId": "map.start_town",
+            "x": 1160,
+            "y": 980,
+            "direction": "left"
+          }
+        },
+        {
+          "id": "cmd.start.town.npc.elder.001",
+          "type": "rpg_set_actor",
+          "parameters": {
+            "actorId": "actor.npc.elder",
+            "mapId": "map.start_town",
+            "x": 1024,
+            "y": 840,
+            "direction": "down"
+          }
+        },
+        {
+          "id": "cmd.start.town.npc.guide.behavior.001",
+          "type": "rpg_set_actor_behavior",
+          "parameters": {
+            "actorId": "actor.npc.guide",
+            "behavior": {
+              "mode": "wander",
+              "radius": 72,
+              "interval": 1800,
+              "duration": 650
+            }
+          }
+        },
+        {
+          "id": "cmd.start.town.npc.artisan.behavior.001",
+          "type": "rpg_set_actor_behavior",
+          "parameters": {
+            "actorId": "actor.npc.artisan",
+            "behavior": {
+              "mode": "wander",
+              "radius": 72,
+              "interval": 1800,
+              "duration": 650
+            }
+          }
+        },
+        {
+          "id": "cmd.start.town.npc.elder.behavior.001",
+          "type": "rpg_set_actor_behavior",
+          "parameters": {
+            "actorId": "actor.npc.elder",
+            "behavior": {
+              "mode": "wander",
+              "radius": 72,
+              "interval": 1800,
+              "duration": 650
+            }
+          }
+        },
+        {
+          "id": "cmd.start.town.load.002",
+          "type": "rpg_set_camera",
+          "parameters": {
+            "mode": "follow_actor",
+            "targetActorId": "actor.hero",
+            "clampToMap": true
+          }
+        },
+        {
+          "id": "cmd.start.town.hud.001",
+          "type": "rpg_mount_hud",
+          "parameters": {
+            "hudId": "hud.rpg.default"
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "evt.start.town.transfer",
+          "name": "起始城镇出口传送",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "rpg:enter_zone:zone.to_forest"
+            }
+          ],
+          "commands": [
+            {
+              "id": "cmd.start.town.transfer.001",
+              "type": "rpg_transfer_actor",
+              "parameters": {
+                "actorId": "actor.hero",
+                "targetMapId": "map.forest_path",
+                "targetSpawnPointId": "spawn.town_gate"
+              }
+            }
+          ]
+        },
+        {
+          "id": "evt.start.town.guide.talk",
+          "name": "引路人对话",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "rpg:talk:actor.npc.guide"
+            }
+          ],
+          "commands": [
+            {
+              "id": "cmd.guide.talk.001",
+              "type": "show_text",
+              "parameters": {
+                "elementId": "rpg.dialogue.guide",
+                "speaker": "引路人",
+                "text": "引路人：先沿着蓝色传送区域进森林，答案会在遗迹里等你。",
+                "x": 48,
+                "y": 520,
+                "style": {
+                  "fontSize": 22,
+                  "fill": "#ffffff",
+                  "stroke": "#102033",
+                  "strokeThickness": 4,
+                  "zIndex": 20000,
+                  "wordWrap": true,
+                  "wordWrapWidth": 700
+                }
+              }
+            },
+            {
+              "id": "cmd.guide.talk.002",
+              "type": "set_variable",
+              "parameters": {
+                "key": "var.quest.main.stage",
+                "value": 1
+              }
+            }
+          ]
+        }
+      ],
+      "resources": [
+        "res.map.start_town.base",
+        "res.map.start_town.overlay.light",
+        "res.map.start_town.overlay.occlusion",
+        "res.map.start_town.mask",
+        "res.map.start_town.objects",
+        "res.actor.hero.walk"
+      ],
+      "validation": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level.forest_path",
+      "name": "森林道路",
+      "initialState": {
+        "currentLevel": "level.forest_path",
+        "variables": {
+          "var.rpg.currentMap": "map.forest_path",
+          "var.quest.main.stage": 1
+        },
+        "switches": {},
+        "score": 0,
+        "progress": 1,
+        "timestamp": 0
+      },
+      "commands": [
+        {
+          "id": "cmd.forest.path.load.001",
+          "type": "rpg_load_image_map",
+          "parameters": {
+            "mapId": "map.forest_path",
+            "spawnPointId": "spawn.town_gate",
+            "heroActorId": "actor.hero"
+          }
+        },
+        {
+          "id": "cmd.forest.path.load.002",
+          "type": "rpg_set_camera",
+          "parameters": {
+            "mode": "follow_actor",
+            "targetActorId": "actor.hero",
+            "clampToMap": true
+          }
+        },
+        {
+          "id": "cmd.forest.path.hud.001",
+          "type": "rpg_mount_hud",
+          "parameters": {
+            "hudId": "hud.rpg.default"
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "evt.forest.path.transfer",
+          "name": "森林道路出口传送",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "rpg:enter_zone:zone.to_ruins"
+            }
+          ],
+          "commands": [
+            {
+              "id": "cmd.forest.path.transfer.001",
+              "type": "rpg_transfer_actor",
+              "parameters": {
+                "actorId": "actor.hero",
+                "targetMapId": "map.old_ruins",
+                "targetSpawnPointId": "spawn.forest_entrance"
+              }
+            }
+          ]
+        }
+      ],
+      "resources": [
+        "res.map.forest_path.base",
+        "res.map.forest_path.overlay.light",
+        "res.map.forest_path.overlay.occlusion",
+        "res.map.forest_path.mask",
+        "res.map.forest_path.objects",
+        "res.actor.hero.walk"
+      ],
+      "validation": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level.old_ruins",
+      "name": "古代遗迹",
+      "initialState": {
+        "currentLevel": "level.old_ruins",
+        "variables": {
+          "var.rpg.currentMap": "map.old_ruins",
+          "var.quest.main.stage": 2
+        },
+        "switches": {},
+        "score": 0,
+        "progress": 2,
+        "timestamp": 0
+      },
+      "commands": [
+        {
+          "id": "cmd.old.ruins.load.001",
+          "type": "rpg_load_image_map",
+          "parameters": {
+            "mapId": "map.old_ruins",
+            "spawnPointId": "spawn.forest_entrance",
+            "heroActorId": "actor.hero"
+          }
+        },
+        {
+          "id": "cmd.old.ruins.load.002",
+          "type": "rpg_set_camera",
+          "parameters": {
+            "mode": "follow_actor",
+            "targetActorId": "actor.hero",
+            "clampToMap": true
+          }
+        },
+        {
+          "id": "cmd.old.ruins.hud.001",
+          "type": "rpg_mount_hud",
+          "parameters": {
+            "hudId": "hud.rpg.default"
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "evt.old.ruins.transfer",
+          "name": "古代遗迹出口传送",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "rpg:enter_zone:zone.to_town"
+            }
+          ],
+          "commands": [
+            {
+              "id": "cmd.old.ruins.transfer.001",
+              "type": "rpg_transfer_actor",
+              "parameters": {
+                "actorId": "actor.hero",
+                "targetMapId": "map.start_town",
+                "targetSpawnPointId": "spawn.main_square"
+              }
+            }
+          ]
+        }
+      ],
+      "resources": [
+        "res.map.old_ruins.base",
+        "res.map.old_ruins.overlay.light",
+        "res.map.old_ruins.overlay.occlusion",
+        "res.map.old_ruins.mask",
+        "res.map.old_ruins.objects",
+        "res.actor.hero.walk"
+      ],
+      "validation": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    }
+  ],
+  "rpg": {
+    "schemaVersion": "rpg-image-map-1.0",
+    "world": {
+      "startMapId": "map.start_town",
+      "startSpawnPointId": "spawn.main_square"
+    },
+    "maps": [
+      {
+        "id": "map.start_town",
+        "name": "起始城镇",
+        "size": {
+          "width": 2048,
+          "height": 2048
+        },
+        "sampling": {
+          "gridSize": 32
+        },
+        "camera": {
+          "mode": "follow_actor",
+          "targetActorId": "actor.hero",
+          "bounds": true
+        },
+        "layers": {
+          "base": {
+            "resourceId": "res.map.start_town.base",
+            "z": 0
+          },
+          "overlayLight": {
+            "resourceId": "res.map.start_town.overlay.light",
+            "z": 80,
+            "blendMode": "multiply",
+            "opacity": 0.72
+          },
+          "overlayOcclusion": {
+            "resourceId": "res.map.start_town.overlay.occlusion",
+            "z": 90,
+            "opacity": 0.68
+          },
+          "passabilityMask": {
+            "resourceId": "res.map.start_town.mask",
+            "encoding": "rgba"
+          },
+          "objectLayer": {
+            "resourceId": "res.map.start_town.objects"
+          }
+        },
+        "spawnPoints": [
+          {
+            "id": "spawn.main_square",
+            "x": 1024,
+            "y": 1024,
+            "direction": "down"
+          }
+        ],
+        "zones": [
+          {
+            "id": "zone.to_forest",
+            "shape": "rect",
+            "x": 1540,
+            "y": 900,
+            "width": 260,
+            "height": 220,
+            "tags": [
+              "transfer"
+            ],
+            "targetMapId": "map.forest_path",
+            "targetSpawnPointId": "spawn.town_gate"
+          }
+        ]
+      },
+      {
+        "id": "map.forest_path",
+        "name": "森林道路",
+        "size": {
+          "width": 2048,
+          "height": 2048
+        },
+        "sampling": {
+          "gridSize": 32
+        },
+        "camera": {
+          "mode": "follow_actor",
+          "targetActorId": "actor.hero",
+          "bounds": true
+        },
+        "layers": {
+          "base": {
+            "resourceId": "res.map.forest_path.base",
+            "z": 0
+          },
+          "overlayLight": {
+            "resourceId": "res.map.forest_path.overlay.light",
+            "z": 80,
+            "blendMode": "multiply",
+            "opacity": 0.72
+          },
+          "overlayOcclusion": {
+            "resourceId": "res.map.forest_path.overlay.occlusion",
+            "z": 90,
+            "opacity": 0.68
+          },
+          "passabilityMask": {
+            "resourceId": "res.map.forest_path.mask",
+            "encoding": "rgba"
+          },
+          "objectLayer": {
+            "resourceId": "res.map.forest_path.objects"
+          }
+        },
+        "spawnPoints": [
+          {
+            "id": "spawn.town_gate",
+            "x": 1024,
+            "y": 1024,
+            "direction": "down"
+          }
+        ],
+        "zones": [
+          {
+            "id": "zone.to_ruins",
+            "shape": "rect",
+            "x": 1540,
+            "y": 900,
+            "width": 260,
+            "height": 220,
+            "tags": [
+              "transfer"
+            ],
+            "targetMapId": "map.old_ruins",
+            "targetSpawnPointId": "spawn.forest_entrance"
+          }
+        ]
+      },
+      {
+        "id": "map.old_ruins",
+        "name": "古代遗迹",
+        "size": {
+          "width": 2048,
+          "height": 2048
+        },
+        "sampling": {
+          "gridSize": 32
+        },
+        "camera": {
+          "mode": "follow_actor",
+          "targetActorId": "actor.hero",
+          "bounds": true
+        },
+        "layers": {
+          "base": {
+            "resourceId": "res.map.old_ruins.base",
+            "z": 0
+          },
+          "overlayLight": {
+            "resourceId": "res.map.old_ruins.overlay.light",
+            "z": 80,
+            "blendMode": "multiply",
+            "opacity": 0.72
+          },
+          "overlayOcclusion": {
+            "resourceId": "res.map.old_ruins.overlay.occlusion",
+            "z": 90,
+            "opacity": 0.68
+          },
+          "passabilityMask": {
+            "resourceId": "res.map.old_ruins.mask",
+            "encoding": "rgba"
+          },
+          "objectLayer": {
+            "resourceId": "res.map.old_ruins.objects"
+          }
+        },
+        "spawnPoints": [
+          {
+            "id": "spawn.forest_entrance",
+            "x": 1024,
+            "y": 1024,
+            "direction": "down"
+          }
+        ],
+        "zones": [
+          {
+            "id": "zone.to_town",
+            "shape": "rect",
+            "x": 1540,
+            "y": 900,
+            "width": 260,
+            "height": 220,
+            "tags": [
+              "transfer"
+            ],
+            "targetMapId": "map.start_town",
+            "targetSpawnPointId": "spawn.main_square"
+          }
+        ]
+      }
+    ],
+    "actors": [
+      {
+        "id": "actor.hero",
+        "kind": "hero",
+        "displayName": "旅人",
+        "sprite": {
+          "resourceId": "res.actor.hero.walk",
+          "frameWidth": 64,
+          "frameHeight": 64,
+          "directions": [
+            "up",
+            "left",
+            "down",
+            "right"
+          ],
+          "framesPerDirection": 9
+        },
+        "anchor": {
+          "x": 0.5,
+          "y": 1
+        },
+        "state": {
+          "variables": {},
+          "switches": {}
+        },
+        "initial": {
+          "mapId": "map.start_town",
+          "x": 1024,
+          "y": 1024,
+          "direction": "down"
+        },
+        "behavior": {
+          "mode": "scripted"
+        }
+      },
+      {
+        "id": "actor.npc.guide",
+        "kind": "npc",
+        "displayName": "引路人",
+        "sprite": {
+          "resourceId": "res.actor.npc.guide.walk",
+          "frameWidth": 64,
+          "frameHeight": 64,
+          "directions": [
+            "up",
+            "left",
+            "down",
+            "right"
+          ],
+          "framesPerDirection": 9
+        },
+        "anchor": {
+          "x": 0.5,
+          "y": 1
+        },
+        "state": {
+          "variables": {},
+          "switches": {}
+        },
+        "initial": {
+          "mapId": "map.start_town",
+          "x": 900,
+          "y": 1010,
+          "direction": "right"
+        },
+        "behavior": {
+          "mode": "wander",
+          "radius": 72,
+          "interval": 1800,
+          "duration": 650
+        },
+        "dialogue": {
+          "entryEventId": "evt.start.town.guide.talk",
+          "previewText": "先沿着蓝色传送区域进森林，答案会在遗迹里等你。"
+        }
+      },
+      {
+        "id": "actor.npc.artisan",
+        "kind": "npc",
+        "displayName": "工匠",
+        "sprite": {
+          "resourceId": "res.actor.npc.artisan.walk",
+          "frameWidth": 64,
+          "frameHeight": 64,
+          "directions": [
+            "up",
+            "left",
+            "down",
+            "right"
+          ],
+          "framesPerDirection": 9
+        },
+        "anchor": {
+          "x": 0.5,
+          "y": 1
+        },
+        "state": {
+          "variables": {},
+          "switches": {}
+        },
+        "initial": {
+          "mapId": "map.start_town",
+          "x": 1160,
+          "y": 980,
+          "direction": "left"
+        },
+        "behavior": {
+          "mode": "wander",
+          "radius": 72,
+          "interval": 1800,
+          "duration": 650
+        },
+        "dialogue": {
+          "entryEventId": "evt.start.town.guide.talk",
+          "previewText": "瀑布的雾会遮住旧路，先看地上的标记。"
+        }
+      },
+      {
+        "id": "actor.npc.elder",
+        "kind": "npc",
+        "displayName": "长者",
+        "sprite": {
+          "resourceId": "res.actor.npc.elder.walk",
+          "frameWidth": 64,
+          "frameHeight": 64,
+          "directions": [
+            "up",
+            "left",
+            "down",
+            "right"
+          ],
+          "framesPerDirection": 9
+        },
+        "anchor": {
+          "x": 0.5,
+          "y": 1
+        },
+        "state": {
+          "variables": {},
+          "switches": {}
+        },
+        "initial": {
+          "mapId": "map.start_town",
+          "x": 1024,
+          "y": 840,
+          "direction": "down"
+        },
+        "behavior": {
+          "mode": "wander",
+          "radius": 72,
+          "interval": 1800,
+          "duration": 650
+        },
+        "dialogue": {
+          "entryEventId": "evt.start.town.guide.talk",
+          "previewText": "真正的入口不在石碑上，而在你愿意走过去的地方。"
+        }
+      },
+      {
+        "id": "actor.monster.guardian",
+        "kind": "monster",
+        "displayName": "守卫兽",
+        "sprite": {
+          "resourceId": "res.actor.monster.guardian.walk",
+          "frameWidth": 64,
+          "frameHeight": 64,
+          "directions": [
+            "up",
+            "left",
+            "down",
+            "right"
+          ],
+          "framesPerDirection": 9
+        },
+        "anchor": {
+          "x": 0.5,
+          "y": 1
+        },
+        "state": {
+          "variables": {},
+          "switches": {}
+        },
+        "initial": {
+          "mapId": "map.old_ruins",
+          "x": 1024,
+          "y": 900,
+          "direction": "down"
+        },
+        "behavior": {
+          "mode": "scripted"
+        }
+      }
+    ],
+    "quests": [
+      {
+        "id": "quest.main",
+        "name": "主线",
+        "variables": {
+          "stage": "var.quest.main.stage"
+        },
+        "completionSwitch": "sw.quest.main.completed"
+      }
+    ],
+    "ui": {
+      "hud": {
+        "id": "hud.rpg.default",
+        "visible": true,
+        "refreshMs": 250,
+        "items": [
+          {
+            "type": "text",
+            "id": "hud.map",
+            "x": 28,
+            "y": 24,
+            "text": "地图: {var.rpg.currentMap}",
+            "fontSize": 16
+          },
+          {
+            "type": "text",
+            "id": "hud.quest",
+            "x": 28,
+            "y": 50,
+            "text": "任务阶段: {var.quest.main.stage}",
+            "fontSize": 16
+          },
+          {
+            "type": "text",
+            "id": "hud.help",
+            "x": 28,
+            "y": 76,
+            "text": "方向键/WASD 移动  空格/Enter 对话",
+            "fontSize": 14,
+            "fill": "#d8f4ff"
+          },
+          {
+            "type": "text",
+            "id": "hud.coords",
+            "x": 612,
+            "y": 24,
+            "text": "X {var.actor.hero.x}  Y {var.actor.hero.y}",
+            "fontSize": 15,
+            "fill": "#d8f4ff"
+          }
+        ]
+      }
+    }
+  }
+}

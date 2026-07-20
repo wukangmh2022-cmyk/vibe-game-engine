@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RPG Layer Demo</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f14;
+        --panel: #141a22;
+        --line: #2a3340;
+        --text: #e8eef6;
+        --muted: #9aa7b5;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .app {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+      aside {
+        padding: 18px;
+        background: var(--panel);
+        border-right: 1px solid var(--line);
+      }
+      h1 {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+      fieldset {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin: 0 0 16px;
+        padding: 12px;
+      }
+      legend { color: var(--muted); padding: 0 6px; }
+      label {
+        display: grid;
+        grid-template-columns: 100px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        min-height: 32px;
+      }
+      label + label { margin-top: 8px; }
+      input[type="range"], select { width: 100%; }
+      input[type="checkbox"] { justify-self: start; width: 18px; height: 18px; }
+      main {
+        overflow: auto;
+        padding: 24px;
+      }
+      canvas {
+        display: block;
+        width: min(100%, 1280px);
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #05070a;
+        box-shadow: 0 18px 60px rgb(0 0 0 / .42);
+      }
+      .status {
+        margin-top: 10px;
+        color: var(--muted);
+      }
+      .hint {
+        color: var(--muted);
+        margin-top: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside>
+        <h1>RPG Layer Demo</h1>
+        <fieldset>
+          <legend>Scene</legend>
+          <label>
+            地图
+            <select id="map">
+              <option value="waterfall_town">waterfall_town</option>
+              <option value="dark_forest_village">dark_forest_village</option>
+              <option value="mist_ruins">mist_ruins</option>
+            </select>
+          </label>
+          <label>
+            Mask
+            <input id="maskOn" type="checkbox" />
+          </label>
+          <label>
+            光影
+            <input id="lightOn" type="checkbox" checked />
+          </label>
+          <label>
+            流动
+            <input id="flowOn" type="checkbox" checked />
+          </label>
+          <label>
+            传送点
+            <input id="portalOn" type="checkbox" checked />
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Light</legend>
+          <label>
+            强度
+            <input id="lightAlpha" type="range" min="0" max="140" value="95" />
+          </label>
+          <label>
+            流速
+            <input id="flowSpeed" type="range" min="0" max="200" value="70" />
+          </label>
+          <label>
+            扰动
+            <input id="flowAmount" type="range" min="0" max="100" value="28" />
+          </label>
+          <label>
+            Mask α
+            <input id="maskAlpha" type="range" min="0" max="100" value="44" />
+          </label>
+        </fieldset>
+        <div class="hint">光影层是黑底加法。流动效果在运行时生成：轻微 alpha 呼吸、低频噪声和局部偏移，不改源图。</div>
+      </aside>
+      <main>
+        <canvas id="view"></canvas>
+        <div id="status" class="status">Loading...</div>
+      </main>
+    </div>
+    <script>
+      const root = "/level-editor/public/rpg-layer-demo-assets";
+      const maps = {
+        waterfall_town: { portal: [1235, 252], label: "north gate" },
+        dark_forest_village: { portal: [870, 640], label: "lake pier" },
+        mist_ruins: { portal: [760, 350], label: "upper ruin" },
+      };
+      const controls = {
+        map: document.getElementById("map"),
+        maskOn: document.getElementById("maskOn"),
+        lightOn: document.getElementById("lightOn"),
+        flowOn: document.getElementById("flowOn"),
+        portalOn: document.getElementById("portalOn"),
+        lightAlpha: document.getElementById("lightAlpha"),
+        flowSpeed: document.getElementById("flowSpeed"),
+        flowAmount: document.getElementById("flowAmount"),
+        maskAlpha: document.getElementById("maskAlpha"),
+      };
+      const canvas = document.getElementById("view");
+      const ctx = canvas.getContext("2d");
+      const flowCanvas = document.createElement("canvas");
+      const flowCtx = flowCanvas.getContext("2d");
+      const noiseCanvas = document.createElement("canvas");
+      const noiseCtx = noiseCanvas.getContext("2d");
+      const status = document.getElementById("status");
+      let assets = {};
+      let current = "waterfall_town";
+      let started = performance.now();
+
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error(src));
+          img.src = `${src}?t=${Date.now()}`;
+        });
+      }
+
+      function rebuildNoise(w, h) {
+        noiseCanvas.width = Math.ceil(w / 8);
+        noiseCanvas.height = Math.ceil(h / 8);
+        const image = noiseCtx.createImageData(noiseCanvas.width, noiseCanvas.height);
+        for (let i = 0; i < image.data.length; i += 4) {
+          const v = 90 + Math.random() * 90;
+          image.data[i] = v;
+          image.data[i + 1] = v;
+          image.data[i + 2] = v;
+          image.data[i + 3] = 34 + Math.random() * 38;
+        }
+        noiseCtx.putImageData(image, 0, 0);
+      }
+
+      async function loadMap(id) {
+        current = id;
+        status.textContent = `Loading ${id}...`;
+        const [base, mask, light] = await Promise.all([
+          loadImage(`${root}/${id}/base.png`),
+          loadImage(`${root}/${id}/mask.png`),
+          loadImage(`${root}/${id}/overlay_light_additive.png`),
+        ]);
+        assets = { base, mask, light };
+        canvas.width = base.naturalWidth;
+        canvas.height = base.naturalHeight;
+        flowCanvas.width = canvas.width;
+        flowCanvas.height = canvas.height;
+        rebuildNoise(canvas.width, canvas.height);
+        status.textContent = `${id} ${canvas.width}x${canvas.height}`;
+      }
+
+      function drawMask(alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(assets.mask, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+
+      function drawFlowLight(t) {
+        const amount = Number(controls.flowAmount.value) / 100;
+        const speed = Number(controls.flowSpeed.value) / 100;
+        const pulse = controls.flowOn.checked ? 1 + Math.sin(t * 0.0017 * speed) * 0.035 : 1;
+        const driftX = controls.flowOn.checked ? Math.sin(t * 0.00042 * speed) * 8 * amount : 0;
+        const driftY = controls.flowOn.checked ? Math.cos(t * 0.00037 * speed) * 6 * amount : 0;
+        flowCtx.clearRect(0, 0, flowCanvas.width, flowCanvas.height);
+        flowCtx.globalCompositeOperation = "source-over";
+        flowCtx.globalAlpha = pulse;
+        flowCtx.drawImage(assets.light, driftX, driftY, flowCanvas.width, flowCanvas.height);
+        if (controls.flowOn.checked) {
+          flowCtx.globalCompositeOperation = "lighter";
+          flowCtx.globalAlpha = 0.06 * amount;
+          flowCtx.drawImage(noiseCanvas, -driftX * 5, -driftY * 5, flowCanvas.width + 32, flowCanvas.height + 32);
+          flowCtx.globalAlpha = 0.04 * amount;
+          flowCtx.drawImage(assets.light, -driftX * 0.8, driftY * 0.7, flowCanvas.width, flowCanvas.height);
+        }
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = Number(controls.lightAlpha.value) / 100;
+        ctx.drawImage(flowCanvas, 0, 0);
+        ctx.restore();
+      }
+
+      function drawPortal(t) {
+        if (!controls.portalOn.checked) return;
+        const cfg = maps[current];
+        const [x, y] = cfg.portal;
+        const r = 30 + Math.sin(t * 0.004) * 3;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.translate(x, y);
+        ctx.rotate(t * 0.0013);
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.ellipse(0, 0, r + i * 8, (r + i * 8) * 0.38, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${90 + i * 45}, ${210 + i * 10}, 255, ${0.55 - i * 0.12})`;
+          ctx.lineWidth = 4 - i * 0.7;
+          ctx.stroke();
+        }
+        for (let i = 0; i < 10; i++) {
+          const a = t * 0.002 + i * Math.PI * 0.2;
+          const rr = r * 0.72 + Math.sin(t * 0.003 + i) * 8;
+          ctx.fillStyle = "rgba(150, 235, 255, 0.55)";
+          ctx.beginPath();
+          ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr * 0.36, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 72);
+        g.addColorStop(0, "rgba(130,230,255,.34)");
+        g.addColorStop(1, "rgba(130,230,255,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(-80, -80, 160, 160);
+        ctx.restore();
+      }
+
+      function frame(t) {
+        if (assets.base) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.globalCompositeOperation = "source-over";
+          ctx.globalAlpha = 1;
+          ctx.drawImage(assets.base, 0, 0, canvas.width, canvas.height);
+          if (controls.lightOn.checked) drawFlowLight(t - started);
+          drawPortal(t - started);
+          if (controls.maskOn.checked) drawMask(Number(controls.maskAlpha.value) / 100);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      controls.map.addEventListener("change", () => loadMap(controls.map.value));
+      for (const el of Object.values(controls)) el.addEventListener("input", () => {});
+      loadMap(current).then(() => requestAnimationFrame(frame));
+    </script>
+  </body>
+</html>

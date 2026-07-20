@@ -1,11 +1,15 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const fs = require('fs');
 
 module.exports = {
-  entry: './src/index.tsx',
+  entry: {
+    editor: './src/index.tsx',
+    runtime: './src/runtime-entry.ts'
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     clean: true
   },
   resolve: {
@@ -34,9 +38,10 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: './public/index.html'
-    })
+    // Editor index page
+    new HtmlWebpackPlugin({ template: './public/index.html', chunks: ['editor'], filename: 'index.html', inject: 'body' }),
+    // Standalone runtime page (inject runtime bundle)
+    new HtmlWebpackPlugin({ template: './public/runtime.html', filename: 'runtime.html', chunks: ['runtime'], inject: 'body' })
   ],
   devServer: {
     static: [

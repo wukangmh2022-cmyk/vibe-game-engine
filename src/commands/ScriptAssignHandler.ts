@@ -3,6 +3,36 @@ import RemoteUser from '../core/RemoteUser';
 import { CommandContext, CommandResult, GameCommand } from '../types';
 import { ExpressionParser } from '../utils/ExpressionParser';
 
+function deriveSceneMeta(): { fileName: string; baseName: string } | null {
+  const getSource = (): string | undefined => {
+    try {
+      const g = (globalThis as any).__GAME_JSON;
+      if (g && typeof g === 'object' && typeof (g as any).__runtimeSceneUrl === 'string') return String((g as any).__runtimeSceneUrl);
+    } catch {}
+    try {
+      const url = (globalThis as any).__GAME_JSON_URL;
+      if (typeof url === 'string' && url.trim()) return url;
+    } catch {}
+    try {
+      const alt = (globalThis as any).__CURRENT_SCENE_URL__ || (globalThis as any).__RUNTIME_SCENE_URL__;
+      if (typeof alt === 'string' && alt.trim()) return alt;
+    } catch {}
+    return undefined;
+  };
+  const source = getSource();
+  if (!source) return null;
+  try {
+    const clean = String(source).replace(/[#?].*$/, '').replace(/\/+$/, '');
+    const parts = clean.split('/');
+    const file = parts.pop() || '';
+    if (!file) return null;
+    const base = file.replace(/\.json$/i, '') || file;
+    return { fileName: file, baseName: base };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * 轻量脚本指令：仅做变量赋值（含随机/表达式）与元素属性更新，不调用其他指令
  * type: 'script'
@@ -20,6 +50,9 @@ export class ScriptAssignHandler extends BaseCommandHandler {
     try {
       const sm: any = (context as any).stateManager;
       const rm: any = (context as any).renderManager;
+      const storeMod = await import('../core/UserDataStore');
+      const UserDataStore: any = (storeMod as any).default || (storeMod as any).UserDataStore || (storeMod as any);
+      const store = UserDataStore.instance;
 
       // 1) 随机数写变量
       if (p.random && typeof p.random === 'object') {
@@ -71,7 +104,48 @@ export class ScriptAssignHandler extends BaseCommandHandler {
         const updateElement = (elementId: string, updates: any) => { try { rm?.updateElement?.(elementId, updates); } catch {} };
         const getNode = (id: string) => { try { return rm?.getNode ? rm.getNode(id) : (rm?.getElement ? rm.getElement(id) : undefined); } catch { return undefined; } };
         const ex: any = (context as any).executor;
-        const U = (RemoteUser as any)?.instance || RemoteUser;
+        // Auth facade for scripts (no direct data APIs exposed)
+        const RU: any = (RemoteUser as any)?.instance || (RemoteUser as any);
+        const U = {
+          login: async (userId: string, password: string) => RU?.login?.(userId, password),
+          register: async (userId: string, password: string) => RU?.register?.(userId, password),
+          loginWithToken: async () => RU?.loginWithToken?.(),
+          logout: async () => RU?.logout?.()
+        };
+        // scene helpers
+        const getSceneId = (): string => {
+          const meta = deriveSceneMeta();
+          if (meta?.baseName) return meta.baseName;
+          try { return String(((globalThis as any).__GAME_JSON?.id) || (context as any)?.gameId || 'scene'); } catch { return 'scene'; }
+        };
+        const getSceneName = (): string | undefined => {
+          const meta = deriveSceneMeta();
+          if (meta?.fileName) return meta.fileName;
+          try { const n = (globalThis as any).__GAME_JSON?.name; return n != null ? String(n) : undefined; } catch { return undefined; }
+        };
+        const getLevelIndex = (): number => {
+          try {
+            const idx = sm?.getVariable?.('levelIndex') ?? sm?.getVariable?.('currentLevelIndex') ?? sm?.getVariable?.('__level_index__');
+            const n = Number(idx); return Number.isFinite(n) ? n : 0;
+          } catch { return 0; }
+        };
+        const sceneIdOf = (sid?: string) => (sid && String(sid).trim().length ? String(sid) : `${getSceneId()}_${getLevelIndex()}`);
+        // user data helpers (local-first with background sync), no sceneId exposed
+        const user = {
+          get: async (key: string) => {
+            const sid = sceneIdOf(undefined);
+            if (store.isLoggedIn()) { await store.pull(sid, key); }
+            return store.getLocal(sid, key);
+          },
+          set: async (key: string, value: any) => {
+            const sid = sceneIdOf(undefined);
+            return store.setLocal(sid, key, value, true);
+          },
+          add: async (key: string, delta: number) => {
+            const sid = sceneIdOf(undefined);
+            return store.applyOp(sid, key, 'add', delta);
+          }
+        };
         const wait = (ms: number) => new Promise<void>((resolve) => {
           let settled = false;
           const done = () => { if (!settled) { settled = true; resolve(); } };
@@ -117,17 +191,17 @@ export class ScriptAssignHandler extends BaseCommandHandler {
           if (p.unsafe === true) {
             // 更自由：暴露渲染管理器与便捷API给脚本上下文（异步包装，支持 await）
             const fn = new Function(
-              'state','setVar','setTempVar','getVar','rand','randInt','wait','E','RM','args','console','RemoteUser','U',
+              'state','setVar','setTempVar','getVar','rand','randInt','wait','E','RM','args','console','getSceneId','getSceneName','getLevelIndex','user','U',
               `return (async () => { ${String(p.code)} })();`
             );
-            await Promise.resolve((fn as any)(sm, setVar, setTempVar, getVar, rand, randInt, wait, E, rm, args, console, RemoteUser, U));
+            await Promise.resolve((fn as any)(sm, setVar, setTempVar, getVar, rand, randInt, wait, E, rm, args, console, getSceneId, getSceneName, getLevelIndex, user, U));
           } else {
             // 默认：受限 API（异步包装，支持 await）
             const fn = new Function(
-              'state','setVar','setTempVar','getVar','rand','randInt','wait','updateElement','args','RemoteUser','U',
+              'state','setVar','setTempVar','getVar','rand','randInt','wait','updateElement','args','getSceneId','getSceneName','getLevelIndex','user','U',
               `return (async () => { ${String(p.code)} })();`
             );
-            await Promise.resolve((fn as any)(sm, setVar, setTempVar, getVar, rand, randInt, wait, updateElement, args, RemoteUser, U));
+            await Promise.resolve((fn as any)(sm, setVar, setTempVar, getVar, rand, randInt, wait, updateElement, args, getSceneId, getSceneName, getLevelIndex, user, U));
           }
         } catch (e) {
           const msg = e instanceof Error ? e.message : String(e);

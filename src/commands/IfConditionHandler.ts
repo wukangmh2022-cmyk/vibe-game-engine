@@ -1,5 +1,6 @@
 import { CommandType, GameCommand, CommandContext, CommandResult, Condition } from '../types';
 import { BaseCommandHandler, CommandExecutor } from '../core/CommandExecutor';
+import { getGlobalCommandModifiers } from '../core/commandModifiers';
 
 export class IfConditionHandler extends BaseCommandHandler {
   readonly type = CommandType.IF_CONDITION;
@@ -27,6 +28,9 @@ export class IfConditionHandler extends BaseCommandHandler {
           context.audioManager,
           context.logger
         );
+        if (!context.executor) {
+          try { executor.setCommandModifiers(getGlobalCommandModifiers()); } catch {}
+        }
         
         // 直接执行子指令，实现真正的树状嵌套
         executionResults = await executor.executeCommands(commandsToExecute);

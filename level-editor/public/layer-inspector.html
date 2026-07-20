@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RPG Layer Inspector</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0d1014;
+        --panel: #171b22;
+        --line: #2b3340;
+        --text: #e6edf5;
+        --muted: #9ba7b5;
+        --accent: #63d7ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        min-height: 100vh;
+      }
+
+      aside {
+        border-right: 1px solid var(--line);
+        background: var(--panel);
+        padding: 18px;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      fieldset {
+        margin: 0 0 16px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      legend {
+        padding: 0 6px;
+        color: var(--muted);
+      }
+
+      label {
+        display: grid;
+        grid-template-columns: 92px minmax(0, 1fr);
+        align-items: center;
+        gap: 10px;
+        min-height: 32px;
+      }
+
+      label + label {
+        margin-top: 8px;
+      }
+
+      select,
+      input[type="range"] {
+        width: 100%;
+      }
+
+      input[type="checkbox"] {
+        justify-self: start;
+        width: 18px;
+        height: 18px;
+      }
+
+      .readout {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+      }
+
+      .readout strong {
+        color: var(--text);
+        font-weight: 650;
+      }
+
+      .legend-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 24px;
+      }
+
+      .chip {
+        width: 18px;
+        height: 12px;
+        border-radius: 3px;
+        border: 1px solid rgb(255 255 255 / 0.28);
+      }
+
+      main {
+        position: relative;
+        overflow: auto;
+        padding: 24px;
+      }
+
+      .stage {
+        display: inline-block;
+        min-width: min(2048px, calc(100vw - 348px));
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background:
+          linear-gradient(45deg, #11161e 25%, transparent 25%),
+          linear-gradient(-45deg, #11161e 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, #11161e 75%),
+          linear-gradient(-45deg, transparent 75%, #11161e 75%);
+        background-color: #0a0d12;
+        background-size: 32px 32px;
+        background-position: 0 0, 0 16px, 16px -16px, -16px 0;
+        box-shadow: 0 18px 70px rgb(0 0 0 / 0.38);
+      }
+
+      canvas {
+        display: block;
+        width: min(2048px, calc(100vw - 350px));
+        height: auto;
+        image-rendering: auto;
+        border-radius: 8px;
+      }
+
+      .status {
+        margin-top: 12px;
+        color: var(--muted);
+      }
+
+      .error {
+        color: #ff8585;
+      }
+
+      button {
+        width: 100%;
+        height: 34px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #202633;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside>
+        <h1>RPG Layer Inspector</h1>
+
+        <fieldset>
+          <legend>Map</legend>
+          <label>
+            地图
+            <select id="mapSelect">
+              <option value="start_town">start_town</option>
+              <option value="forest_path">forest_path</option>
+              <option value="old_ruins">old_ruins</option>
+            </select>
+          </label>
+          <label>
+            缩放
+            <input id="zoom" type="range" min="25" max="100" value="55" />
+          </label>
+          <label>
+            格线
+            <input id="gridOn" type="checkbox" checked />
+          </label>
+          <label>
+            格子
+            <select id="cellSize">
+              <option value="16">16 px</option>
+              <option value="32" selected>32 px</option>
+              <option value="64">64 px</option>
+            </select>
+          </label>
+          <button id="reload" type="button">Reload Layers</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Layers</legend>
+          <label>
+            Base
+            <input id="baseOn" type="checkbox" checked />
+          </label>
+          <label>
+            Mask
+            <input id="maskOn" type="checkbox" checked />
+          </label>
+          <label>
+            Mask α
+            <input id="maskAlpha" type="range" min="0" max="100" value="52" />
+          </label>
+          <label>
+            Light
+            <input id="lightOn" type="checkbox" checked />
+          </label>
+          <label>
+            Light α
+            <input id="lightAlpha" type="range" min="0" max="100" value="45" />
+          </label>
+          <label>
+            Occlusion
+            <input id="occOn" type="checkbox" checked />
+          </label>
+          <label>
+            Occ α
+            <input id="occAlpha" type="range" min="0" max="100" value="70" />
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Cursor</legend>
+          <div class="readout">
+            <div>坐标: <strong id="xy">-</strong></div>
+            <div>Mask: <strong id="maskValue">-</strong></div>
+            <div>RGBA: <strong id="rgba">-</strong></div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Mask Color</legend>
+          <div class="legend-row"><span class="chip" style="background:#ff315a"></span>blocked</div>
+          <div class="legend-row"><span class="chip" style="background:#168bff"></span>under foreground</div>
+          <div class="legend-row"><span class="chip" style="background:#21d66b"></span>slow / grass</div>
+          <div class="legend-row"><span class="chip" style="background:#ff36d3"></span>trigger</div>
+          <div class="legend-row"><span class="chip" style="background:#ffffff"></span>walkable</div>
+        </fieldset>
+      </aside>
+
+      <main>
+        <div class="stage">
+          <canvas id="view" width="2048" height="2048"></canvas>
+        </div>
+        <div id="status" class="status">Loading...</div>
+      </main>
+    </div>
+
+    <script>
+      const MAP_ROOT = "/examples/rpg/mistfall-border/assets/maps";
+      const controls = {
+        mapSelect: document.getElementById("mapSelect"),
+        zoom: document.getElementById("zoom"),
+        gridOn: document.getElementById("gridOn"),
+        cellSize: document.getElementById("cellSize"),
+        reload: document.getElementById("reload"),
+        baseOn: document.getElementById("baseOn"),
+        maskOn: document.getElementById("maskOn"),
+        maskAlpha: document.getElementById("maskAlpha"),
+        lightOn: document.getElementById("lightOn"),
+        lightAlpha: document.getElementById("lightAlpha"),
+        occOn: document.getElementById("occOn"),
+        occAlpha: document.getElementById("occAlpha"),
+      };
+      const readout = {
+        xy: document.getElementById("xy"),
+        maskValue: document.getElementById("maskValue"),
+        rgba: document.getElementById("rgba"),
+        status: document.getElementById("status"),
+      };
+      const canvas = document.getElementById("view");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      const maskRaw = document.createElement("canvas");
+      const maskRawCtx = maskRaw.getContext("2d", { willReadFrequently: true });
+      const maskOverlay = document.createElement("canvas");
+      const maskOverlayCtx = maskOverlay.getContext("2d", { willReadFrequently: true });
+
+      let layers = {};
+
+      function urlParam(name, fallback) {
+        return new URL(location.href).searchParams.get(name) || fallback;
+      }
+
+      function loadImage(src) {
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+          image.crossOrigin = "anonymous";
+          image.onload = () => resolve(image);
+          image.onerror = () => reject(new Error(`Cannot load ${src}`));
+          image.src = `${src}?t=${Date.now()}`;
+        });
+      }
+
+      function classifyPixel(r, g, b, a) {
+        if (a < 24) return "transparent";
+        if (b > 150 && b > r * 1.25 && b > g * 1.15) return "under";
+        if (r > 180 && b > 140 && g < 120) return "trigger";
+        if (g > 145 && r < 150 && b < 150) return "slow";
+        if ((r < 90 && g < 90 && b < 90) || (r > 160 && g < 120 && b < 120)) return "blocked";
+        return "walkable";
+      }
+
+      function buildMaskOverlay(maskImage) {
+        maskRaw.width = maskImage.naturalWidth;
+        maskRaw.height = maskImage.naturalHeight;
+        maskOverlay.width = maskImage.naturalWidth;
+        maskOverlay.height = maskImage.naturalHeight;
+        maskRawCtx.clearRect(0, 0, maskRaw.width, maskRaw.height);
+        maskRawCtx.drawImage(maskImage, 0, 0);
+
+        const data = maskRawCtx.getImageData(0, 0, maskRaw.width, maskRaw.height);
+        const out = maskOverlayCtx.createImageData(maskRaw.width, maskRaw.height);
+        const counts = { blocked: 0, under: 0, slow: 0, trigger: 0, walkable: 0, transparent: 0 };
+        for (let i = 0; i < data.data.length; i += 4) {
+          const type = classifyPixel(data.data[i], data.data[i + 1], data.data[i + 2], data.data[i + 3]);
+          counts[type] += 1;
+          let color = [255, 255, 255, 0];
+          if (type === "blocked") color = [255, 49, 90, 210];
+          if (type === "under") color = [22, 139, 255, 200];
+          if (type === "slow") color = [33, 214, 107, 160];
+          if (type === "trigger") color = [255, 54, 211, 210];
+          if (type === "walkable") color = [255, 255, 255, 18];
+          out.data[i] = color[0];
+          out.data[i + 1] = color[1];
+          out.data[i + 2] = color[2];
+          out.data[i + 3] = color[3];
+        }
+        maskOverlayCtx.putImageData(out, 0, 0);
+        return counts;
+      }
+
+      function setCanvasSize() {
+        const size = layers.base?.naturalWidth || 2048;
+        canvas.width = size;
+        canvas.height = layers.base?.naturalHeight || size;
+        canvas.style.width = `${Math.round(size * Number(controls.zoom.value) / 100)}px`;
+      }
+
+      function render() {
+        if (!layers.base) return;
+        setCanvasSize();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = true;
+
+        if (controls.baseOn.checked) {
+          ctx.globalAlpha = 1;
+          ctx.globalCompositeOperation = "source-over";
+          ctx.drawImage(layers.base, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (controls.lightOn.checked && layers.overlayLight) {
+          ctx.globalAlpha = Number(controls.lightAlpha.value) / 100;
+          ctx.globalCompositeOperation = "screen";
+          ctx.drawImage(layers.overlayLight, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (controls.occOn.checked && layers.overlayOcclusion) {
+          ctx.globalAlpha = Number(controls.occAlpha.value) / 100;
+          ctx.globalCompositeOperation = "source-over";
+          ctx.drawImage(layers.overlayOcclusion, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (controls.maskOn.checked && layers.mask) {
+          ctx.globalAlpha = Number(controls.maskAlpha.value) / 100;
+          ctx.globalCompositeOperation = "source-over";
+          ctx.drawImage(maskOverlay, 0, 0, canvas.width, canvas.height);
+        }
+
+        if (controls.gridOn.checked) {
+          const cell = Number(controls.cellSize.value);
+          ctx.globalAlpha = 0.45;
+          ctx.globalCompositeOperation = "source-over";
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.42)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          for (let x = 0.5; x <= canvas.width; x += cell) {
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, canvas.height);
+          }
+          for (let y = 0.5; y <= canvas.height; y += cell) {
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvas.width, y);
+          }
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = "source-over";
+      }
+
+      async function loadMap(mapId) {
+        readout.status.textContent = `Loading ${mapId}...`;
+        readout.status.classList.remove("error");
+        try {
+          const root = `${MAP_ROOT}/${mapId}`;
+          const [base, mask, overlayLight, overlayOcclusion] = await Promise.all([
+            loadImage(`${root}/base.png`),
+            loadImage(`${root}/mask.png`),
+            loadImage(`${root}/overlay_light.png`),
+            loadImage(`${root}/overlay_occlusion.png`),
+          ]);
+          layers = { base, mask, overlayLight, overlayOcclusion };
+          const counts = buildMaskOverlay(mask);
+          const total = mask.naturalWidth * mask.naturalHeight;
+          const pct = (value) => `${(value / total * 100).toFixed(1)}%`;
+          readout.status.textContent = `Loaded ${mapId} ${base.naturalWidth}x${base.naturalHeight} | blocked ${pct(counts.blocked)}, under ${pct(counts.under)}, slow ${pct(counts.slow)}, trigger ${pct(counts.trigger)}, walkable ${pct(counts.walkable)}`;
+          render();
+        } catch (error) {
+          readout.status.textContent = error.message;
+          readout.status.classList.add("error");
+        }
+      }
+
+      function sampleMask(event) {
+        if (!layers.mask) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = Math.max(0, Math.min(canvas.width - 1, Math.floor((event.clientX - rect.left) / rect.width * canvas.width)));
+        const y = Math.max(0, Math.min(canvas.height - 1, Math.floor((event.clientY - rect.top) / rect.height * canvas.height)));
+        const data = maskRawCtx.getImageData(x, y, 1, 1).data;
+        const type = classifyPixel(data[0], data[1], data[2], data[3]);
+        readout.xy.textContent = `${x}, ${y}`;
+        readout.maskValue.textContent = type;
+        readout.rgba.textContent = `${data[0]}, ${data[1]}, ${data[2]}, ${data[3]}`;
+      }
+
+      for (const input of Object.values(controls)) {
+        input.addEventListener("input", render);
+        input.addEventListener("change", render);
+      }
+      controls.mapSelect.addEventListener("change", () => {
+        const url = new URL(location.href);
+        url.searchParams.set("map", controls.mapSelect.value);
+        history.replaceState(null, "", url);
+        loadMap(controls.mapSelect.value);
+      });
+      controls.reload.addEventListener("click", () => loadMap(controls.mapSelect.value));
+      canvas.addEventListener("mousemove", sampleMask);
+      canvas.addEventListener("click", sampleMask);
+
+      controls.mapSelect.value = urlParam("map", "start_town");
+      loadMap(controls.mapSelect.value);
+    </script>
+  </body>
+</html>

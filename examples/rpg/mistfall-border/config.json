@@ -1,0 +1,7 @@
+{
+  "name": "雾瀑边境 RPG Demo",
+  "scene-tree": {
+    "curnode": "scene/entry.json",
+    "child_node": []
+  }
+}

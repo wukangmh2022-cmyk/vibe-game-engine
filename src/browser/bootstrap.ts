@@ -22,7 +22,9 @@ import ScriptAssignHandler from '../commands/ScriptAssignHandler';
 import { FireworkBurstHandler } from './FireworkBurstHandler';
 import ChangeSelectStateHandler from '../commands/ChangeSelectStateHandler';
 import { GameCommand } from '../types';
+import { getGlobalCommandModifiers } from '../core/commandModifiers';
 import { attachPixiUi } from './ui/PixiUiLayer';
+import { createRpgHandlers } from '../rpg';
 
 declare const PIXI: any;
 
@@ -32,6 +34,8 @@ export interface MountOptions {
   resolution?: number;
   // Optional: provide a PIXI implementation (useful when consumer bundles pixi.js)
   pixi?: any;
+  // Optional: start from specific level index without reordering
+  startLevelIndex?: number;
 }
 
 export interface MountedRuntime {
@@ -103,6 +107,7 @@ export async function mountRuntime(
   // Allow external toggling of selected state (used by SET_CLICKABLE toggle_selected)
   try { const { SetSelectedHandler } = await import('../commands/SetSelectedHandler'); executor.registerHandler(new (SetSelectedHandler as any)()); } catch {}
   executor.registerHandler(new FireworkBurstHandler());
+  createRpgHandlers().forEach(h => executor.registerHandler(h));
 
   // Swallow editor-only grouping commands to avoid noisy errors
   class EventGroupHandler extends BaseCommandHandler {
@@ -118,6 +123,10 @@ export async function mountRuntime(
   executor.registerHandler(new EventGroupHandler());
   executor.registerHandler(new EventGroupHandlerUpper());
 
+  try {
+    executor.setCommandModifiers(getGlobalCommandModifiers());
+  } catch {}
+
   // UI Layer (buttons/choices/text blocking etc.)
   attachPixiUi(eventManager, resourceManager, renderManager, PIXIImpl, stateManager);
 
@@ -125,7 +134,7 @@ export async function mountRuntime(
   try {
     if (!(game as any).__originalLevels && Array.isArray(game?.levels)) {
       (game as any).__originalLevels = (game.levels as any[]).slice();
-      (game as any).__currentOriginalIndex = 0;
+      // __currentOriginalIndex will be finalized after computing levelIndex below
     }
   } catch {}
 
@@ -164,7 +173,29 @@ export async function mountRuntime(
 
   // Init state: load global variables/switches first, then level.initialState overrides
   let levelIndex = 0;
+  try {
+    const count = Array.isArray((game as any)?.levels) ? (game as any).levels.length : 0;
+    const desired = (opts && typeof (opts as any).startLevelIndex === 'number') ? Number((opts as any).startLevelIndex) : 0;
+    if (count > 0) levelIndex = Math.max(0, Math.min(count - 1, isNaN(desired) ? 0 : desired));
+  } catch {}
   let level = game?.levels?.[levelIndex];
+  // Expose scene meta for downstream handlers and scripts
+  try { (window as any).__GAME_JSON = game; } catch {}
+  try {
+    const sceneUrl = (game as any)?.__runtimeSceneUrl;
+    if (sceneUrl && typeof sceneUrl === 'string') (window as any).__GAME_JSON_URL = sceneUrl;
+  } catch {}
+  try {
+    stateManager.setVariable('levelIndex', levelIndex);
+    stateManager.setVariable('currentLevelIndex', levelIndex);
+    stateManager.setVariable('_levelIndex', levelIndex);
+    const sceneId = (game as any)?.id || 'scene';
+    const sceneName = (game as any)?.name || '';
+    stateManager.setVariable('_sceneId', String(sceneId));
+    if (sceneName) stateManager.setVariable('_sceneName', String(sceneName));
+  } catch {}
+  // Keep a marker of the absolute index of current level in original ordering
+  try { (game as any).__currentOriginalIndex = levelIndex; } catch {}
   try {
     const gv = (game && (game.globalVariables || (game.config && game.config.globalVariables))) || {};
     const gs = (game && (game.globalSwitches || (game.config && game.config.globalSwitches))) || {};
@@ -259,27 +290,31 @@ export async function mountRuntime(
       // Determine current original index by stored marker or by id lookup
       let curIdx: number = typeof (game as any).__currentOriginalIndex === 'number' ? (game as any).__currentOriginalIndex : Math.max(0, orig.findIndex(lv => lv?.id === level?.id));
       const nextIdx = curIdx + 1;
-      try {
+      {
         const curId = level?.id; const nextId = orig[nextIdx]?.id;
-        console.info('[runtime] NEXT_LEVEL requested', { curIdx, curId, nextIdx, nextId, total: orig.length });
-      } catch {}
+        const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1';
+        if (dbg) console.info('[runtime] NEXT_LEVEL requested', { curIdx, curId, nextIdx, nextId, total: orig.length });
+      }
       if (!(nextIdx < orig.length)) { try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).info('[runtime] no more levels'); } catch {} return; }
       const hasEditorRedirect = typeof (window as any).__PIXICANVAS_REDIRECT__ === 'function';
       if (hasEditorRedirect) {
-        // Reorder by original ordering so next original level becomes first
-        const reorderedLevels = [ orig[nextIdx], ...orig.filter((_, i) => i !== nextIdx) ];
-        const reordered = { ...(game as any), levels: reorderedLevels, __originalLevels: orig, __currentOriginalIndex: nextIdx } as any;
-        try { console.info('[runtime] NEXT_LEVEL redirect via editor', { nextIdx, nextId: orig[nextIdx]?.id }); } catch {}
-        // Let editor perform a full runtime remount with the updated JSON
-        await eventManager.emit('scene_redirect', reordered);
+        // Keep original ordering; handoff absolute index to editor for remount
+        const payload = { ...(game as any), __originalLevels: orig, __currentOriginalIndex: nextIdx, levelIndex: nextIdx } as any;
+        { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[runtime] NEXT_LEVEL redirect via editor', { nextIdx, nextId: orig[nextIdx]?.id }); }
+        await eventManager.emit('scene_redirect', payload);
         return;
       }
       // Fallback: in-place switch (standalone browser runtime)
-      levelIndex = 0; level = orig[nextIdx];
+      levelIndex = nextIdx; level = orig[nextIdx];
       try { (renderManager as any)?.clearAll?.(); } catch { try { app.stage.removeChildren(); } catch {} }
       allIndex.clear(); topIndex.clear();
       (level?.commands || []).forEach((c: any) => { if (c && c.id) { topIndex.set(c.id, c); allIndex.set(c.id, c); } });
       clearLevelListeners();
+      try {
+        stateManager.setVariable('levelIndex', levelIndex);
+        stateManager.setVariable('currentLevelIndex', levelIndex);
+        stateManager.setVariable('_levelIndex', levelIndex);
+      } catch {}
       Object.entries(level?.initialState || {}).forEach(([k, v]) => stateManager.setVariable(k, v));
       wireLevelTriggers(level);
       // Execute whole level root commands in a single temporary scope
@@ -304,18 +339,36 @@ export async function mountRuntime(
     try {
       const raw = payload && (payload.url || payload.scene || payload.path) || payload;
       const levelIndex = (payload && typeof payload.levelIndex !== 'undefined') ? Number(payload.levelIndex) : undefined;
-      try {
+      {
         const curArr: any[] = Array.isArray((game as any)?.levels) ? (game as any).levels : [];
         const curIdx = Math.max(0, curArr.findIndex(lv => lv?.id === level?.id));
-        console.info('[runtime] SCENE_REDIRECT received', { raw, levelIndex, curLevelId: level?.id, curIdx, sceneId: (game as any)?.id });
-      } catch {}
+        const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1';
+        if (dbg) console.info('[runtime] SCENE_REDIRECT received', { raw, levelIndex, curLevelId: level?.id, curIdx, sceneId: (game as any)?.id });
+      }
+      // If payload is a full scene object (e.g., NEXT_LEVEL editor handoff), log the absolute target index hint
+      {
+        if (raw && typeof raw === 'object' && Array.isArray((raw as any)?.levels)) {
+          const hint = (typeof (raw as any).__currentOriginalIndex === 'number')
+            ? (raw as any).__currentOriginalIndex
+            : (typeof levelIndex === 'number' ? levelIndex : 0);
+          let tgtId: any;
+          if (Array.isArray((raw as any)?.__originalLevels) && typeof hint === 'number') {
+            tgtId = (raw as any).__originalLevels?.[hint]?.id;
+          } else {
+            tgtId = (raw as any)?.levels?.[0]?.id;
+          }
+          const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1';
+          if (dbg) console.info('[runtime] scene_redirect (object)', { resolvedAbsIndexHint: hint, targetId: tgtId, sceneId: (raw as any)?.id });
+        }
+      }
       // Special token: 'this' means reload current scene
       if (typeof raw === 'string' && raw.trim().toLowerCase() === 'this') {
-        try {
+        {
           const curArr: any[] = Array.isArray((game as any)?.levels) ? (game as any).levels : [];
           const curIdx = Math.max(0, curArr.findIndex(lv => lv?.id === level?.id));
-          console.info('[runtime] scene_redirect (reload current)', { raw, resolvedIdx: (typeof levelIndex === 'number' ? levelIndex : curIdx), targetId: (typeof levelIndex === 'number' ? curArr[levelIndex]?.id : level?.id), sceneId: (game as any)?.id });
-        } catch {}
+          const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1';
+          if (dbg) console.info('[runtime] scene_redirect (reload current)', { raw, resolvedIdx: (typeof levelIndex === 'number' ? levelIndex : curIdx), targetId: (typeof levelIndex === 'number' ? curArr[levelIndex]?.id : level?.id), sceneId: (game as any)?.id });
+        }
         const fn = (window as any).__PIXICANVAS_REDIRECT__;
         if (typeof fn === 'function') {
           try { fn({ reload: true, currentLevelId: level?.id }); } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT reload failed', e); }
@@ -323,7 +376,7 @@ export async function mountRuntime(
         }
       }
       const url = resolveUrl(raw);
-      try { console.info('[runtime] scene_redirect (url)', { raw, url, levelIndex, sceneId: (game as any)?.id }); } catch {}
+      { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) console.info('[runtime] scene_redirect (url)', { raw, url, levelIndex, sceneId: (game as any)?.id }); }
       const fn = (window as any).__PIXICANVAS_REDIRECT__;
       if (typeof fn === 'function') {
         try {

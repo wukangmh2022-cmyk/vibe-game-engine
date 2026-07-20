@@ -1,13 +1,13 @@
 import { CommandType, GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveElementId } from '../utils/ParamResolver';
 
 export class PixiSetDraggableHandler extends BaseCommandHandler {
   readonly type = CommandType.SET_DRAGGABLE;
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    let id: string | undefined = resolveIdFromBraces(p.elementId, context);
+    let id: string | undefined = resolveElementId(p.elementId, context);
     const draggable = p.draggable !== false;
     const dragType: string | undefined = p.dragType;
     if (!id) return this.createErrorResult('Missing required parameter: elementId');

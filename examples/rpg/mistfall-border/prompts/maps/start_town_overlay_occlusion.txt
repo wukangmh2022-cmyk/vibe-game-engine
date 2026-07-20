@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: transparent RPG image-map foreground occlusion layer
+Primary request: Create an occlusion/foreground layer for the map named 起始城镇.
+Input image role: Use the matching base map as alignment reference.
+Style/medium: Transparent PNG foreground layer for top-down 2D RPG rendering.
+Composition/framing: Same exact size and alignment as the base map. Include only objects that should render above actors.
+Content: treetops, roof eaves, bridge rails, arches, tall signs, mist, tall grass edges.
+Constraints: Transparent everywhere else. No characters, no UI, no text, no full repaint, no changed map layout.

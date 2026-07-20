@@ -1,0 +1,8 @@
+Use case: infographic-diagram
+Asset type: RPG image-map passability mask
+Primary request: Create a flat passability mask for the map named 古代遗迹.
+Input image role: Use the matching base map as alignment reference.
+Style/medium: Flat-color logic mask, no texture, no antialiasing.
+Color rules: white walkable, black blocked, blue water, red interaction triggers, green slow grass.
+Composition/framing: Same exact size and alignment as the base map.
+Constraints: No gradients, no art texture, no shadows, no labels, no UI.

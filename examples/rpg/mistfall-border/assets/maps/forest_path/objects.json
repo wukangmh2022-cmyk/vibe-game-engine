@@ -1,0 +1,12 @@
+{
+  "generatedFrom": "base.png",
+  "size": {
+    "width": 1024,
+    "height": 1024
+  },
+  "maskEncoding": "white walkable, black blocked, blue water",
+  "objectNotes": [
+    "overlay_occlusion is derived from dark tree/roof pixels",
+    "manual authoring can replace this with exact per-object polygons later"
+  ]
+}
