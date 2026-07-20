@@ -45,7 +45,7 @@ function sanitize(value) {
         result.push({
           id: `${item.id || 'set_demo_max_level'}_customer_demo`,
           type: 'SET_VARIABLE',
-          parameters: { key: '最大通过关卡', op: 'set', value: 10, temporary: false }
+          parameters: { key: '最大通过关卡', op: 'set', value: 9, temporary: false }
         });
       } else if (!shouldRemove(item)) {
         result.push(sanitize(item));

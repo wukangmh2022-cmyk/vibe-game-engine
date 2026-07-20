@@ -78,7 +78,7 @@
           "parameters": {
             "key": "最大通过关卡",
             "op": "set",
-            "value": 10,
+            "value": 9,
             "temporary": false
           }
         },
@@ -617,7 +617,7 @@
               "parameters": {
                 "key": "最大通过关卡",
                 "op": "set",
-                "value": 10,
+                "value": 9,
                 "temporary": false
               }
             },
@@ -979,7 +979,7 @@
           "parameters": {
             "key": "最大通过关卡",
             "op": "set",
-            "value": 10,
+            "value": 9,
             "temporary": false
           }
         },
@@ -1818,7 +1818,7 @@
               "parameters": {
                 "key": "最大通过关卡",
                 "op": "set",
-                "value": 10,
+                "value": 9,
                 "temporary": false
               }
             },
