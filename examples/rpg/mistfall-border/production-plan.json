@@ -1,0 +1,99 @@
+{
+  "brief": "雾瀑边境：唐风旅人在瀑布森林城镇寻找避瘴香，进入古遗迹封印雾兽",
+  "assumptions": [
+    "用户未指定范围时默认生成3张整图地图、1名主角、3名NPC、1个怪物、1条主线任务。",
+    "地图使用rpg-image-map-1.0整图像素坐标协议，不使用tilemap拼块。",
+    "视觉资源默认使用GPT image 2生成；缺少OPENAI_API_KEY时只生成提示词和队列。"
+  ],
+  "clarifyIfQualityCritical": [
+    "你想要什么时代/文化/情绪基调？",
+    "你希望画风更偏像素、高清2D、日系、国风还是暗黑幻想？",
+    "目标是几分钟demo还是完整章节？"
+  ],
+  "stages": [
+    "game_bible",
+    "map_graph",
+    "asset_queue",
+    "data_compile",
+    "validation",
+    "asset_generation",
+    "integration_playtest"
+  ],
+  "maps": [
+    {
+      "id": "map.start_town",
+      "name": "起始城镇",
+      "purpose": "介绍世界、NPC、主线任务",
+      "spawn": {
+        "id": "spawn.main_square",
+        "x": 1024,
+        "y": 1500,
+        "direction": "up"
+      },
+      "exit": {
+        "zoneId": "zone.to_forest",
+        "targetMapId": "map.forest_path",
+        "targetSpawnPointId": "spawn.town_gate"
+      }
+    },
+    {
+      "id": "map.forest_path",
+      "name": "森林道路",
+      "purpose": "探索、采集、怪物遭遇",
+      "spawn": {
+        "id": "spawn.town_gate",
+        "x": 1024,
+        "y": 1660,
+        "direction": "up"
+      },
+      "exit": {
+        "zoneId": "zone.to_ruins",
+        "targetMapId": "map.old_ruins",
+        "targetSpawnPointId": "spawn.forest_entrance"
+      }
+    },
+    {
+      "id": "map.old_ruins",
+      "name": "古代遗迹",
+      "purpose": "结尾目标、谜题或首领事件",
+      "spawn": {
+        "id": "spawn.forest_entrance",
+        "x": 1024,
+        "y": 1680,
+        "direction": "up"
+      },
+      "exit": {
+        "zoneId": "zone.to_town",
+        "targetMapId": "map.start_town",
+        "targetSpawnPointId": "spawn.main_square"
+      }
+    }
+  ],
+  "actors": [
+    {
+      "id": "actor.hero",
+      "kind": "hero",
+      "displayName": "旅人"
+    },
+    {
+      "id": "actor.npc.guide",
+      "kind": "npc",
+      "displayName": "引路人"
+    },
+    {
+      "id": "actor.npc.artisan",
+      "kind": "npc",
+      "displayName": "工匠"
+    },
+    {
+      "id": "actor.npc.elder",
+      "kind": "npc",
+      "displayName": "长者"
+    },
+    {
+      "id": "actor.monster.guardian",
+      "kind": "monster",
+      "displayName": "守卫兽"
+    }
+  ]
+}

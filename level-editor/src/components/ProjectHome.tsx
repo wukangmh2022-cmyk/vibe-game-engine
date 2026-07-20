@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './ProjectHome.css';
 import vfs from '../utils/vfs';
+import { attachRuntimeSceneUrl } from '../utils/sceneMeta';
 import { setCurrentProjectKey as psSetKey, setScenes as psSet, getCurrentProjectKey as psGetKey } from '../utils/projectStore';
 import { isFsaSupported, loadLastHandle, saveLastHandle, verifyPermission, buildFileMapFromHandle, pickDirectory } from '../utils/fsAccess';
 
@@ -161,6 +162,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
       const data = await vfs.readScene(relPath);
       if (!data) throw new Error('not found');
       const b = projectBase ? ensureSlash(projectBase) : '';
+      attachRuntimeSceneUrl(data, { base: b, scenePath: relPath });
       onOpenScene(b, relPath, data);
     } catch (e) { alert('加载场景失败'); }
   };

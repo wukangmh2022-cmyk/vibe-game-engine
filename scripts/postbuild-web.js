@@ -50,7 +50,7 @@ for (const file of files) {
 }
 console.log(`[postbuild-web] Rewrote imports in ${rewritten} files to include proper .js or /index.js extensions.`);
 
-// Also copy a standalone runtime HTML to web/dist for convenience
+// Also copy a standalone runtime HTML pages to web/dist for convenience
 try {
   const src = path.join(__dirname, '..', 'level-editor', 'public', 'run.html');
   const dstDir = path.join(__dirname, '..', 'web', 'dist');
@@ -81,3 +81,35 @@ try {
     }
   }
 } catch (e) { console.warn('[postbuild-web] copy run.html failed:', e); }
+
+// Copy runtime.html (quick standalone runtime that always loads entry.json)
+try {
+  const src = path.join(__dirname, '..', 'level-editor', 'public', 'runtime.html');
+  const dstDir = path.join(__dirname, '..', 'web', 'dist');
+  const dst = path.join(dstDir, 'runtime.html');
+  if (fs.existsSync(src)) {
+    fs.mkdirSync(dstDir, { recursive: true });
+    fs.copyFileSync(src, dst);
+    // Rewrite absolute bootstrap import to relative for file:// usage
+    try {
+      let html = fs.readFileSync(dst, 'utf8');
+      const before = html;
+      html = html.replace(
+        /(import\s*\(\s*['"])\/web\/dist\/browser\/bootstrap\.js(['"]\s*\))/g,
+        (m, p1, p2) => `${p1}./browser/bootstrap.js${p2}`
+      );
+      html = html.replace(
+        /(['"])\/web\/dist\/browser\/bootstrap\.js(['"])/g,
+        (m, p1, p2) => `${p1}./browser/bootstrap.js${p2}`
+      );
+      if (html !== before) {
+        fs.writeFileSync(dst, html, 'utf8');
+        console.log('[postbuild-web] Rewrote runtime.html import to ./browser/bootstrap.js');
+      } else {
+        console.log('[postbuild-web] Copied runtime.html (no rewrite needed)');
+      }
+    } catch (e) {
+      console.warn('[postbuild-web] rewrite runtime.html failed:', e);
+    }
+  }
+} catch (e) { console.warn('[postbuild-web] copy runtime.html failed:', e); }

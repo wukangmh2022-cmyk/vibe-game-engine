@@ -1,4 +1,6 @@
 import { CommandExecutor } from '../core/CommandExecutor';
+import { loadCommandModifiers } from './commandModifiers';
+import { getGlobalCommandModifiers } from '../core/commandModifiers';
 import { EventManager } from '../core/EventManager';
 import { StateManager } from '../core/StateManager';
 import { createDefaultHandlers } from '../commands/factory';
@@ -69,6 +71,9 @@ async function bootstrap() {
   const logger = console as any;
 
   const executor = new CommandExecutor(stateManager, eventManager, resourceManager as any, renderManager as any, audioManager as any, logger as any);
+  try {
+    executor.setCommandModifiers(getGlobalCommandModifiers());
+  } catch {}
   createDefaultHandlers().forEach(h => executor.registerHandler(h));
   // Override DOM-based handlers with Pixi versions for browser runtime
   executor.registerHandler(new PixiCreateDropZoneHandler());
@@ -123,10 +128,13 @@ async function bootstrap() {
         (window as any).__ASSET_BASE__ = base;
       }
     } catch {}
+    try { await loadCommandModifiers((window as any).__ASSET_BASE__); } catch {}
     const res = await fetch(url);
     if (!res.ok) throw new Error('Failed to fetch JSON: ' + url);
     try {
       game = await res.json();
+      try { if (game && typeof game === 'object') (game as any).__runtimeSceneUrl = url; } catch {}
+      try { (window as any).__GAME_JSON_URL = url; } catch {}
       console.info('[Runtime] JSON loaded OK:', game?.id || 'unknown', (game?.levels?.length || 0), 'levels');
     } catch (e) {
       console.error('[Runtime] JSON parse error for', url, e);
@@ -137,6 +145,8 @@ async function bootstrap() {
       document.body.appendChild(box);
       throw e;
     }
+  } else {
+    try { await loadCommandModifiers((window as any).__ASSET_BASE__); } catch {}
   }
   // Best-effort: inject project-level skins from config.json if present (works when hosted alongside /scene/)
   try {

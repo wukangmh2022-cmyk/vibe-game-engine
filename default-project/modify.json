@@ -1,0 +1,17 @@
+{
+  "SHOW_IMAGE": [
+    {
+      "filter": { "resourceId": "_____10" },
+      "commands": [
+        {
+          "id": "script_2",
+          "type": "SCRIPT",
+          "parameters": {
+            "code": "// 上传通关数据到服务器\nconst [mon, dayOfWeek] = [new Date(), new Date().getDay()];\nmon.setDate(mon.getDate() - (dayOfWeek || 7) + 1); // 周日→减6天（7-1），周一→减0天\n// 2. 计算当前周的周日（周一 + 6天）\nconst sun = new Date(mon); sun.setDate(mon.getDate() + 6);\n// 3. 格式化日期区间（补0+拼接）\nconst range = `${(mon.getMonth()+1).toString().padStart(2,'0')}月${mon.getDate().toString().padStart(2,'0')}日~${(sun.getMonth()+1).toString().padStart(2,'0')}月${sun.getDate().toString().padStart(2,'0')}日`;\nconsole.log(range);\nlet prefix0 = getSceneId()+ '_'+(getLevelIndex()+1).toString();\nlet prefix = range + '_'+prefix0;\nconsole.log(prefix);\nawait user.set(prefix+ '_是否通关', true);\nawait user.set(prefix+ '_最佳通过时间',getVar('countdown'));\n\nlet finishTotal = await user.get(getSceneId()+ '_通关数') ?? 0; \nconsole.log(getSceneId()+ '_通关数 , ' +Math.max(finishTotal, (getLevelIndex()+1)) );\nawait user.set(getSceneId()+ '_通关数', Math.max(finishTotal, (getLevelIndex()+1)));\nconsole.log(await user.get(getSceneId()+ '_通关数'))",
+            "unsafe": false
+          }
+        }
+      ]
+    }
+  ]
+}

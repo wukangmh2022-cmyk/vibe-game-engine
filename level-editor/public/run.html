@@ -80,7 +80,8 @@
       }
 
       await loadPixi();
-      const { mountRuntime } = await import('/web/dist/browser/bootstrap.js');
+      const runtimeVersion = new URLSearchParams(location.search).get('v') || String(Date.now());
+      const { mountRuntime } = await import(`/web/dist/browser/bootstrap.js?v=${encodeURIComponent(runtimeVersion)}`);
 
       const appEl = document.getElementById('app');
       let mounted = null;
@@ -91,6 +92,8 @@
           // 先拉取 JSON，读取 canvas 宽高决定初始容器尺寸
           const res = await fetch(url, { cache: 'no-cache' });
           const game = await res.json();
+          try { window.__GAME_JSON_URL = url; } catch {}
+          try { if (game && typeof game === 'object') game.__runtimeSceneUrl = url; } catch {}
           // 预处理：从 config.json 注入 skins，并规范化资源 URL；暴露 __VFS_GET_URL__
           try {
             const ensureSlashEnd = (s) => s.endsWith('/') ? s : (s + '/');
@@ -127,6 +130,10 @@
           // 自适应：按容器居中缩放，保持等比
           const fit = () => {
             try {
+              if (game && game.rpg) {
+                mounted.setViewScale?.(1);
+                return;
+              }
               const vw = window.innerWidth; const vh = window.innerHeight;
               const s = Math.max(0.1, Math.min(vw / w, vh / h));
               appEl.style.width = Math.floor(w * s) + 'px';

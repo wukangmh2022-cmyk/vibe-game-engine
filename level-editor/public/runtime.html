@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vibe Runtime (Standalone)</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #0e0f12; color: #e6edf3; font-family: -apple-system, system-ui, Segoe UI, Roboto, PingFang SC, Microsoft YaHei, sans-serif; overflow: hidden; }
+    .wrap { position: fixed; inset: 0; display: grid; place-items: center; }
+    #app { position: relative; width: 800px; height: 600px; background: #000; box-shadow: 0 8px 32px rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; }
+    .hint { position: fixed; left: 8px; bottom: 6px; font-size: 12px; opacity: 0.6; }
+  </style>
+  <!-- Quick, editor-runtime compatible, no panels; always loads scene/entry.json level 0 -->
+  <!-- Use ?base=/game/ to point to remote project root (must contain scene/entry.json) -->
+</head>
+<body>
+  <div class="wrap"><div id="app"></div></div>
+  <div class="hint">Vibe Runtime</div>
+
+  <!-- runtime bundle will be injected by HtmlWebpackPlugin (chunk: runtime) -->
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { BaseCommandHandler } from '../core/CommandExecutor';
 import { CommandType, CommandContext, CommandResult, GameCommand } from '../types';
-import { resolveIdFromBraces } from '../utils/ParamResolver';
+import { resolveElementId } from '../utils/ParamResolver';
 import { Animator } from '../browser/Animator';
 
 export class SetSelectedHandler extends BaseCommandHandler {
@@ -9,7 +9,7 @@ export class SetSelectedHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = command.parameters || {};
-    let id: string | undefined = resolveIdFromBraces(p.elementId, context);
+    let id: string | undefined = resolveElementId(p.elementId, context);
     if (!id) return this.createErrorResult('Missing required parameter: elementId');
 
     const rm: any = context.renderManager as any;

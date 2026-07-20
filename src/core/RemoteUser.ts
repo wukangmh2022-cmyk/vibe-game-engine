@@ -62,7 +62,7 @@ export class RemoteUser {
    * 使用保存的token登录（自动登录）
    * 失败时需要回退到用户名密码登录
    */
-  async loginWithToken(): Promise<{ ok: boolean; error?: string }> {
+  async loginWithToken(): Promise<{ ok: boolean; error?: string; userId?: string }> {
     const savedToken = this.token;
     if (!savedToken) {
       return { ok: false, error: 'No saved token' };
@@ -73,10 +73,12 @@ export class RemoteUser {
       // 更新为新token
       this.token = String((res as any).token);
       // 如果有返回userId，也更新
+      let resolvedUserId: string | undefined;
       if ((res as any).userId) {
-        this.userId = String((res as any).userId);
+        resolvedUserId = String((res as any).userId);
+        this.userId = resolvedUserId;
       }
-      return { ok: true };
+      return { ok: true, userId: resolvedUserId ?? undefined };
     }
     
     // Token登录失败，清除本地保存的token
@@ -97,15 +99,17 @@ export class RemoteUser {
     return { ok: true };
   }
 
-  async writeData(sceneId: string, key: string, value: any): Promise<{ ok: boolean; error?: string }> {
+  async writeData(_sceneId: string, key: string, value: any): Promise<{ ok: boolean; error?: string }> {
     const t = this.token;
     if (!t) return { ok: false, error: 'Not logged in' };
+    const sceneId = 'default';
     return this.post('/write', { token: t, sceneId, key, value });
   }
 
-  async readData(sceneId: string, key?: string): Promise<{ ok: boolean; data?: any; error?: string }> {
+  async readData(_sceneId: string, key?: string): Promise<{ ok: boolean; data?: any; error?: string }> {
     const t = this.token;
     if (!t) return { ok: false, error: 'Not logged in' };
+    const sceneId = 'default';
     const res = await this.post('/read', { token: t, sceneId, key });
     if (res && (res as any).ok !== false) return { ok: true, data: (res as any).data };
     return { ok: false, error: (res && (res as any).error) ? String((res as any).error) : 'Read failed' };
@@ -117,13 +121,27 @@ export class RemoteUser {
     }
     const url = this.endpoint.replace(/\/$/, '') + path;
     try {
+      this.logCurl(path, body);
       const resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body ?? {})
       } as any);
-      if (!resp.ok) return { ok: false, error: `HTTP ${resp.status}` } as any;
-      const data = await resp.json();
+
+      const raw = await resp.text();
+      let data: any = null;
+      try {
+        data = raw ? JSON.parse(raw) : null;
+      } catch {
+        data = null;
+      }
+
+      if (!resp.ok) {
+        const serverError = (data && typeof data.error === 'string') ? data.error : null;
+        const error = serverError ?? `HTTP ${resp.status}`;
+        return { ok: false, error };
+      }
+
       return data;
     } catch (e) {
       return { ok: false, error: (e instanceof Error ? e.message : String(e)) } as any;
@@ -132,6 +150,18 @@ export class RemoteUser {
 
   private isDisabled(): boolean {
     try { return (globalThis as any).__DISABLE_REMOTE_USER__ === true; } catch { return false; }
+  }
+
+  private logCurl(path: string, body: any): void {
+    try {
+      const url = this.endpoint.replace(/\/$/, '') + path;
+      const payload = JSON.stringify(body ?? {});
+      const escapedPayload = payload.replace(/'/g, `'\"'\"'`);
+      const curlCmd = `curl -X POST -H "Content-Type: application/json" -d '${escapedPayload}' "${url}"`;
+      console.info(`[RemoteUser] ${curlCmd}`);
+    } catch (err) {
+      console.warn('[RemoteUser] Failed to log curl command', err);
+    }
   }
 }
 

@@ -17,6 +17,7 @@ import { StateManager } from './StateManager';
 import { EventManager } from './EventManager';
 import { CommandExecutor } from './CommandExecutor';
 import { Logger } from '../utils/Logger';
+import { getGlobalCommandModifiers } from './commandModifiers';
 
 /**
  * 游戏运行时引擎
@@ -65,6 +66,9 @@ export class GameRuntime {
       this.audioManager,
       this.logger
     );
+    try {
+      this.commandExecutor.setCommandModifiers(getGlobalCommandModifiers());
+    } catch {}
 
     this.setupEventListeners();
     this.logger.info('GameRuntime created');

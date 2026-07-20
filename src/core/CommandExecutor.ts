@@ -12,6 +12,14 @@ import {
   IAudioManager,
   ILogger
 } from '../types';
+import {
+  cloneCommand,
+  COMMAND_MODIFIER_FLAG,
+  CommandModifierConfig,
+  CommandModifierEntry,
+  matchesModifierFilter,
+  normalizeCommandKey
+} from './commandModifiers';
 
 /**
  * 指令执行器
@@ -23,6 +31,7 @@ export class CommandExecutor {
   private isExecuting: boolean = false;
   private context: CommandContext;
   private logger: ILogger;
+  private commandModifiers: Map<string, CommandModifierEntry[]> = new Map();
   // Abort support
   private aborted: boolean = false;
   private abortables: Set<() => void> = new Set();
@@ -90,6 +99,26 @@ export class CommandExecutor {
       this.logger.debug(`Unregistered handler for command type: ${type}`);
     }
     return removed;
+  }
+
+  setCommandModifiers(raw: CommandModifierConfig | Record<string, any> | null | undefined): void {
+    this.commandModifiers.clear();
+    if (!raw) return;
+    Object.entries(raw).forEach(([key, entries]) => {
+      const normalizedKey = normalizeCommandKey(key);
+      if (!normalizedKey) return;
+      const list = Array.isArray(entries) ? entries : [];
+      const prepared = list.map((entry) => {
+        if (!entry || !Array.isArray(entry.commands) || !entry.commands.length) return null;
+        return {
+          filter: entry.filter ? { ...entry.filter } : undefined,
+          commands: entry.commands.map(cloneCommand)
+        } as CommandModifierEntry;
+      }).filter(Boolean) as CommandModifierEntry[];
+      if (prepared.length) {
+        this.commandModifiers.set(normalizedKey, prepared);
+      }
+    });
   }
 
   /**
@@ -174,6 +203,8 @@ export class CommandExecutor {
         return { success: true, data: { aborted: true } } as CommandResult;
       }
       this.logger.debug(`Executing command: ${command.type}`, { command });
+
+      await this.runCommandModifiers(command);
       
       // 触发指令开始执行事件
       this.context.eventManager.emit('command_start', { command });
@@ -257,6 +288,7 @@ export class CommandExecutor {
       try {
         if (this.aborted) return { success: true, data: { aborted: true } } as any;
         this.logger.debug(`Executing command: ${command.type}`, { command });
+        await this.runCommandModifiers(command, instanceId ?? undefined);
         localCtx.eventManager.emit('command_start', { command });
         const result = await handler.execute(command, localCtx);
         localCtx.eventManager.emit('command_complete', { command, result });
@@ -331,6 +363,33 @@ export class CommandExecutor {
     const queueSize = this.executionQueue.length;
     this.executionQueue = [];
     this.logger.debug(`Command queue cleared`, { clearedCommands: queueSize });
+  }
+
+  private async runCommandModifiers(command: GameCommand, instanceId?: number): Promise<void> {
+    if (!this.commandModifiers.size) return;
+    if ((command as any)?.[COMMAND_MODIFIER_FLAG]) return;
+    const key = normalizeCommandKey(command.type as any);
+    if (!key) return;
+    const entries = this.commandModifiers.get(key);
+    if (!entries || !entries.length) return;
+    for (const entry of entries) {
+      if (!matchesModifierFilter(command, entry.filter)) continue;
+      const clones = entry.commands.map(src => {
+        const cloned = cloneCommand(src);
+        (cloned as any)[COMMAND_MODIFIER_FLAG] = true;
+        if (!cloned.id) {
+          const base = command.id || command.type || 'MODIFIER';
+          cloned.id = `${base}_${Math.random().toString(36).slice(2, 8)}` as any;
+        }
+        return cloned;
+      });
+      if (!clones.length) continue;
+      if (instanceId != null) {
+        await this.executeCommands(clones, { instanceId });
+      } else {
+        await this.executeCommands(clones);
+      }
+    }
   }
 
   /**

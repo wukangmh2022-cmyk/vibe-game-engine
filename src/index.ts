@@ -22,6 +22,9 @@ export * from './commands';
 // 导出拖拽处理器
 export * from './handlers';
 
+// 导出 RPG image-map 扩展
+export * from './rpg';
+
 // 导出工具类
 export { Logger, LogLevel };
 

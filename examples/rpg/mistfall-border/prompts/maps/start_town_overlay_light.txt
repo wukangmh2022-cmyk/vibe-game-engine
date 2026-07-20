@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: transparent RPG image-map light and shadow overlay
+Primary request: Create an overlay light/shadow layer for the map named 起始城镇.
+Input image role: Use the matching base map as alignment reference.
+Style/medium: Transparent PNG overlay for a high-definition 2D fantasy RPG map.
+Composition/framing: Same exact size and alignment as the base map. Do not move or repaint objects.
+Lighting/mood: Include only soft ambient shadows, local glows, tree canopy shade, roof shade, mist dimming, and waterfall highlights.
+Constraints: Transparent background where no overlay is needed. No characters, no UI, no text, no full repaint, no changed map layout.

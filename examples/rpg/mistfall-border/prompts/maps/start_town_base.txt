@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: 2D RPG image-map base layer, no baked lighting overlay
+Primary request: Generate a fantasy high-definition 2D game map for: 雾瀑边境：唐风旅人在瀑布森林城镇寻找避瘴香，进入古遗迹封印雾兽
+Scene/backdrop: 起始城镇. Build a readable exploration map with landmarks, paths, entrances, exits, interactive areas, and room for NPC movement.
+Style/medium: High-definition fantasy 2D RPG map art, top-down orthographic view, painterly pixel-tile hybrid, crisp readable details, colorful and clean.
+Composition/framing: 2048x2048 square image-map, full-map top-down view, clear walkable routes, no characters, no UI, no text labels, no border.
+Lighting/mood: No baked dramatic light, no strong shadows, no glow effects. Neutral soft daytime ambient color only so overlay light/shadow can be generated later.
+Constraints: This is one complete image, not a tilemap sheet. Avoid grid lines, UI, text, logos, watermark, extreme darkness, perspective clutter, and characters.

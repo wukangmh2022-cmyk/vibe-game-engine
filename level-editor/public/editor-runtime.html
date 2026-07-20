@@ -25,10 +25,87 @@
         { id: '00project', name: '00project', base: '/00project/' }
       ];
 
+      const loadModifiersForBase = async (base) => {
+        const ensureSlash = (s) => (s.endsWith('/') ? s : (s + '/'));
+        const clone = (obj) => JSON.parse(JSON.stringify(obj));
+        const isCommand = (obj) => obj && typeof obj === 'object' && typeof obj.type === 'string';
+        const normalizeKey = (input) => {
+          if (!input) return null;
+          const trimmed = String(input).trim();
+          if (!trimmed) return null;
+          return trimmed.replace(/[\s-]+/g, '_').toUpperCase();
+        };
+        const normalizeEntryObject = (val) => {
+          if (!val || typeof val !== 'object') return null;
+          const cmds = Array.isArray(val.commands) ? val.commands : [];
+          if (!cmds.length) return null;
+          const filter = val.filter && typeof val.filter === 'object' ? clone(val.filter) : undefined;
+          return { filter, commands: cmds.map(clone) };
+        };
+        const toEntries = (value) => {
+          const list = [];
+          if (!value) return list;
+          if (Array.isArray(value)) {
+            if (value.length && value.every(isCommand)) {
+              list.push({ commands: value.map(clone) });
+              return list;
+            }
+            value.forEach((item) => {
+              const entry = normalizeEntryObject(item);
+              if (entry) list.push(entry);
+            });
+            return list;
+          }
+          if (isCommand(value)) {
+            list.push({ commands: [clone(value)] });
+            return list;
+          }
+          const entry = normalizeEntryObject(value);
+          if (entry) list.push(entry);
+          return list;
+        };
+        const normalize = (raw) => {
+          if (!raw) return null;
+          let source = {};
+          if (Array.isArray(raw)) {
+            raw.forEach((entry) => {
+              if (!entry) return;
+              const key = entry.match || entry.type || entry.command || entry.name;
+              if (!key) return;
+              source[key] = entry;
+            });
+          } else if (typeof raw === 'object') {
+            if (raw.commands && typeof raw.commands === 'object' && !Array.isArray(raw.commands)) {
+              source = raw.commands;
+            } else {
+              source = raw;
+            }
+          }
+          const out = {};
+          Object.keys(source).forEach((k) => {
+            const norm = normalizeKey(k);
+            if (!norm) return;
+            const entries = toEntries(source[k]);
+            if (entries.length) out[norm] = entries;
+          });
+          return out;
+        };
+        try {
+          const url = ensureSlash(base) + 'modify.json';
+          const resp = await fetch(url, { cache: 'no-cache' });
+          if (!resp.ok) { window.__COMMAND_MODIFIERS__ = null; return; }
+          const data = await resp.json();
+          window.__COMMAND_MODIFIERS__ = normalize(data);
+        } catch {
+          window.__COMMAND_MODIFIERS__ = null;
+        }
+      };
+
       function setProjectBase(base) {
         const b = ensureSlash(base);
         window.__ASSET_BASE__ = b;
         localStorage.setItem(storageProject, b);
+        loadModifiersForBase(b);
       }
 
       async function populateScenes(base) {

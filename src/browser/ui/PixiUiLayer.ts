@@ -199,7 +199,8 @@ export function attachPixiUi(
     const selSlice = selSk?.slice;
     const resId = ui.buttonResourceId || undefined;
     const url = resId ? resourceManager.getResource?.(resId)?.url : skinUrl;
-    const group = new PIXIImpl.Container(); group.x = pos.x; group.y = pos.y; (group as any).zIndex = 100;
+    const zIndexRaw = ui.zIndex != null ? Number(ui.zIndex) : 100;
+    const group = new PIXIImpl.Container(); group.x = pos.x; group.y = pos.y; (group as any).zIndex = Number.isFinite(zIndexRaw) ? zIndexRaw : 100;
     let x = 0, y = 0, col = 0; const rowMax = Number(ui.rowMax || 1);
     const makeBtn = (label: string, onTap: () => void) => {
       const btn = new PIXIImpl.Container();

@@ -1,3 +1,5 @@
+import { attachRuntimeSceneUrl } from './sceneMeta';
+
 // Minimal Virtual File System (VFS) for the editor
 // Backends:
 // - folder: Map<string, File> provided by user-selected local folder
@@ -315,11 +317,19 @@ export const vfs: IVFS = {
       const f = folderFiles.get(p) || folderFiles.get(normPath(p));
       if (!f) return null;
       const text = await f.text();
-      return JSON.parse(text);
+      const data = JSON.parse(text);
+      attachRuntimeSceneUrl(data, { base: currentBase, scenePath: p });
+      return data;
     }
     const rec = await idbGet(p);
     if (!rec) return null;
-    try { return typeof rec.content === 'string' ? JSON.parse(rec.content) : null; } catch { return null; }
+    try {
+      const data = typeof rec.content === 'string' ? JSON.parse(rec.content) : null;
+      attachRuntimeSceneUrl(data, { base: currentBase, scenePath: p });
+      return data;
+    } catch {
+      return null;
+    }
   },
 
   async writeScene(path: string, data: any): Promise<void> {
