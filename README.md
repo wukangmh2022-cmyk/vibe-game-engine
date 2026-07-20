@@ -12,13 +12,17 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 - 事件和交互：支持按钮、选择项、拖拽、区域检测、条件分支、变量状态和场景跳转，适合快速制作互动小游戏。
 - 可扩展架构：核心运行时、浏览器 Pixi 渲染层和编辑器 UI 分离，便于继续扩展新指令和新渲染能力。
 
-在线示例：[http://47.108.203.64/new/runtime.html](http://47.108.203.64/new/runtime.html)
-
 在线编辑器：[https://wukangmh2022-cmyk.github.io/vibe-game-engine/editor/](https://wukangmh2022-cmyk.github.io/vibe-game-engine/editor/)。编辑器可打开本地工程目录，浏览器内继续编辑，并导出完整工程 ZIP。
 
 ## Screenshots
 
-![Editor](docs/images/vibe-editor.png)
+### 可视化关卡编辑
+
+![Vibe Game Engine 编辑器工作台](docs/images/editor-workspace.png)
+
+### AI 生成关卡指令
+
+![AI 关卡生成与资源引用面板](docs/images/ai-level-generation.png)
 
 ## Tech Stack
 
