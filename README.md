@@ -57,6 +57,8 @@ npm start
 
 The `customer-demo/` project is the static, customer-safe edition of the 智慧健脑 games. It starts at the ten-game menu, enables every local level, and omits login, account, progress-sync, and score-upload commands.
 
+[在线试玩智慧健脑](https://wukangmh2022-cmyk.github.io/vibe-game-engine/)
+
 Build the Pages artifact locally with:
 
 ```bash

@@ -123,13 +123,14 @@
           } catch {}
           const w = (game?.levels?.[0]?.canvasWidth) || 800;
           const h = (game?.levels?.[0]?.canvasHeight) || 600;
-          appEl.style.width = w + 'px'; appEl.style.height = h + 'px';
           mounted = await mountRuntime(appEl, game, { width: w, height: h, pixi: window.PIXI, startLevelIndex });
           // 自适应：按容器居中缩放，保持等比
           const fit = () => {
             try {
               const vw = window.innerWidth; const vh = window.innerHeight;
               const s = Math.max(0.1, Math.min(vw / w, vh / h));
+              appEl.style.width = Math.floor(w * s) + 'px';
+              appEl.style.height = Math.floor(h * s) + 'px';
               mounted.setViewScale?.(s);
             } catch {}
           };
