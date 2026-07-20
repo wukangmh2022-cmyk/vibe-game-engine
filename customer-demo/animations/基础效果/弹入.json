@@ -1,0 +1,8 @@
+{
+  "relative": true,
+  "origin": "center",
+  "timeline": [
+    { "time": 0,   "props": { "y": -30, "alpha": 0 } },
+    { "time": 500, "ease": "easeOutBounce", "props": { "y": 0, "alpha": 1 } }
+  ]
+}

@@ -52,3 +52,15 @@ npm install
 npm run build
 npm start
 ```
+
+## Customer Demo On GitHub Pages
+
+The `customer-demo/` project is the static, customer-safe edition of the 智慧健脑 games. It starts at the ten-game menu, enables every local level, and omits login, account, progress-sync, and score-upload commands.
+
+Build the Pages artifact locally with:
+
+```bash
+npm run build:customer-demo
+```
+
+The generated site is `gh-pages/`. The GitHub Actions workflow in `.github/workflows/deploy-customer-demo.yml` publishes that directory whenever `main` is pushed. In the repository Settings, select **Pages > Build and deployment > GitHub Actions** once to enable the first deployment.

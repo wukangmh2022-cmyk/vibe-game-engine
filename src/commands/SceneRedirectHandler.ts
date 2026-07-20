@@ -1,5 +1,6 @@
 import { GameCommand, CommandContext, CommandResult } from '../types';
 import { BaseCommandHandler } from '../core/CommandExecutor';
+import { interpolateBraces } from '../utils/ParamResolver';
 
 // 场景跳转：跳转到指定场景JSON（相对工程根/scene/... 或绝对URL）
 export class SceneRedirectHandler extends BaseCommandHandler {
@@ -8,8 +9,11 @@ export class SceneRedirectHandler extends BaseCommandHandler {
 
   async execute(command: GameCommand, context: CommandContext): Promise<CommandResult> {
     const p = (command.parameters || {}) as any;
-    const url: string | undefined = p.url || p.scene || p.path;
-    const levelIndex: number | undefined = (typeof p.levelIndex === 'number') ? p.levelIndex : (p.levelIndex != null ? Number(p.levelIndex) : undefined);
+    const rawUrl = p.url || p.scene || p.path;
+    const resolvedUrl = interpolateBraces(rawUrl, context);
+    const url: string | undefined = typeof resolvedUrl === 'string' ? resolvedUrl : undefined;
+    const resolvedLevelIndex = interpolateBraces(p.levelIndex, context);
+    const levelIndex: number | undefined = (typeof resolvedLevelIndex === 'number') ? resolvedLevelIndex : (resolvedLevelIndex != null ? Number(resolvedLevelIndex) : undefined);
     const fromLevel: string | undefined = (context?.stateManager?.getCurrentLevel?.() as any) || context?.stateManager?.getVariable?.('currentLevel');
     // Hardcoded console log for debugging scene redirects
     console.info('[SceneRedirectCommand] execute', {

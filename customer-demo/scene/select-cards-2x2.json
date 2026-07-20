@@ -1,0 +1,342 @@
+{
+  "id": "select-cards-2x2",
+  "name": "多选卡片 2×2 (无翻牌)",
+  "version": "1.0.0",
+  "globalVariables": {},
+  "globalSwitches": {},
+  "levels": [
+    {
+      "id": "select-2x2",
+      "name": "多选 2×2",
+      "commands": [
+        {
+          "id": "title",
+          "type": "SHOW_TEXT",
+          "parameters": {
+            "elementId": "title",
+            "text": "✅ 点选卡片可多选 (0-4)",
+            "position": {
+              "x": 20,
+              "y": 20
+            },
+            "style": {
+              "fontSize": "24px",
+              "color": "#ffffff"
+            }
+          }
+        },
+        {
+          "id": "show-c1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-1",
+            "resourceId": "card-a",
+            "position": {
+              "x": 300,
+              "y": 160
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1,
+            "visible": true,
+            "animation": {
+              "loop": {
+                "animId": ""
+              }
+            },
+            "id": "show-c1"
+          }
+        },
+        {
+          "id": "selable-c1",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-1",
+            "selectable": true,
+            "variableKey": "card1_selected",
+            "overlayResourceId": "",
+            "effect": "",
+            "singleSelect": true,
+            "onSelectedCommands": [
+              {
+                "id": "animate_loop_1",
+                "type": "ANIMATE_LOOP",
+                "parameters": {
+                  "elementId": "card-1",
+                  "mode": "resource",
+                  "loopType": "hoverY",
+                  "duration": 400,
+                  "animId": "___2"
+                }
+              },
+              {
+                "id": "show_image_1",
+                "type": "SHOW_IMAGE",
+                "parameters": {
+                  "elementId": "check",
+                  "resourceId": "check-circle",
+                  "position": {
+                    "x": 0,
+                    "y": 0
+                  },
+                  "parentId": "card-1",
+                  "align": "",
+                  "size": {
+                    "width": 0,
+                    "height": 0
+                  },
+                  "visible": true,
+                  "zIndex": 0,
+                  "animation": {
+                    "entry": {
+                      "animId": ""
+                    },
+                    "loop": {
+                      "animId": ""
+                    }
+                  },
+                  "id": "show_image_1",
+                  "style": {
+                    "anchorX": 0.5,
+                    "anchorY": 0.5,
+                    "alignCenter": true
+                  }
+                }
+              }
+            ],
+            "onCancelSelectedCommands": [
+              {
+                "id": "set_element_style_2",
+                "type": "SET_ELEMENT_STYLE",
+                "parameters": {
+                  "elementId": "check",
+                  "style": {
+                    "display": "none",
+                    "zIndex": 0,
+                    "scale": 0
+                  }
+                }
+              },
+              {
+                "id": "animate_loop_2",
+                "type": "ANIMATE_LOOP",
+                "parameters": {
+                  "elementId": "card-1",
+                  "mode": "resource",
+                  "loopType": "hoverY",
+                  "duration": 1200,
+                  "animId": "___3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "show-c2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-2",
+            "resourceId": "card-a",
+            "position": {
+              "x": 460,
+              "y": 160
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c2",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-2",
+            "selectable": true,
+            "variableKey": "card2_selected",
+            "overlayResourceId": "check-circle",
+            "effect": "___2",
+            "singleSelect": true,
+            "onSelectedCommands": [],
+            "onCancelSelectedCommands": []
+          }
+        },
+        {
+          "id": "show-c3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-3",
+            "resourceId": "card-b",
+            "position": {
+              "x": 300,
+              "y": 340
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c3",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-3",
+            "selectable": true,
+            "variableKey": "card3_selected",
+            "overlayResourceId": "check-circle",
+            "effect": "___2",
+            "singleSelect": true,
+            "onSelectedCommands": [],
+            "onCancelSelectedCommands": []
+          }
+        },
+        {
+          "id": "show-c4",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "card-4",
+            "resourceId": "card-b",
+            "position": {
+              "x": 460,
+              "y": 340
+            },
+            "size": {
+              "width": 120,
+              "height": 160
+            },
+            "zIndex": 1
+          }
+        },
+        {
+          "id": "selable-c4",
+          "type": "SET_SELECTABLE",
+          "parameters": {
+            "elementId": "card-4",
+            "selectable": true,
+            "variableKey": "card4_selected",
+            "overlayResourceId": "check-circle",
+            "effect": "___2",
+            "singleSelect": true,
+            "onSelectedCommands": [],
+            "onCancelSelectedCommands": []
+          }
+        }
+      ],
+      "resources": [
+        "bounce-in",
+        "fade-in",
+        "scale-0-1",
+        "scale-pop-in",
+        "slide-in-right",
+        "hover-slow",
+        "pulse",
+        "card-a",
+        "card-b",
+        "check-circle",
+        "____",
+        "__",
+        "___1",
+        "_____1",
+        "___2",
+        "___3",
+        "_____2",
+        "_____3",
+        "_____4",
+        "_____5",
+        "_____6",
+        "___4"
+      ],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    }
+  ],
+  "resources": {
+    "images": [
+      {
+        "id": "card-a",
+        "src": "images/测试资源/card-a.svg",
+        "name": "card-a"
+      },
+      {
+        "id": "card-b",
+        "src": "images/测试资源/card-b.svg",
+        "name": "card-b"
+      },
+      {
+        "id": "check-circle",
+        "src": "images/测试资源/check-circle.svg",
+        "name": "check-circle"
+      }
+    ],
+    "audios": [],
+    "animations": [
+      {
+        "id": "____",
+        "src": "animations/基础效果/从零放大.json",
+        "name": "从零放大"
+      },
+      {
+        "id": "__",
+        "src": "animations/基础效果/弹入.json",
+        "name": "弹入"
+      },
+      {
+        "id": "___1",
+        "src": "animations/基础效果/淡入.json",
+        "name": "淡入"
+      },
+      {
+        "id": "_____1",
+        "src": "animations/基础效果/放大入场.json",
+        "name": "放大入场"
+      },
+      {
+        "id": "___2",
+        "src": "animations/基础效果/呼吸.json",
+        "name": "呼吸"
+      },
+      {
+        "id": "___3",
+        "src": "animations/基础效果/静止.json",
+        "name": "静止"
+      },
+      {
+        "id": "_____2",
+        "src": "animations/基础效果/上下悬浮.json",
+        "name": "上下悬浮"
+      },
+      {
+        "id": "_____3",
+        "src": "animations/基础效果/向上滑入.json",
+        "name": "向上滑入"
+      },
+      {
+        "id": "_____4",
+        "src": "animations/基础效果/向下滑入.json",
+        "name": "向下滑入"
+      },
+      {
+        "id": "_____5",
+        "src": "animations/基础效果/向右滑入.json",
+        "name": "向右滑入"
+      },
+      {
+        "id": "_____6",
+        "src": "animations/基础效果/向左滑入.json",
+        "name": "向左滑入"
+      },
+      {
+        "id": "___4",
+        "src": "animations/基础效果/旋转.json",
+        "name": "旋转"
+      }
+    ],
+    "videos": []
+  }
+}

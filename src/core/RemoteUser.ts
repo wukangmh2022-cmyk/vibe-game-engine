@@ -1,5 +1,3 @@
-import { Console } from "console";
-
 /**
  * RemoteUser: simple singleton client for user auth + KV storage.
  * NOTE: This client assumes a JSON HTTP API at a fixed endpoint.
@@ -43,7 +41,7 @@ export class RemoteUser {
     } catch {}
   }
 
-  isLoggedIn(): boolean { return !!this.token; }
+  isLoggedIn(): boolean { return !this.isDisabled() && !!this.token; }
 
   async register(userId: string, password: string): Promise<{ ok: boolean; error?: string }> {
     return this.post('/register', { userId, password });
@@ -114,6 +112,9 @@ export class RemoteUser {
   }
 
   private async post(path: string, body: any): Promise<any> {
+    if (this.isDisabled()) {
+      return { ok: false, error: 'Remote user API is disabled for this deployment' };
+    }
     const url = this.endpoint.replace(/\/$/, '') + path;
     try {
       const resp = await fetch(url, {
@@ -127,6 +128,10 @@ export class RemoteUser {
     } catch (e) {
       return { ok: false, error: (e instanceof Error ? e.message : String(e)) } as any;
     }
+  }
+
+  private isDisabled(): boolean {
+    try { return (globalThis as any).__DISABLE_REMOTE_USER__ === true; } catch { return false; }
   }
 }
 

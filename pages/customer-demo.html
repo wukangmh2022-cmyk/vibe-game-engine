@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>智慧健脑</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #0e0f12; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+    .wrap { position: fixed; inset: 0; display: grid; place-items: center; }
+    #app { position: relative; width: 800px; height: 600px; max-width: 100%; max-height: 100%; overflow: hidden; background: #000; }
+    .error { position: fixed; inset: auto 16px 16px; padding: 10px 12px; color: #ffd6d6; background: #501c20; border: 1px solid #8f3941; }
+  </style>
+</head>
+<body>
+  <main class="wrap"><div id="app" aria-label="智慧健脑游戏"></div></main>
+  <script>
+    window.__DISABLE_REMOTE_USER__ = true;
+    window.__ASSET_BASE__ = new URL('./game/', window.location.href).href;
+
+    async function loadScript(src) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    async function start() {
+      try {
+        await loadScript('https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js');
+        const { mountRuntime } = await import('./browser/bootstrap.js');
+        const base = window.__ASSET_BASE__;
+        const config = await fetch(new URL('config.json', base), { cache: 'no-cache' }).then(res => {
+          if (!res.ok) throw new Error(`Unable to load game configuration (${res.status})`);
+          return res.json();
+        });
+        const scenePath = config?.['scene-tree']?.curnode || 'scene/entry.json';
+        let mounted = null;
+        const normalize = resource => {
+          if (!resource || typeof resource !== 'object') return;
+          const url = resource.url || resource.src;
+          if (typeof url === 'string' && !/^[a-z][a-z0-9+.-]*:/i.test(url) && !url.startsWith('/')) resource.url = new URL(url.replace(/^\.\//, ''), base).href;
+        };
+        window.__VFS_GET_URL__ = async relative => new URL(String(relative || '').replace(/^\.\//, ''), base).href;
+
+        async function loadGame(rawUrl, requestedLevelIndex) {
+          const sceneUrl = /^[a-z][a-z0-9+.-]*:/i.test(rawUrl) ? rawUrl : new URL(String(rawUrl).replace(/^\.\//, ''), base).href;
+          const game = await fetch(sceneUrl, { cache: 'no-cache' }).then(res => {
+            if (!res.ok) throw new Error(`Unable to load game scene (${res.status})`);
+            return res.json();
+          });
+          game.__runtimeSceneUrl = sceneUrl;
+          if (Array.isArray(game.resources)) game.resources.forEach(normalize);
+          if (Array.isArray(config.skins)) config.skins.forEach(normalize);
+          game.skins = config.skins || [];
+
+          const width = game?.levels?.[0]?.canvasWidth || 800;
+          const height = game?.levels?.[0]?.canvasHeight || 600;
+          const app = document.getElementById('app');
+          if (mounted) { mounted.dispose(); app.innerHTML = ''; }
+          app.style.width = `${width}px`;
+          app.style.height = `${height}px`;
+          const isEntry = sceneUrl === new URL(scenePath, base).href;
+          const startLevelIndex = Number.isFinite(requestedLevelIndex) ? requestedLevelIndex : (isEntry ? 1 : 0);
+          mounted = await mountRuntime(app, game, { width, height, pixi: window.PIXI, startLevelIndex });
+          const fit = () => mounted.setViewScale(Math.max(0.1, Math.min(window.innerWidth / width, window.innerHeight / height)));
+          window.onresize = fit;
+          fit();
+        }
+
+        window.addEventListener('message', event => {
+          const message = event.data || {};
+          if (message.type !== 'LOAD_GAME_JSON') return;
+          const payload = message.payload;
+          const url = typeof payload === 'object' ? payload.url : payload;
+          const levelIndex = typeof payload === 'object' ? Number(payload.levelIndex) : undefined;
+          if (url) loadGame(url, Number.isFinite(levelIndex) ? levelIndex : undefined);
+        });
+        await loadGame(scenePath, 1);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const box = document.createElement('div');
+        box.className = 'error';
+        box.textContent = `游戏加载失败: ${message}`;
+        document.body.appendChild(box);
+        console.error(error);
+      }
+    }
+
+    start();
+  </script>
+</body>
+</html>

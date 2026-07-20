@@ -1,0 +1,9 @@
+{
+  "relative": true,
+  "origin": "center",
+  "timeline": [
+    { "time": 0,   "props": { "scale": 1.0, "alpha": 1 } },
+    { "time": 150, "ease": "easeInOutQuad", "props": { "scale": 0.95 } },
+    { "time": 300, "ease": "easeInQuad", "props": { "scale": 0.90, "alpha": 0 } }
+  ]
+}

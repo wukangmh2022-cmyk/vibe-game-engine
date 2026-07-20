@@ -32,6 +32,8 @@ export interface MountOptions {
   resolution?: number;
   // Optional: provide a PIXI implementation (useful when consumer bundles pixi.js)
   pixi?: any;
+  // Optional: start from a specific level without changing the source scene.
+  startLevelIndex?: number;
 }
 
 export interface MountedRuntime {
@@ -164,6 +166,11 @@ export async function mountRuntime(
 
   // Init state: load global variables/switches first, then level.initialState overrides
   let levelIndex = 0;
+  try {
+    const count = Array.isArray(game?.levels) ? game.levels.length : 0;
+    const requested = Number(opts.startLevelIndex);
+    if (count > 0 && Number.isFinite(requested)) levelIndex = Math.max(0, Math.min(count - 1, requested));
+  } catch {}
   let level = game?.levels?.[levelIndex];
   try {
     const gv = (game && (game.globalVariables || (game.config && game.config.globalVariables))) || {};
@@ -335,8 +342,8 @@ export async function mountRuntime(
         } catch (e) { (logger || console).warn('PIXICANVAS_REDIRECT failed', e); }
         return;
       }
-      // fallback to postMessage for editor-runtime.html / web runtime
-      try { (window as any).postMessage?.({ type: 'LOAD_GAME_JSON', payload: url }, '*'); } catch {}
+      // Fallback to postMessage for standalone runtime pages.
+      try { (window as any).postMessage?.({ type: 'LOAD_GAME_JSON', payload: { url, levelIndex } }, '*'); } catch {}
     } catch (e) {
       try { const dbg = (globalThis as any)?.localStorage?.getItem?.('DEBUG_RUNTIME')==='1'; if (dbg) (logger || console).warn('scene_redirect handler failed', e); } catch {}
     }

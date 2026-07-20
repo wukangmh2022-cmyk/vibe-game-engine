@@ -1,0 +1,2496 @@
+{
+  "id": "entry",
+  "name": "入口场景",
+  "version": "1.0.0",
+  "globalVariables": {},
+  "globalSwitches": {},
+  "levels": [
+    {
+      "id": "entry-level",
+      "name": "入口",
+      "commands": [
+        {
+          "id": "bgm_play_2",
+          "type": "BGM_PLAY",
+          "parameters": {
+            "musicId": "bgm",
+            "volume": 0.8,
+            "loop": true,
+            "fadeIn": 500
+          }
+        },
+        {
+          "id": "show_image_2",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "bg",
+            "resourceId": "____1",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "visible": true,
+            "id": "bg-panel"
+          }
+        },
+        {
+          "id": "show_image_3",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "back",
+            "resourceId": "____",
+            "position": {
+              "x": 60,
+              "y": 230
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 0,
+              "height": 0
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "_____4"
+              },
+              "loop": {
+                "animId": "_____3"
+              }
+            },
+            "id": "show_image_1",
+            "style": {
+              "alignCenter": true,
+              "anchorX": 0.5,
+              "anchorY": 0.5
+            }
+          }
+        },
+        {
+          "id": "script_4_customer_demo",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "最大通过关卡",
+            "op": "set",
+            "value": 10,
+            "temporary": false
+          }
+        },
+        {
+          "id": "show_image_4",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "s1",
+            "resourceId": "_____icon",
+            "position": {
+              "x": 124,
+              "y": 170
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 150,
+              "height": 150
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "__",
+                "duration": 300
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "id": "show_image_2"
+          }
+        },
+        {
+          "id": "wait_1",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_5",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "s2",
+            "resourceId": "_____icon_1",
+            "position": {
+              "x": 300,
+              "y": 170
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 150,
+              "height": 150
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "__"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "id": "show_image_2"
+          }
+        },
+        {
+          "id": "wait_2",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_6",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "s3",
+            "resourceId": "_____icon_2",
+            "position": {
+              "x": 470,
+              "y": 170
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 150,
+              "height": 150
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "__"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "id": "show_image_2"
+          }
+        },
+        {
+          "id": "wait_3",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_11",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "s4",
+            "resourceId": "_____icon_3",
+            "position": {
+              "x": 124,
+              "y": 340
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 150,
+              "height": 150
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "__"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "id": "show_image_2"
+          }
+        },
+        {
+          "id": "wait_4",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_12",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "s5",
+            "resourceId": "_____icon_4",
+            "position": {
+              "x": 300,
+              "y": 340
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 150,
+              "height": 150
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": "__"
+              },
+              "loop": {
+                "animId": ""
+              }
+            },
+            "id": "show_image_2"
+          }
+        },
+        {
+          "id": "wait_13",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "emit_signal_1",
+          "type": "EMIT_SIGNAL",
+          "parameters": {
+            "signal": "ani",
+            "data": ""
+          }
+        },
+        {
+          "id": "set_clickable_3",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "s1",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_12",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'服药小管家'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_clickable_4",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "s2",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_13",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'顺序记忆师'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_clickable_5",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "s3",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_14",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'小小药剂师'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_clickable_6",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "s4",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_15",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'药品规划家'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_clickable_7",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "s5",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_16",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'药片领航员'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_clickable_1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "back",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "redirect-go-adventure",
+                "type": "SCENE_REDIRECT",
+                "parameters": {
+                  "url": "scene/entry.json",
+                  "levelIndex": 1
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "show_choices_4",
+          "type": "SHOW_CHOICES",
+          "parameters": {
+            "elementId": "show_choices_4",
+            "blocking": false,
+            "multiSelect": false,
+            "position": {
+              "x": 695,
+              "y": 0
+            },
+            "ui": {
+              "rowMax": 1,
+              "gapX": 16,
+              "gapY": 12,
+              "minWidth": 30,
+              "fontSize": 16,
+              "maxWidth": 300,
+              "paddingX": 12,
+              "paddingY": 8,
+              "color": "#ffffff",
+              "buttonSkinId": "",
+              "selectedSkinId": "",
+              "zIndex": 100
+            },
+            "options": [
+              {
+                "text": "返回上一页",
+                "commands": [
+                  {
+                    "id": "scene_redirect_5",
+                    "type": "SCENE_REDIRECT",
+                    "parameters": {
+                      "url": "scene/entry.json",
+                      "levelIndex": "2"
+                    }
+                  }
+                ]
+              }
+            ],
+            "id": "show_choices_4"
+          }
+        }
+      ],
+      "resources": [
+        "____1",
+        "____2",
+        "_____icon",
+        "_____icon_1",
+        "_____icon_2",
+        "_____icon_3",
+        "_____icon_4",
+        "____",
+        "_____1",
+        "__",
+        "___1",
+        "_____2",
+        "___2",
+        "_____3",
+        "_____4",
+        "_____5",
+        "_____6",
+        "_____7",
+        "____01",
+        "bgm",
+        "_____8",
+        "___3",
+        "_____9",
+        "___4",
+        "___5",
+        "_____101",
+        "___6",
+        "___7",
+        "_____111",
+        "_____12",
+        "_____13",
+        "_____14",
+        "_____15",
+        "___8"
+      ],
+      "events": [
+        {
+          "id": "event_mfxx44jd",
+          "name": "新事件",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "ani"
+            }
+          ],
+          "commands": [
+            {
+              "id": "show_image_10",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "music",
+                "resourceId": "_____8",
+                "position": {
+                  "x": 700,
+                  "y": 50
+                },
+                "parentId": "",
+                "align": "",
+                "size": {
+                  "width": 40,
+                  "height": 40
+                },
+                "visible": true,
+                "zIndex": 0,
+                "animation": {
+                  "entry": {
+                    "animId": "___1"
+                  },
+                  "loop": {
+                    "animId": "___3"
+                  }
+                },
+                "id": "show_image_1"
+              }
+            },
+            {
+              "id": "set_selectable_1",
+              "type": "SET_SELECTABLE",
+              "parameters": {
+                "elementId": "music",
+                "selectable": true,
+                "variableKey": "",
+                "overlayResourceId": "",
+                "effect": "",
+                "onSelectedCommands": [
+                  {
+                    "id": "bgm_stop_1",
+                    "type": "BGM_STOP",
+                    "parameters": {
+                      "fadeOut": 500
+                    }
+                  },
+                  {
+                    "id": "animate_loop_1",
+                    "type": "ANIMATE_LOOP",
+                    "parameters": {
+                      "elementId": "music",
+                      "mode": "resource",
+                      "loopType": "hoverY",
+                      "duration": 1200,
+                      "animId": "___4"
+                    }
+                  }
+                ],
+                "onCancelSelectedCommands": [
+                  {
+                    "id": "bgm_play_1",
+                    "type": "BGM_PLAY",
+                    "parameters": {
+                      "musicId": "bgm",
+                      "volume": 0.8,
+                      "loop": true,
+                      "fadeIn": 500
+                    }
+                  },
+                  {
+                    "id": "animate_loop_2",
+                    "type": "ANIMATE_LOOP",
+                    "parameters": {
+                      "elementId": "music",
+                      "mode": "resource",
+                      "loopType": "hoverY",
+                      "duration": 3000,
+                      "animId": "___3"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "event_miffdwdp_5byz",
+          "name": "场景转跳",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "转跳"
+            }
+          ],
+          "commands": [
+            {
+              "id": "set_variable_2",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "场景",
+                "op": "set",
+                "value": "{$1}",
+                "temporary": false
+              }
+            },
+            {
+              "id": "script_1_customer_demo",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "最大通过关卡",
+                "op": "set",
+                "value": 10,
+                "temporary": false
+              }
+            },
+            {
+              "id": "set_variable_4",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "选择关卡",
+                "op": "set",
+                "value": 0,
+                "temporary": false
+              }
+            },
+            {
+              "id": "show_image_1",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "mask",
+                "resourceId": "___5",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "parentId": "",
+                "size": {
+                  "width": 800,
+                  "height": 600
+                },
+                "visible": true,
+                "zIndex": 120,
+                "rotation": 0,
+                "animation": {
+                  "entry": {
+                    "animId": "",
+                    "duration": 0
+                  },
+                  "loop": {
+                    "animId": "",
+                    "duration": 0
+                  }
+                },
+                "id": "show_image_1"
+              }
+            },
+            {
+              "id": "show_text_1",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "show_text_1",
+                "text": "[${$1}]请选择进入的关卡（只能选择1-${最大通过关卡}）：\n                                                                            '",
+                "position": {
+                  "x": 90,
+                  "y": 200
+                },
+                "style": {
+                  "fontSize": "30",
+                  "color": "#ffffff",
+                  "stroke": "",
+                  "strokeThickness": 1,
+                  "dropShadow": true,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 0,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2,
+                  "maxWidth": 999,
+                  "textAlign": "left",
+                  "zIndex": 121
+                },
+                "skinId": "dialog-default-9slice",
+                "padding": 25,
+                "blocking": false,
+                "dismissOnContinue": true,
+                "id": "show_text_1"
+              }
+            },
+            {
+              "id": "show_choices_2",
+              "type": "SHOW_CHOICES",
+              "parameters": {
+                "elementId": "show_choices_2",
+                "blocking": true,
+                "multiSelect": false,
+                "position": {
+                  "x": 108,
+                  "y": 243
+                },
+                "ui": {
+                  "rowMax": 9,
+                  "gapX": 30,
+                  "gapY": 12,
+                  "minWidth": 30,
+                  "fontSize": 28,
+                  "maxWidth": 300,
+                  "paddingX": 12,
+                  "paddingY": 14,
+                  "color": "#ffffff",
+                  "buttonSkinId": "dialog-default-9slice",
+                  "selectedSkinId": "",
+                  "zIndex": 122
+                },
+                "options": [
+                  {
+                    "text": "1",
+                    "commands": [
+                      {
+                        "id": "set_variable_5",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 1,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "2",
+                    "commands": [
+                      {
+                        "id": "set_variable_6",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 2,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "3",
+                    "commands": [
+                      {
+                        "id": "set_variable_7",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 3,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "4",
+                    "commands": [
+                      {
+                        "id": "set_variable_8",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 4,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "5",
+                    "commands": [
+                      {
+                        "id": "set_variable_9",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 5,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "6",
+                    "commands": [
+                      {
+                        "id": "set_variable_10",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 6,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "7",
+                    "commands": [
+                      {
+                        "id": "set_variable_11",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 7,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "8",
+                    "commands": [
+                      {
+                        "id": "set_variable_12",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 8,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "9",
+                    "commands": [
+                      {
+                        "id": "set_variable_13",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 9,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "id": "show_choices_2"
+              }
+            },
+            {
+              "id": "script_2",
+              "type": "SCRIPT",
+              "parameters": {
+                "code": "let vv = Math.min(getVar('最大通过关卡'), getVar('选择关卡'));\nsetVar('选择关卡', vv);",
+                "unsafe": false
+              }
+            },
+            {
+              "id": "set_variable_1",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "选择关卡",
+                "op": "sub",
+                "value": 1,
+                "temporary": false
+              }
+            },
+            {
+              "id": "scene_redirect_2",
+              "type": "SCENE_REDIRECT",
+              "parameters": {
+                "url": "scene/{场景}.json",
+                "levelIndex": "{选择关卡}"
+              }
+            }
+          ]
+        }
+      ],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level_mfxsuxup",
+      "name": "技能培训页",
+      "commands": [
+        {
+          "id": "show_image_8",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "bg",
+            "resourceId": "bg_title_04",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "visible": true,
+            "id": "bg-panel",
+            "animation": {
+              "entry": {
+                "animId": ""
+              }
+            }
+          }
+        },
+        {
+          "id": "show_image_23",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "bar",
+            "resourceId": "_________1",
+            "position": {
+              "x": 285,
+              "y": -20
+            },
+            "size": {
+              "width": 238,
+              "height": 82
+            },
+            "zIndex": 0,
+            "visible": true,
+            "id": "bg-panel",
+            "animation": {
+              "entry": {
+                "animId": "_____5",
+                "duration": 1300
+              }
+            }
+          }
+        },
+        {
+          "id": "show_image_7",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "back2",
+            "resourceId": "____",
+            "position": {
+              "x": 40,
+              "y": 250
+            },
+            "parentId": "",
+            "align": "",
+            "size": {
+              "width": 0,
+              "height": 0
+            },
+            "visible": true,
+            "zIndex": 0,
+            "animation": {
+              "entry": {
+                "animId": ""
+              },
+              "loop": {
+                "animId": "_____3",
+                "duration": 1500
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "script_2_customer_demo",
+          "type": "SET_VARIABLE",
+          "parameters": {
+            "key": "最大通过关卡",
+            "op": "set",
+            "value": 10,
+            "temporary": false
+          }
+        },
+        {
+          "id": "set_clickable_2",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "back2",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "scene_redirect_1",
+                "type": "SCENE_REDIRECT",
+                "parameters": {
+                  "url": "scene/entry.json",
+                  "levelIndex": 0
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "set_element_style_2",
+          "type": "SET_ELEMENT_STYLE",
+          "parameters": {
+            "elementId": "bgmask",
+            "style": {
+              "alpha": 0.8
+            }
+          }
+        },
+        {
+          "id": "show_choices_1",
+          "type": "SHOW_CHOICES",
+          "parameters": {
+            "elementId": "show_choices_4",
+            "blocking": false,
+            "multiSelect": false,
+            "position": {
+              "x": 695,
+              "y": 0
+            },
+            "ui": {
+              "rowMax": 1,
+              "gapX": 16,
+              "gapY": 12,
+              "minWidth": 30,
+              "fontSize": 16,
+              "maxWidth": 300,
+              "paddingX": 12,
+              "paddingY": 8,
+              "color": "#ffffff",
+              "buttonSkinId": "",
+              "selectedSkinId": "",
+              "zIndex": 100
+            },
+            "options": [
+              {
+                "text": "返回上一页",
+                "commands": [
+                  {
+                    "id": "scene_redirect_5",
+                    "type": "SCENE_REDIRECT",
+                    "parameters": {
+                      "url": "scene/entry.json",
+                      "levelIndex": "2"
+                    }
+                  }
+                ]
+              }
+            ],
+            "id": "show_choices_4"
+          }
+        },
+        {
+          "id": "show_image_1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "1",
+            "resourceId": "_____",
+            "position": {
+              "x": 100,
+              "y": 70
+            },
+            "parentId": "",
+            "size": {
+              "width": 209,
+              "height": 125
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_16",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "1",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_3",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'虫虫大作战'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_1",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_13",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "2",
+            "resourceId": "_____9",
+            "position": {
+              "x": 310,
+              "y": 70
+            },
+            "parentId": "",
+            "size": {
+              "width": 188,
+              "height": 126
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_15",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "2",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_4",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'各就各位'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_5",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_14",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "3",
+            "resourceId": "___",
+            "position": {
+              "x": 499,
+              "y": 70
+            },
+            "parentId": "",
+            "size": {
+              "width": 197,
+              "height": 126
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_14",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "3",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_5",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'老火锅记忆'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_6",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_16",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "5",
+            "resourceId": "_____111",
+            "position": {
+              "x": 100,
+              "y": 193
+            },
+            "parentId": "",
+            "size": {
+              "width": 219,
+              "height": 245
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_13",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "5",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_2",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'记忆衣橱'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_8",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_17",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "6",
+            "resourceId": "_____13",
+            "position": {
+              "x": 320,
+              "y": 198
+            },
+            "parentId": "",
+            "size": {
+              "width": 180,
+              "height": 119
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_12",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "6",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_6",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'手疾眼快'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_9",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_18",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "7",
+            "resourceId": "______2",
+            "position": {
+              "x": 320,
+              "y": 318
+            },
+            "parentId": "",
+            "size": {
+              "width": 180,
+              "height": 119
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_11",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "7",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_7",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'小笼包派对'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_10",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_15",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "4",
+            "resourceId": "______1",
+            "position": {
+              "x": 501,
+              "y": 318
+            },
+            "parentId": "",
+            "size": {
+              "width": 196,
+              "height": 119
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "__",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_10",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "4",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_8",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'谁知盘中餐'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_7",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_19",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "8",
+            "resourceId": "_____14",
+            "position": {
+              "x": 501,
+              "y": 198
+            },
+            "parentId": "",
+            "size": {
+              "width": 196,
+              "height": 119
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_9",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "8",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_9",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'速记消除战'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_11",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_20",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "9",
+            "resourceId": "_____12",
+            "position": {
+              "x": 100,
+              "y": 435
+            },
+            "parentId": "",
+            "size": {
+              "width": 216,
+              "height": 124
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_8",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "9",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_10",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'农具速记'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_12",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        },
+        {
+          "id": "show_image_21",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "10",
+            "resourceId": "_____101",
+            "position": {
+              "x": 295,
+              "y": 435
+            },
+            "parentId": "",
+            "size": {
+              "width": 209,
+              "height": 124
+            },
+            "visible": true,
+            "zIndex": 1,
+            "animation": {
+              "entry": {
+                "animId": "_____2",
+                "duration": 200
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "10",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "emit_signal_11",
+                "type": "EMIT_SIGNAL",
+                "parameters": {
+                  "signal": "转跳",
+                  "data": "'瓜果分类'"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_1",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        }
+      ],
+      "resources": [
+        "_____",
+        "_____9",
+        "_____101",
+        "_____111",
+        "___",
+        "_____12",
+        "______1",
+        "_____13",
+        "_____14",
+        "______2",
+        "________",
+        "bg_title_03",
+        "_________1",
+        "bg_title_04",
+        "___6"
+      ],
+      "events": [
+        {
+          "id": "event_mfy0oljq_jif2",
+          "name": "新事件",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "pick"
+            }
+          ],
+          "commands": [
+            {
+              "id": "wait_1",
+              "type": "WAIT",
+              "parameters": {
+                "duration": 5000
+              }
+            },
+            {
+              "id": "show_image_9",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "pick",
+                "resourceId": "____01",
+                "position": {
+                  "x": 70,
+                  "y": 306
+                },
+                "parentId": "",
+                "align": "",
+                "size": {
+                  "width": 45,
+                  "height": 43
+                },
+                "visible": true,
+                "zIndex": 999,
+                "animation": {
+                  "entry": {
+                    "animId": "___1"
+                  },
+                  "loop": {
+                    "animId": "___2"
+                  }
+                },
+                "id": "show_image_2"
+              }
+            },
+            {
+              "id": "loop_1",
+              "type": "LOOP",
+              "parameters": {
+                "condition": {
+                  "type": "expression",
+                  "expression": "1==1"
+                },
+                "commands": [
+                  {
+                    "id": "wait_2",
+                    "type": "WAIT",
+                    "parameters": {
+                      "duration": 1000
+                    }
+                  },
+                  {
+                    "id": "move_to_1",
+                    "type": "MOVE_TO",
+                    "parameters": {
+                      "elementId": "pick",
+                      "x": 50,
+                      "y": 240,
+                      "duration": 1000,
+                      "keepOnMinusOne": true
+                    }
+                  },
+                  {
+                    "id": "wait_3",
+                    "type": "WAIT",
+                    "parameters": {
+                      "duration": 4000
+                    }
+                  },
+                  {
+                    "id": "move_to_2",
+                    "type": "MOVE_TO",
+                    "parameters": {
+                      "elementId": "pick",
+                      "x": 550,
+                      "y": 240,
+                      "duration": 3000,
+                      "keepOnMinusOne": true
+                    }
+                  },
+                  {
+                    "id": "wait_4",
+                    "type": "WAIT",
+                    "parameters": {
+                      "duration": 4000
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "event_mifcs09o",
+          "name": "场景转跳",
+          "triggers": [
+            {
+              "type": "custom",
+              "target": "转跳"
+            }
+          ],
+          "commands": [
+            {
+              "id": "set_variable_2",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "场景",
+                "op": "set",
+                "value": "{$1}",
+                "temporary": false
+              }
+            },
+            {
+              "id": "script_1_customer_demo",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "最大通过关卡",
+                "op": "set",
+                "value": 10,
+                "temporary": false
+              }
+            },
+            {
+              "id": "set_variable_4",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "选择关卡",
+                "op": "set",
+                "value": 0,
+                "temporary": false
+              }
+            },
+            {
+              "id": "show_image_1",
+              "type": "SHOW_IMAGE",
+              "parameters": {
+                "elementId": "mask",
+                "resourceId": "___5",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                },
+                "parentId": "",
+                "size": {
+                  "width": 800,
+                  "height": 600
+                },
+                "visible": true,
+                "zIndex": 120,
+                "rotation": 0,
+                "animation": {
+                  "entry": {
+                    "animId": "",
+                    "duration": 0
+                  },
+                  "loop": {
+                    "animId": "",
+                    "duration": 0
+                  }
+                },
+                "id": "show_image_1"
+              }
+            },
+            {
+              "id": "show_text_1",
+              "type": "SHOW_TEXT",
+              "parameters": {
+                "elementId": "show_text_1",
+                "text": "[${$1}]请选择进入的关卡（只能选择1-${最大通过关卡}）：\n                                                                            '",
+                "position": {
+                  "x": 90,
+                  "y": 200
+                },
+                "style": {
+                  "fontSize": "30",
+                  "color": "#ffffff",
+                  "stroke": "",
+                  "strokeThickness": 1,
+                  "dropShadow": true,
+                  "dropShadowColor": "#000000",
+                  "dropShadowBlur": 0,
+                  "dropShadowAngle": 1.2,
+                  "dropShadowDistance": 2,
+                  "maxWidth": 999,
+                  "textAlign": "left",
+                  "zIndex": 121
+                },
+                "skinId": "dialog-default-9slice",
+                "padding": 25,
+                "blocking": false,
+                "dismissOnContinue": true,
+                "id": "show_text_1"
+              }
+            },
+            {
+              "id": "show_choices_2",
+              "type": "SHOW_CHOICES",
+              "parameters": {
+                "elementId": "show_choices_2",
+                "blocking": true,
+                "multiSelect": false,
+                "position": {
+                  "x": 108,
+                  "y": 243
+                },
+                "ui": {
+                  "rowMax": 9,
+                  "gapX": 30,
+                  "gapY": 12,
+                  "minWidth": 30,
+                  "fontSize": 28,
+                  "maxWidth": 300,
+                  "paddingX": 12,
+                  "paddingY": 14,
+                  "color": "#ffffff",
+                  "buttonSkinId": "dialog-default-9slice",
+                  "selectedSkinId": "",
+                  "zIndex": 122
+                },
+                "options": [
+                  {
+                    "text": "1",
+                    "commands": [
+                      {
+                        "id": "set_variable_5",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 1,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "2",
+                    "commands": [
+                      {
+                        "id": "set_variable_6",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 2,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "3",
+                    "commands": [
+                      {
+                        "id": "set_variable_7",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 3,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "4",
+                    "commands": [
+                      {
+                        "id": "set_variable_8",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 4,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "5",
+                    "commands": [
+                      {
+                        "id": "set_variable_9",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 5,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "6",
+                    "commands": [
+                      {
+                        "id": "set_variable_10",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 6,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "7",
+                    "commands": [
+                      {
+                        "id": "set_variable_11",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 7,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "8",
+                    "commands": [
+                      {
+                        "id": "set_variable_12",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 8,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "text": "9",
+                    "commands": [
+                      {
+                        "id": "set_variable_13",
+                        "type": "SET_VARIABLE",
+                        "parameters": {
+                          "key": "选择关卡",
+                          "op": "set",
+                          "value": 9,
+                          "temporary": false
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "id": "show_choices_2"
+              }
+            },
+            {
+              "id": "script_2",
+              "type": "SCRIPT",
+              "parameters": {
+                "code": "let vv = Math.min(getVar('最大通过关卡'), getVar('选择关卡'));\nsetVar('选择关卡', vv);",
+                "unsafe": false
+              }
+            },
+            {
+              "id": "set_variable_1",
+              "type": "SET_VARIABLE",
+              "parameters": {
+                "key": "选择关卡",
+                "op": "sub",
+                "value": 1,
+                "temporary": false
+              }
+            },
+            {
+              "id": "scene_redirect_2",
+              "type": "SCENE_REDIRECT",
+              "parameters": {
+                "url": "scene/{场景}.json",
+                "levelIndex": "{选择关卡}"
+              }
+            }
+          ]
+        }
+      ],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    },
+    {
+      "id": "level_mfxsuxup_copy_1",
+      "name": "类型选择界面",
+      "commands": [
+        {
+          "id": "bgm_play_1",
+          "type": "BGM_PLAY",
+          "parameters": {
+            "musicId": "bgm",
+            "volume": 0.8,
+            "loop": true,
+            "fadeIn": 500
+          }
+        },
+        {
+          "id": "show_image_22",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "bg",
+            "resourceId": "____1",
+            "position": {
+              "x": 0,
+              "y": 0
+            },
+            "size": {
+              "width": 800,
+              "height": 600
+            },
+            "zIndex": 0,
+            "visible": true,
+            "id": "bg-panel"
+          }
+        },
+        {
+          "id": "show_image_1",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "show_image_1",
+            "resourceId": "______",
+            "position": {
+              "x": 230,
+              "y": 145
+            },
+            "parentId": "",
+            "size": {
+              "width": 329,
+              "height": 152
+            },
+            "visible": true,
+            "zIndex": 0,
+            "rotation": 0,
+            "animation": {
+              "entry": {
+                "animId": "__",
+                "duration": 0
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_1",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "show_image_1",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "scene_redirect_3",
+                "type": "SCENE_REDIRECT",
+                "parameters": {
+                  "url": "scene/entry.json",
+                  "levelIndex": "1"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_1",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 220
+          }
+        },
+        {
+          "id": "show_image_24",
+          "type": "SHOW_IMAGE",
+          "parameters": {
+            "elementId": "show_image_2",
+            "resourceId": "_______",
+            "position": {
+              "x": 230,
+              "y": 300
+            },
+            "parentId": "",
+            "size": {
+              "width": 329,
+              "height": 152
+            },
+            "visible": true,
+            "zIndex": 0,
+            "rotation": 0,
+            "animation": {
+              "entry": {
+                "animId": "__",
+                "duration": 0
+              },
+              "loop": {
+                "animId": "",
+                "duration": 0
+              }
+            },
+            "id": "show_image_1"
+          }
+        },
+        {
+          "id": "set_clickable_17",
+          "type": "SET_CLICKABLE",
+          "parameters": {
+            "elementId": "show_image_2",
+            "clickable": true,
+            "blocking": false,
+            "onClick": "commands",
+            "backResourceId": "",
+            "frontResourceId": "",
+            "showBack": true,
+            "effect": "",
+            "commands": [
+              {
+                "id": "scene_redirect_4",
+                "type": "SCENE_REDIRECT",
+                "parameters": {
+                  "url": "scene/entry.json",
+                  "levelIndex": "0"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "id": "wait_14",
+          "type": "WAIT",
+          "parameters": {
+            "duration": 100
+          }
+        }
+      ],
+      "resources": [
+        "_____",
+        "_____9",
+        "_____101",
+        "_____111",
+        "___",
+        "_____12",
+        "______1",
+        "_____13",
+        "_____14",
+        "______2",
+        "________",
+        "bg_title_03",
+        "_________1",
+        "bg_title_04",
+        "___6",
+        "______",
+        "_______"
+      ],
+      "events": [],
+      "canvasWidth": 800,
+      "canvasHeight": 600
+    }
+  ],
+  "resources": {
+    "images": [
+      {
+        "id": "panel-blue",
+        "src": "images/ui-blue.svg",
+        "name": "panel-blue"
+      },
+      {
+        "id": "btn-primary-9slice",
+        "src": "images/btn-blue.svg",
+        "name": "btn-primary-9slice"
+      },
+      {
+        "id": "____1",
+        "src": "images/标题背景1.png",
+        "name": "标题背景1"
+      },
+      {
+        "id": "____2",
+        "src": "images/标题背景2.png",
+        "name": "标题背景2"
+      },
+      {
+        "id": "_____icon",
+        "src": "images/old/服药小管家icon.png",
+        "name": "服药小管家icon"
+      },
+      {
+        "id": "_____icon_1",
+        "src": "images/old/顺序记忆师icon.png",
+        "name": "顺序记忆师icon"
+      },
+      {
+        "id": "_____icon_2",
+        "src": "images/old/小小药剂师icon.png",
+        "name": "小小药剂师icon"
+      },
+      {
+        "id": "_____icon_3",
+        "src": "images/old/药品规划家icon.png",
+        "name": "药品规划家icon"
+      },
+      {
+        "id": "_____icon_4",
+        "src": "images/old/药品领航员icon.png",
+        "name": "药品领航员icon"
+      },
+      {
+        "id": "____",
+        "src": "images/old/返回图标.png",
+        "name": "返回图标"
+      },
+      {
+        "id": "____01",
+        "src": "images/old/触摸指导01.png",
+        "name": "触摸指导01"
+      },
+      {
+        "id": "_____8",
+        "src": "images/old/声音开启.png",
+        "name": "声音开启"
+      },
+      {
+        "id": "_____",
+        "src": "images/封面补充素材/虫虫大作战.png",
+        "name": "虫虫大作战"
+      },
+      {
+        "id": "_____9",
+        "src": "images/封面补充素材/各就各位.png",
+        "name": "各就各位"
+      },
+      {
+        "id": "_____101",
+        "src": "images/封面补充素材/瓜果分类.png",
+        "name": "瓜果分类"
+      },
+      {
+        "id": "_____111",
+        "src": "images/封面补充素材/记忆衣橱.png",
+        "name": "记忆衣橱"
+      },
+      {
+        "id": "___",
+        "src": "images/封面补充素材/老火锅.png",
+        "name": "老火锅"
+      },
+      {
+        "id": "_____12",
+        "src": "images/封面补充素材/农具速记.png",
+        "name": "农具速记"
+      },
+      {
+        "id": "______1",
+        "src": "images/封面补充素材/谁知盘中餐.png",
+        "name": "谁知盘中餐"
+      },
+      {
+        "id": "_____13",
+        "src": "images/封面补充素材/手疾眼快.png",
+        "name": "手疾眼快"
+      },
+      {
+        "id": "_____14",
+        "src": "images/封面补充素材/速记消除.png",
+        "name": "速记消除"
+      },
+      {
+        "id": "______2",
+        "src": "images/封面补充素材/小笼包派对.png",
+        "name": "小笼包派对"
+      },
+      {
+        "id": "___5",
+        "src": "images/测试资源/蒙层.png",
+        "name": "蒙层"
+      },
+      {
+        "id": "________",
+        "src": "images/old/生活模拟页面背景.jpg",
+        "name": "生活模拟页面背景"
+      },
+      {
+        "id": "bg_title_03",
+        "src": "images/封面补充素材/bg_title_03.png",
+        "name": "bg_title_03"
+      },
+      {
+        "id": "_________1",
+        "src": "images/封面补充素材/生活模拟页面标题.png",
+        "name": "生活模拟页面标题"
+      },
+      {
+        "id": "bg_title_04",
+        "src": "images/封面补充素材/bg_title_04.png",
+        "name": "bg_title_04"
+      },
+      {
+        "id": "______",
+        "src": "images/old/主页技能按钮.png",
+        "name": "主页技能按钮"
+      },
+      {
+        "id": "_______",
+        "src": "images/old/主页模拟器按钮.png",
+        "name": "主页模拟器按钮"
+      }
+    ],
+    "audios": [
+      {
+        "id": "bgm",
+        "src": "audio/bgm/bgm.mp3",
+        "name": "bgm"
+      }
+    ],
+    "animations": [
+      {
+        "id": "_____1",
+        "src": "animations/基础效果/从零放大.json",
+        "name": "从零放大"
+      },
+      {
+        "id": "__",
+        "src": "animations/基础效果/弹入.json",
+        "name": "弹入"
+      },
+      {
+        "id": "___1",
+        "src": "animations/基础效果/淡入.json",
+        "name": "淡入"
+      },
+      {
+        "id": "_____2",
+        "src": "animations/基础效果/放大入场.json",
+        "name": "放大入场"
+      },
+      {
+        "id": "___2",
+        "src": "animations/基础效果/呼吸.json",
+        "name": "呼吸"
+      },
+      {
+        "id": "_____3",
+        "src": "animations/基础效果/上下悬浮.json",
+        "name": "上下悬浮"
+      },
+      {
+        "id": "_____4",
+        "src": "animations/基础效果/向上滑入.json",
+        "name": "向上滑入"
+      },
+      {
+        "id": "_____5",
+        "src": "animations/基础效果/向下滑入.json",
+        "name": "向下滑入"
+      },
+      {
+        "id": "_____6",
+        "src": "animations/基础效果/向右滑入.json",
+        "name": "向右滑入"
+      },
+      {
+        "id": "_____7",
+        "src": "animations/基础效果/向左滑入.json",
+        "name": "向左滑入"
+      },
+      {
+        "id": "___3",
+        "src": "animations/基础效果/旋转.json",
+        "name": "旋转"
+      },
+      {
+        "id": "___4",
+        "src": "animations/基础效果/静止.json",
+        "name": "静止"
+      }
+    ],
+    "videos": []
+  },
+  "__runtimeSceneUrl": "scene/entry.json"
+}

@@ -1,0 +1,14 @@
+{
+  "name": "下滑入（Q弹缩放）",
+  "origin": "center",
+  "relative": true,
+  "duration": 420,
+  "timeline": [
+    { "time": 0,   "props": { "y": -180, "scaleX": 1.0,  "scaleY": 1.0,  "alpha": 1 }, "ease": "easeOutQuad" },
+    { "time": 140, "props": { "y": -30,  "scaleX": 1.06, "scaleY": 1.06 },              "ease": "easeOutQuad" },
+    { "time": 210, "props": { "y": 0,    "scaleX": 1.18, "scaleY": 0.84 },              "ease": "easeOutBack" },
+    { "time": 280, "props": {            "scaleX": 0.92, "scaleY": 1.08 },              "ease": "easeOutQuad" },
+    { "time": 340, "props": {            "scaleX": 1.03, "scaleY": 0.97 },              "ease": "easeOutQuad" },
+    { "time": 420, "props": {            "scaleX": 1.00, "scaleY": 1.00 },              "ease": "easeOutQuad" }
+  ]
+}

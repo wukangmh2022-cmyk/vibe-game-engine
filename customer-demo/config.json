@@ -1,0 +1,50 @@
+{
+  "project_name": "智慧健脑客户演示",
+  "scene-tree": {
+    "curnode": "scene/entry.json",
+    "child_node": []
+  },
+  "skins": [
+    {
+      "id": "dialog-default-9slice",
+      "url": "images/ui-blue.svg",
+      "slice": {
+        "left": 28,
+        "top": 28,
+        "right": 28,
+        "bottom": 28
+      }
+    },
+    {
+      "id": "btn-primary-9slice",
+      "url": "images/btn-org.png",
+      "slice": {
+        "left": 201,
+        "top": 53,
+        "right": 212,
+        "bottom": 54
+      }
+    },
+    {
+      "id": "btn-primary-9slice-highlight",
+      "url": "images/btn-org-hl0.png",
+      "slice": {
+        "left": 201,
+        "top": 53,
+        "right": 212,
+        "bottom": 54
+      }
+    },
+    {
+      "id": "游戏介绍背景皮肤",
+      "url": "images/游戏规则背景.png",
+      "slice": {
+        "left": 75,
+        "top": 110,
+        "right": 490,
+        "bottom": 440
+      }
+    }
+  ],
+  "version": "1.20"
+}

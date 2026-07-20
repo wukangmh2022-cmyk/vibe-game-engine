@@ -1,0 +1,9 @@
+{
+"name": "rotate-360-3s",
+"relative": true,
+"origin": "center",
+"timeline": [
+{ "time": 0, "props": { "angle": 0 }, "ease": "linear" },
+{ "time": 3000, "props": { "angle": 360 }, "ease": "linear" }
+]
+}

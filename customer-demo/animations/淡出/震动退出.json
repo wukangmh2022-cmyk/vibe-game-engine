@@ -1,0 +1,18 @@
+{
+  "name": "shake-then-fade",
+  "relative": true,
+  "origin": "center",
+  "duration": 800,
+  "timeline": [
+    { "time": 0,   "props": { "x": 0,  "alpha": 1 }, "ease": "easeInOutQuad" },
+    { "time": 40,  "props": { "x": -8 } },
+    { "time": 80,  "props": { "x": 8 } },
+    { "time": 120, "props": { "x": -6 } },
+    { "time": 160, "props": { "x": 6 } },
+    { "time": 200, "props": { "x": -3 } },
+    { "time": 240, "props": { "x": 3 } },
+    { "time": 280, "props": { "x": 0 } },
+    { "time": 500, "props": { "alpha": 0.35 }, "ease": "easeOutQuad" },
+    { "time": 800, "props": { "alpha": 0 }, "ease": "easeOutQuad" }
+  ]
+}

@@ -85,7 +85,7 @@
       const appEl = document.getElementById('app');
       let mounted = null;
 
-      async function loadGame(url) {
+      async function loadGame(url, startLevelIndex) {
         try {
           if (mounted) { try { mounted.dispose(); } catch {} mounted = null; appEl.innerHTML = ''; }
           // 先拉取 JSON，读取 canvas 宽高决定初始容器尺寸
@@ -124,7 +124,7 @@
           const w = (game?.levels?.[0]?.canvasWidth) || 800;
           const h = (game?.levels?.[0]?.canvasHeight) || 600;
           appEl.style.width = w + 'px'; appEl.style.height = h + 'px';
-          mounted = await mountRuntime(appEl, game, { width: w, height: h, pixi: window.PIXI });
+          mounted = await mountRuntime(appEl, game, { width: w, height: h, pixi: window.PIXI, startLevelIndex });
           // 自适应：按容器居中缩放，保持等比
           const fit = () => {
             try {
@@ -152,15 +152,17 @@
         try {
           const msg = ev?.data || {};
           if (msg && msg.type === 'LOAD_GAME_JSON') {
-            const raw = msg.payload;
+            const payload = msg.payload;
+            const raw = typeof payload === 'object' ? payload.url : payload;
             if (!raw) return;
+            const startLevelIndex = typeof payload === 'object' ? Number(payload.levelIndex) : undefined;
             let next = String(raw);
             // 相对路径时以 __ASSET_BASE__ 作为根
             if (!/^([a-zA-Z][a-zA-Z0-9+.-]*:|\/)/.test(next)) {
               const base = window.__ASSET_BASE__ || '/';
               next = base.endsWith('/') ? (base + next.replace(/^\.\//, '')) : (base + '/' + next.replace(/^\.\//, ''));
             }
-            loadGame(next);
+            loadGame(next, Number.isFinite(startLevelIndex) ? startLevelIndex : undefined);
           }
         } catch {}
       });

@@ -7,6 +7,7 @@
   "scripts": {
     "build": "tsc && npm run build:web",
     "build:web": "tsc -p tsconfig.browser.json && node scripts/postbuild-web.js",
+    "build:customer-demo": "npm run build:web && node scripts/build-customer-demo.js",
     "build:watch": "tsc --watch",
     "test": "jest",
     "test:watch": "jest --watch",
