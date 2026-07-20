@@ -128,7 +128,7 @@ function cacheBlobURL(path: string, blob: Blob): string {
 // Current backend state
 let backend: VFSBackendName = 'idb';
 let folderFiles: Map<string, File> | null = null;
-let currentBase = '/default-project/';
+let currentBase = 'default-project/';
 let fsaDirHandle: any = null; // optional File System Access directory handle
 
 export interface IVFS {

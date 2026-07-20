@@ -14,6 +14,8 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 在线示例：[http://47.108.203.64/new/runtime.html](http://47.108.203.64/new/runtime.html)
 
+在线编辑器：[https://wukangmh2022-cmyk.github.io/vibe-game-engine/editor/](https://wukangmh2022-cmyk.github.io/vibe-game-engine/editor/)。编辑器可打开本地工程目录，浏览器内继续编辑，并导出完整工程 ZIP。
+
 ## Screenshots
 
 ![Editor](docs/images/vibe-editor.png)

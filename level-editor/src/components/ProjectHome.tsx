@@ -321,7 +321,7 @@ export const ProjectHome: React.FC<ProjectHomeProps> = ({ onOpenScene, sessionSc
             </div>
             {localFolderName && <div className="ph-hint">已选择: {localFolderName}</div>}
             <div className="ph-row">
-              <button className="ph-button" onClick={() => loadProject('/default-project/')}>加载默认工程</button>
+              <button className="ph-button" onClick={() => loadProject('default-project/')}>加载默认工程</button>
             </div>
           </div>
           {error && <div className="ph-error">{error}</div>}

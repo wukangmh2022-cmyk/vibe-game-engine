@@ -84,7 +84,7 @@ const App: React.FC = () => {
     editingTrigger: null,
     runtimeGameData: null,
     isHome: true,
-    projectBase: '/default-project/',
+    projectBase: 'default-project/',
     sessionScenes: (() => {
       try { const s = localStorage.getItem('editor:sessionScenes'); return s ? JSON.parse(s) : []; } catch { return []; }
     })(),
@@ -698,7 +698,7 @@ const App: React.FC = () => {
         // 再否则用 __ASSET_BASE__（若为字符串），最后才回退默认工程
         projectBase: (typeof baseOverride === 'string')
           ? baseOverride
-          : (prev.projectBase || (typeof (window as any).__ASSET_BASE__ === 'string' ? (window as any).__ASSET_BASE__ : '/default-project/')),
+          : (prev.projectBase || (typeof (window as any).__ASSET_BASE__ === 'string' ? (window as any).__ASSET_BASE__ : 'default-project/')),
         hasOpenedProject: true
       }));
     }
