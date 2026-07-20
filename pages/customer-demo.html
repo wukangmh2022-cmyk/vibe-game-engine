@@ -61,7 +61,7 @@
           const app = document.getElementById('app');
           if (mounted) { mounted.dispose(); app.innerHTML = ''; }
           const isEntry = sceneUrl === new URL(scenePath, base).href;
-          const startLevelIndex = Number.isFinite(requestedLevelIndex) ? requestedLevelIndex : (isEntry ? 1 : 0);
+          const startLevelIndex = Number.isFinite(requestedLevelIndex) ? requestedLevelIndex : 0;
           mounted = await mountRuntime(app, game, { width, height, pixi: window.PIXI, startLevelIndex });
           const fit = () => {
             const scale = Math.max(0.1, Math.min(window.innerWidth / width, window.innerHeight / height));
@@ -81,7 +81,7 @@
           const levelIndex = typeof payload === 'object' ? Number(payload.levelIndex) : undefined;
           if (url) loadGame(url, Number.isFinite(levelIndex) ? levelIndex : undefined);
         });
-        await loadGame(scenePath, 1);
+        await loadGame(scenePath, 0);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         const box = document.createElement('div');
