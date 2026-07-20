@@ -38,6 +38,8 @@
         });
         const scenePath = config?.['scene-tree']?.curnode || 'scene/entry.json';
         let mounted = null;
+        let currentGame = null;
+        let currentSceneUrl = new URL(scenePath, base).href;
         const normalize = resource => {
           if (!resource || typeof resource !== 'object') return;
           const url = resource.url || resource.src;
@@ -51,6 +53,8 @@
             if (!res.ok) throw new Error(`Unable to load game scene (${res.status})`);
             return res.json();
           });
+          currentGame = game;
+          currentSceneUrl = sceneUrl;
           game.__runtimeSceneUrl = sceneUrl;
           if (Array.isArray(game.resources)) game.resources.forEach(normalize);
           if (Array.isArray(config.skins)) config.skins.forEach(normalize);
@@ -60,7 +64,6 @@
           const height = game?.levels?.[0]?.canvasHeight || 600;
           const app = document.getElementById('app');
           if (mounted) { mounted.dispose(); app.innerHTML = ''; }
-          const isEntry = sceneUrl === new URL(scenePath, base).href;
           const startLevelIndex = Number.isFinite(requestedLevelIndex) ? requestedLevelIndex : 0;
           mounted = await mountRuntime(app, game, { width, height, pixi: window.PIXI, startLevelIndex });
           const fit = () => {
@@ -72,6 +75,18 @@
           window.onresize = fit;
           fit();
         }
+
+        // Match the editor runtime: SCENE_REDIRECT "this" restarts the active scene.
+        window.__PIXICANVAS_REDIRECT__ = payload => {
+          if (payload && payload.reload === true) {
+            const currentLevelId = payload.currentLevelId;
+            const levelIndex = Array.isArray(currentGame?.levels)
+              ? currentGame.levels.findIndex(level => level?.id === currentLevelId)
+              : -1;
+            return loadGame(currentSceneUrl, levelIndex >= 0 ? levelIndex : undefined);
+          }
+          window.postMessage({ type: 'LOAD_GAME_JSON', payload }, '*');
+        };
 
         window.addEventListener('message', event => {
           const message = event.data || {};
