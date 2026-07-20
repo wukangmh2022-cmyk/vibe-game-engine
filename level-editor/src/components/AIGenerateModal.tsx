@@ -14,9 +14,8 @@ interface AIGenerateModalProps {
   currentViewRawCommands?: any[];
 }
 
-// 填入你的 OpenRouter API Key（临时硬编码，稍后可替换）
-const OPENROUTER_API_KEY = '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'; 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const OPENROUTER_KEY_STORAGE = 'vibe-game-engine:openrouter-api-key';
 
 export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
   isOpen,
@@ -35,6 +34,9 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
   const [imgDims, setImgDims] = useState<Record<string, { w: number; h: number }>>({});
   const [copied, setCopied] = useState<boolean>(false);
   const [guideCache, setGuideCache] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>(() => {
+    try { return localStorage.getItem(OPENROUTER_KEY_STORAGE) || ''; } catch { return ''; }
+  });
 
   // 当前关卡可用资源（以文本显示：id, path/src）。
   // 修复：当关卡未配置 resources 时，回退为项目全量资源列表（避免仅第一个关卡生效的问题）。
@@ -240,8 +242,9 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     setError(null);
     setLastOutput('');
     try {
-      if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY.includes('FILL')) {
-        throw new Error('未设置 OPENROUTER_API_KEY，请在 AIGenerateModal.tsx 顶部常量处填写。');
+      const key = apiKey.trim();
+      if (!key) {
+        throw new Error('请先填写 OpenRouter API Key。密钥只保存在当前浏览器。');
       }
       const messages = await buildMessages();
 
@@ -253,7 +256,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
       const res = await fetch(OPENROUTER_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+          'Authorization': `Bearer ${key}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload),
@@ -411,6 +414,23 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
               placeholder="例如：在开场显示标题文字，然后播放入场动画，再展示两个选择按钮进入不同分支。"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
+            />
+
+            <label>OpenRouter API Key（仅保存在当前浏览器）</label>
+            <input
+              className="ai-api-key-input"
+              type="password"
+              autoComplete="off"
+              placeholder="sk-or-v1-..."
+              value={apiKey}
+              onChange={(e) => {
+                const value = e.target.value;
+                setApiKey(value);
+                try {
+                  if (value) localStorage.setItem(OPENROUTER_KEY_STORAGE, value);
+                  else localStorage.removeItem(OPENROUTER_KEY_STORAGE);
+                } catch {}
+              }}
             />
 
             <div className="ai-radio-row">

@@ -65,6 +65,14 @@
   resize: vertical;
 }
 
+.ai-api-key-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+}
+
 .ai-radio-row {
   display: flex;
   align-items: center;
@@ -169,4 +177,3 @@
   max-height: 160px;
   overflow: auto;
 }
-
