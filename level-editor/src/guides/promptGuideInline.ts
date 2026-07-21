@@ -128,7 +128,7 @@ export const PROMPT_GUIDE_INLINE = String.raw`# 指南
 | LOOP | （无） | 循环体写在 commands 子数组；退出请在体内用 IF_CONDITION+BREAK 或 JUMP_TO。|
 | BREAK | （可选）condition | 当条件满足时跳出最近的 LOOP；若省略 condition，立即跳出。|
 | EMIT_SIGNAL | signal | 可额外携带 data（字符串或对象）。事件通过 custom 触发器监听该信号。|
-| JUMP_TO | targetIndex | 指向主流程指令索引（从 0 开始）。|
+| JUMP_TO | target | 指向目标指令 ID，由运行时发出跳转请求。|
 
 ### 3.7 补充规则（务必遵守）
 

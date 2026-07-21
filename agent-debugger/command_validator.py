@@ -24,6 +24,18 @@ RESOURCE_KIND_BY_FIELD = {
     "resourceId": "image", "imageId": "image", "soundId": "audio", "musicId": "audio",
     "skinId": "image", "frontResourceId": "image", "backResourceId": "image",
 }
+# Corpus-level contract: some runtime handlers intentionally tolerate incomplete
+# payloads for backwards compatibility, but training/evaluation must not reward
+# such incomplete commands.
+REQUIRED_PARAMETERS = {
+    "SET_VARIABLE": ("key", "value"), "WAIT": ("duration",),
+    "MOVE_TO": ("elementId", "x", "y"), "SHOW_IMAGE": ("elementId", "resourceId"),
+    "SHOW_TEXT": ("elementId", "text"), "UPDATE_TEXT": ("elementId", "text"),
+    "SHOW_CHOICES": ("elementId", "options"), "SET_ELEMENT_STYLE": ("elementId", "style"),
+    "IF_CONDITION": ("condition",), "JUMP_TO": ("target",), "LOOP": ("commands",),
+    "EMIT_SIGNAL": ("signal",), "BGM_PLAY": ("musicId",), "SE_PLAY": ("soundId",),
+    "SCENE_REDIRECT": ("url",),
+}
 RUNTIME_DRY_RUNNER = Path(__file__).with_name("runtime_dry_run.js")
 
 
@@ -52,7 +64,7 @@ class CommandSampleValidator:
         self.allowed_types = {item["command_type"] for item in database.stats()["command_types"]}
         self.project_path = database.project_path()
 
-    def validate(self, sample: Any, primary_type: str, min_commands: int = 1, allowed_existing_assets: dict[str, dict[str, Any]] | None = None) -> dict[str, Any]:
+    def validate(self, sample: Any, primary_type: str, min_commands: int = 1, allowed_existing_assets: dict[str, dict[str, Any]] | None = None, max_commands: int = 4) -> dict[str, Any]:
         errors: list[str] = []
         warnings: list[str] = []
         if not isinstance(sample, dict):
@@ -62,8 +74,8 @@ class CommandSampleValidator:
         assets = sample.get("asset_catalog", [])
         if not isinstance(intent, str) or len(intent.strip()) < 8:
             errors.append("intent must be a concrete non-empty Chinese request")
-        if not isinstance(commands, list) or not min_commands <= len(commands) <= 4:
-            errors.append(f"commands must contain {min_commands}-4 commands")
+        if not isinstance(commands, list) or not min_commands <= len(commands) <= max_commands:
+            errors.append(f"commands must contain {min_commands}-{max_commands} commands")
             commands = []
         if not isinstance(assets, list):
             errors.append("asset_catalog must be an array")
@@ -113,6 +125,10 @@ class CommandSampleValidator:
             if not isinstance(parameters, dict):
                 errors.append(f"{command_id or command_type} parameters must be an object")
                 continue
+            for required in REQUIRED_PARAMETERS.get(command_type, ()):
+                value = parameters.get(required)
+                if value is None or value == "" or value == []:
+                    errors.append(f"{command_id or command_type} missing required parameter: {required}")
             for field_path, resource_id in resource_refs(parameters):
                 if resource_id not in asset_ids:
                     errors.append(f"resource id {resource_id} is not declared in asset_catalog")

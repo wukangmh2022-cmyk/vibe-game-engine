@@ -39,3 +39,11 @@ agent-debugger/progress.json
 agent-debugger/runs/
 agent-debugger/state/
 agent-debugger/__pycache__/
+agent-debugger/tests/__pycache__/
+
+# Local fine-tuning and model-evaluation artifacts
+training/qlora/data/
+training/qlora/checkpoints/
+training/qlora/outputs/
+training/eval/results/
+training/eval/case-cache/

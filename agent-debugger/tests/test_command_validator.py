@@ -61,6 +61,16 @@ class CommandValidatorTest(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("move_missing references elementId before it is created", result["errors"])
 
+    def test_rejects_compatibility_noop_without_corpus_contract(self) -> None:
+        sample = {
+            "intent": "跳转到另一个场景但没有提供目标路径",
+            "asset_catalog": [],
+            "commands": [{"id": "redirect", "type": "SCENE_REDIRECT", "parameters": {}}],
+        }
+        result = self.validator.validate(sample, "SCENE_REDIRECT", 1, self.assets)
+        self.assertFalse(result["valid"])
+        self.assertIn("redirect missing required parameter: url", result["errors"])
+
 
 if __name__ == "__main__":
     unittest.main()

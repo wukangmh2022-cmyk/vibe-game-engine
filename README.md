@@ -15,6 +15,96 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 典型流程：描述玩法 -> 选择要引用的图片、音频或动画资源 -> 生成关卡指令 -> 在预览中验证 -> 保存或导出工程。
 
+## 指令模型实验
+
+仓库包含一条面向本引擎 DSL 的可复现实验链路：先合成并严格验证“需求 -> 指令 JSON”数据，再以 QLoRA 微调开源基础模型，最后在固定题集上比较 Base 与 Adapter。第一阶段的目标是提高引擎指令、资源引用和短组合逻辑的正确率，不是直接训练完整 10 关游戏规划。
+
+完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。
+
+### 数据合成与质量门
+
+输入是 `customer-demo/scene/**/*.json` 中的真实场景、关卡、资源和指令。`agent-debugger/build_command_db.py` 将其拆为只读 SQLite 索引，教师模型只能通过工具按需取得：指令契约、真实指令示例、相邻指令上下文，以及某关卡的真实资源清单。模型自主调用工具、生成候选、请求验证；最多 20 个工具动作，达到上限后控制器强制它输出一次最终 JSON。
+
+每条合格数据的 JSONL 结构为：
+
+```json
+{
+  "sample_id": "cmd-00001",
+  "primary_command_type": "SHOW_IMAGE",
+  "sample_mode": "atomic|motif",
+  "input": {
+    "intent": "中文关卡功能需求",
+    "asset_catalog": [{"id":"真实资源ID","type":"image","path":"相对项目路径","origin":"existing","exists":true}]
+  },
+  "output": {"commands": [{"id":"...","type":"SHOW_IMAGE","parameters":{}}]},
+  "validation": {"valid": true, "runtime": {"valid": true}}
+}
+```
+
+这不是仅靠 JSON schema 的筛选。写入训练集前必须全部通过：真实资源 `id/type/path` 与关卡元数据一致且磁盘文件存在；资源不能是 `virtual://` 或猜测路径；元素更新命令必须先创建同一元素；`BREAK` 必须在 `LOOP.commands`；最终以仓库实际 `CommandExecutor` 配合内存状态、资源、渲染和音频适配器预跑。浏览器/Pixi 专用交互指令暂不进入第一阶段语料，等专用运行器验证器完成后单独扩展。
+
+首批采样保持 `72%` 单指令 atomic 与 `28%` 2-4 指令 motif。启动合成器时使用新的兼容 API：
+
+```bash
+export VIBE_TEACHER_API_BASE=http://HOST/v1
+export VIBE_TEACHER_API_KEY=your-key
+export VIBE_TEACHER_MODEL=teacher-model-id
+
+python3 agent-debugger/command_synthesize.py \
+  --samples 100 --workers 4 --max-actions 20 --timeout 180
+```
+
+### QLoRA 微调
+
+训练输入只取 `validation.valid=true` 且 `validation.runtime.valid=true` 的记录。`training/qlora/prepare_data.py` 去重并固定随机划分训练/验证集，产出 chat-format JSONL：system 为引擎输出约束，user 为中文需求与可用资源，assistant 仅为 `intent + asset_catalog + commands` JSON。教师工具轨迹和长推理不会作为监督标签，避免把不稳定的检索过程蒸馏进模型。
+
+第一版选单卡 4-bit NF4 QLoRA，而不是全量微调：27B 密集模型全参数训练需要远超单张 4090 的显存和优化器状态；QLoRA 只训练低秩 adapter，可在 4090 级卡上进行可控实验、保存体积小，并能用同一基础模型公平比较 Base 与 Adapter。默认值为 `r=32`、`alpha=64`、最大长度 `3072`、batch `1`、梯度累积 `16`、学习率 `1e-4`、3 epoch。显存不足先降 max length 到 2048，再降 r 到 16。
+
+```bash
+pip install -r training/qlora/requirements.txt
+python training/qlora/prepare_data.py \
+  --input training-data/command-agent-sft \
+  --output-dir training/qlora/data/command-sft-v1
+
+python training/qlora/train_qlora.py \
+  --model-name-or-path /root/autodl-tmp/Qwen-model \
+  --data-dir training/qlora/data/command-sft-v1 \
+  --output-dir training/qlora/outputs/vibe-command-qlora
+```
+
+训练产物是 PEFT adapter，不是完整基础模型。发布时应上传 adapter、tokenizer、训练配置、数据 manifest 和评估报告；基础模型保持引用原始模型名，避免在 GitHub 仓库提交几十 GB 权重。
+
+### 固定评估
+
+[training/eval/cases/command_benchmark_v1.json](training/eval/cases/command_benchmark_v1.json) 是人工编写、版本化的 36 个固定短指令题：当前 18 类可预跑指令各有一条简要需求和一条详细需求，每题都内置独立的真实资源列表。[level_module_benchmark_v1.json](training/eval/cases/level_module_benchmark_v1.json) 额外包含 12 个完整关卡功能块题，要求模型组合 3-12 条命令完成欢迎、答题反馈、选择、过关或跳转流程，两套题单独出分。API 只负责让 Base 和 Adapter 回答同一题，不参与生成或改写测试 query。
+
+评估器以 6-12 并发运行，默认 8 并发；每个输出都执行 JSON 提取、主指令/命令数检查、资源契约、依赖顺序和 `CommandExecutor` 预跑。先用机器评分筛掉结构或运行时错误，再从 Base/Adapter 通过与失败的差异案例中抽样导入编辑器试玩，人工仅记录需求满足、交互完成、文案和布局质量。
+
+```bash
+export VIBE_EVAL_API_BASE=http://HOST/v1
+export VIBE_EVAL_API_KEY=your-key
+
+python training/eval/run_eval.py \
+  --run base=Qwen-Base-Model-Id \
+  --run adapter=Vibe-Qlora-Adapter-Model-Id \
+  --workers 8
+
+python training/eval/run_eval.py \
+  --cases training/eval/cases/level_module_benchmark_v1.json \
+  --run base=Qwen-Base-Model-Id \
+  --run adapter=Vibe-Qlora-Adapter-Model-Id \
+  --workers 8
+```
+
+训练完成后用 `training/eval/report.py` 输出下表的实际数值：
+
+| 模型 | 短指令通过/36 | 功能块通过/12 | 运行时预跑通过 | 平均响应秒数 | 训练数据版本 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Base | 待填 | 待填 | 待填 | 待填 | - |
+| QLoRA Adapter | 待填 | 待填 | 待填 | 待填 | command-sft-v1 |
+
+完整关卡/十关试玩是第二阶段评估：需要先积累经过浏览器运行时验证的长轨迹数据，不能用本阶段的短指令语料强行衡量整关策划能力。
+
 ## 功能概览
 
 - 自动组织资源：读取项目资源、类型、路径和图片尺寸，降低资源引用错误。

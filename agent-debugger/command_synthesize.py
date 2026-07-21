@@ -41,7 +41,7 @@ COMMAND_CONTRACTS = {
     "SET_ELEMENT_STYLE": {"required": ["elementId", "style"], "precondition": "elementId must be created earlier in this motif."},
     "NEXT_LEVEL": {"required": []},
     "IF_CONDITION": {"required": ["condition"], "notes": "condition.type is variable or expression; branch arrays may be empty."},
-    "JUMP_TO": {"required": ["targetIndex"], "notes": "targetIndex is a zero-based main-stream index."},
+    "JUMP_TO": {"required": ["target"], "notes": "target is the target command id consumed by the runtime handler."},
     "LOOP": {"required": ["commands"], "notes": "commands must be non-empty; BREAK only belongs in this array."},
     "BREAK": {"required": [], "precondition": "must be nested inside LOOP.commands."},
     "EMIT_SIGNAL": {"required": ["signal"]},
