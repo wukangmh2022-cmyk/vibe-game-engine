@@ -293,7 +293,7 @@ def main() -> int:
     sample_group = parser.add_mutually_exclusive_group(required=True)
     sample_group.add_argument("--samples", type=int, help="Total samples, distributed across command types")
     sample_group.add_argument("--per-command", type=int, help="Samples for every indexed command type")
-    parser.add_argument("--workers", type=int, default=2)
+    parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--project", default=str(REPO_ROOT / "customer-demo"))
     parser.add_argument("--api-base", default=os.getenv("VIBE_TEACHER_API_BASE", ""))
     parser.add_argument("--api-key", default=os.getenv("VIBE_TEACHER_API_KEY", ""))

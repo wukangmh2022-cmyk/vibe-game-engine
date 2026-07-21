@@ -29,11 +29,11 @@ export VIBE_TEACHER_API_BASE=http://127.0.0.1:18765/v1
 export VIBE_TEACHER_API_KEY=local
 export VIBE_TEACHER_MODEL=DeepSeekV4
 
-# Two-worker 100-sample trial
-python3 agent-debugger/command_synthesize.py --samples 100 --workers 2 --max-actions 20
+# Four-worker 100-sample trial
+python3 agent-debugger/command_synthesize.py --samples 100 --workers 4 --max-actions 20
 
 # Full first corpus: each indexed command type receives 50 variants
-python3 agent-debugger/command_synthesize.py --per-command 50 --workers 5
+python3 agent-debugger/command_synthesize.py --per-command 50 --workers 4
 ```
 
 The synthesizer keeps a constant system prompt and compact command examples, allowing local vLLM prefix caching to reuse the shared prefix. About 70% of samples are atomic command mappings; about 30% are 2-4 command motifs for engine-specific dependencies such as show-image plus animation, dragging plus drop checks, state updates plus conditions, and scene flow.
