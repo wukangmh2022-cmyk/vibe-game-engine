@@ -1,0 +1,12 @@
+{
+  "schema_version": "v1",
+  "project_root": "/absolute/path/to/vibe-game-engine",
+  "teacher": {
+    "api_base": "http://127.0.0.1:8000/v1",
+    "model": "your-teacher-model",
+    "runner": "manual"
+  },
+  "next_episode_number": 1,
+  "active_episode_id": null,
+  "episodes": []
+}

@@ -35,3 +35,7 @@ CLAUDE.md
 # Misc
 *.local
 *.tmp
+agent-debugger/progress.json
+agent-debugger/runs/
+agent-debugger/state/
+agent-debugger/__pycache__/
