@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Fast parallel synthesis of instruction-to-command SFT samples.
-
-The source repository is read-only. Workers only read a compact SQLite command
-index, call an OpenAI-compatible teacher API, and write generated JSONL data.
-"""
+"""Parallel native tool-call synthesis for command-mapping SFT data."""
 
 from __future__ import annotations
 
@@ -31,19 +27,64 @@ MOTIF_TYPES = {
 }
 
 
-def strip_json(text: str) -> Any:
-    text = text.strip()
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1] if "\n" in text else ""
-        text = text.rsplit("```", 1)[0]
-    return json.loads(text)
+DECISION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "goal": {"type": "string", "maxLength": 240},
+        "evidence": {"type": "string", "maxLength": 400},
+        "hypothesis": {"type": "string", "maxLength": 240},
+        "verification": {"type": "string", "maxLength": 240},
+    },
+    "required": ["goal", "evidence", "hypothesis", "verification"],
+    "additionalProperties": False,
+}
 
 
-def call_teacher(config: dict[str, Any], messages: list[dict[str, str]]) -> str:
+def tool(name: str, description: str, properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
+    return {
+        "type": "function",
+        "function": {
+            "name": name,
+            "description": description,
+            "parameters": {
+                "type": "object",
+                "properties": {"decision": DECISION_SCHEMA, **properties},
+                "required": ["decision", *required],
+                "additionalProperties": False,
+            },
+        },
+    }
+
+
+TOOLS = [
+    tool("find_command_examples", "Find compact real examples by command type or semantic term.", {"command_type": {"type": "string"}, "query": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 10}}, []),
+    tool("get_command_context", "Get one command and up to ten nearby commands from its original command stream.", {"command_key": {"type": "string"}, "before": {"type": "integer", "minimum": 0, "maximum": 10}, "after": {"type": "integer", "minimum": 0, "maximum": 10}}, ["command_key"]),
+    tool("get_level_metadata", "Get compact level metadata without loading full scene JSON.", {"level_key": {"type": "string"}}, ["level_key"]),
+    tool("validate_sample", "Validate a candidate command mapping sample. Fix returned errors before finishing.", {"sample": {"type": "object"}}, ["sample"]),
+    tool("finish", "Finish with a sample only after validate_sample returned valid=true.", {"sample": {"type": "object"}}, ["sample"]),
+]
+
+
+def compact(value: Any, limit: int = 3000) -> str:
+    return json.dumps(value, ensure_ascii=False)[-limit:]
+
+
+def decision(value: Any) -> dict[str, str]:
+    if not isinstance(value, dict):
+        raise ValueError("decision is required")
+    keys = ("goal", "evidence", "hypothesis", "verification")
+    if any(not isinstance(value.get(key), str) or not value[key].strip() for key in keys):
+        raise ValueError("decision requires non-empty goal, evidence, hypothesis, verification")
+    return {key: value[key][:400] for key in keys}
+
+
+def call_teacher(config: dict[str, Any], messages: list[dict[str, Any]]) -> dict[str, Any]:
     endpoint = config["api_base"].rstrip("/") + "/chat/completions"
     payload = json.dumps({
         "model": config["model"],
         "messages": messages,
+        "tools": TOOLS,
+        "tool_choice": "auto",
         "temperature": config["temperature"],
         "max_tokens": config["max_tokens"],
     }).encode("utf-8")
@@ -52,21 +93,69 @@ def call_teacher(config: dict[str, Any], messages: list[dict[str, str]]) -> str:
         request.add_header("Authorization", f"Bearer {config['api_key']}")
     try:
         with urllib.request.urlopen(request, timeout=config["timeout"]) as response:
-            result = json.loads(response.read().decode("utf-8"))
+            return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as error:
         raise RuntimeError(f"teacher API HTTP {error.code}: {error.read().decode('utf-8', errors='replace')[-800:]}") from error
     except urllib.error.URLError as error:
         raise RuntimeError(f"teacher API connection failed: {error.reason}") from error
+
+
+def fallback_tool_call(content: str) -> list[dict[str, Any]]:
+    """Allow local APIs without native tool_call serialization to use JSON envelopes."""
     try:
-        return result["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as error:
-        raise RuntimeError(f"unexpected teacher response: {str(result)[:800]}") from error
+        value = json.loads(content)
+        if isinstance(value, dict) and isinstance(value.get("tool"), str) and isinstance(value.get("arguments"), dict):
+            return [{"id": "json-envelope", "type": "function", "function": {"name": value["tool"], "arguments": json.dumps(value["arguments"], ensure_ascii=False)}}]
+    except Exception:
+        pass
+    return []
+
+
+class CommandToolOperator:
+    def __init__(self, database: CommandDatabase, primary_type: str, sample_mode: str):
+        self.database = database
+        self.primary_type = primary_type
+        self.sample_mode = sample_mode
+        self.validator = CommandSampleValidator(database)
+        self.exposed_assets: set[str] = set()
+        self.source_examples: list[str] = []
+        self.last_validation: dict[str, Any] = {"valid": False, "errors": ["validate_sample has not run"], "warnings": []}
+
+    def _expose(self, examples: list[dict[str, Any]]) -> None:
+        for example in examples:
+            self.source_examples.append(example["command_key"])
+            for _, resource_id in resource_refs(example["command"].get("parameters", {})):
+                self.exposed_assets.add(resource_id)
+
+    def find_command_examples(self, command_type: str = "", query: str = "", limit: int = 5) -> dict[str, Any]:
+        examples = self.database.find_commands(command_type, query, limit)
+        self._expose(examples)
+        return {"examples": examples}
+
+    def get_command_context(self, command_key: str, before: int = 5, after: int = 5) -> dict[str, Any]:
+        result = self.database.command_context(command_key, before, after)
+        self._expose([{**item, "level_key": result["target"]["level_key"], "scene_path": result["target"]["scene_path"], "level_name": result["target"]["level_name"]} for item in result["commands"]])
+        return result
+
+    def get_level_metadata(self, level_key: str) -> dict[str, Any]:
+        return self.database.level_metadata(level_key)
+
+    def validate_sample(self, sample: dict[str, Any]) -> dict[str, Any]:
+        minimum = 2 if self.sample_mode == "motif" else 1
+        self.last_validation = self.validator.validate(sample, self.primary_type, minimum, self.exposed_assets)
+        return self.last_validation
+
+    def finish(self, sample: dict[str, Any]) -> dict[str, Any]:
+        validation = self.validate_sample(sample)
+        if not validation["valid"]:
+            return {"accepted": False, "validation": validation}
+        return {"accepted": True, "sample": sample, "validation": validation}
 
 
 def static_prompt() -> str:
     return "\n\n".join([
         (DEBUGGER / "prompts" / "command-synthesis.md").read_text(encoding="utf-8"),
-        "Authoritative instruction references: level-editor/src/guides/promptGuideInline.ts; level-editor/src/utils/commandTemplates.ts; src/commands/factory.ts. Use the supplied indexed examples as the immediate syntax reference.",
+        "Authoritative DSL sources: level-editor/src/guides/promptGuideInline.ts; level-editor/src/utils/commandTemplates.ts; src/commands/factory.ts. The database tools expose only real project examples and compact context.",
     ])
 
 
@@ -82,51 +171,69 @@ def make_jobs(database: CommandDatabase, samples: int | None, per_command: int |
 
 
 def run_job(job_id: int, job: dict[str, Any], database_path: Path, config: dict[str, Any], system: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
-    database = CommandDatabase(database_path)
-    validator = CommandSampleValidator(database)
-    examples = database.find_commands(job["command_type"], limit=3)
-    allowed_existing_assets = {
-        resource_id
-        for example in examples
-        for _, resource_id in resource_refs(example["command"].get("parameters", {}))
-    }
-    context = database.command_context(examples[0]["command_key"], 3, 3) if job["sample_mode"] == "motif" and examples else None
-    user = {
-        "assigned_primary_command_type": job["command_type"],
-        "variant_number": job["variant"],
-        "sample_mode": job["sample_mode"],
-        "reference_examples": examples,
-        "local_command_context": context,
-        "instruction": "Generate one new non-duplicate instruction mapping sample now.",
-    }
-    last_error = ""
-    for attempt in range(config["retries"] + 1):
-        try:
-            sample = strip_json(call_teacher(config, [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(user, ensure_ascii=False)}]))
-            validation = validator.validate(
-                sample,
-                job["command_type"],
-                2 if job["sample_mode"] == "motif" else 1,
-                allowed_existing_assets,
-            )
-            if validation["valid"]:
-                record = {
-                    "schema_version": "command-sft-v1",
-                    "sample_id": f"cmd-{job_id:05d}",
-                    "primary_command_type": job["command_type"],
-                    "sample_mode": job["sample_mode"],
-                    "input": {"intent": sample["intent"], "asset_catalog": sample.get("asset_catalog", [])},
-                    "output": {"commands": sample["commands"]},
-                    "source_examples": [example["command_key"] for example in examples],
-                    "validation": validation,
-                }
-                return record, {"sample_id": record["sample_id"], "status": "success", "attempt": attempt + 1}
-            last_error = "; ".join(validation["errors"])
-        except Exception as error:
-            last_error = str(error)
-        user["previous_error"] = last_error
-        user["instruction"] = "Correct the previous output. Return one JSON object that passes the stated schema and command validation."
-    return None, {"sample_id": f"cmd-{job_id:05d}", "status": "failed", "error": last_error}
+    operator = CommandToolOperator(CommandDatabase(database_path), job["command_type"], job["sample_mode"])
+    messages: list[dict[str, Any]] = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": json.dumps({"assigned_primary_command_type": job["command_type"], "sample_mode": job["sample_mode"], "variant_number": job["variant"]}, ensure_ascii=False)},
+    ]
+    trace: list[dict[str, Any]] = []
+    try:
+        for _ in range(config["max_actions"]):
+            response = call_teacher(config, messages)
+            choices = response.get("choices") if isinstance(response, dict) else None
+            if not isinstance(choices, list) or not choices:
+                raise RuntimeError("teacher response has no choices")
+            message = choices[0].get("message", {})
+            content = message.get("content") or ""
+            calls = message.get("tool_calls") or fallback_tool_call(content)
+            if not calls:
+                raise RuntimeError(f"teacher returned no tool call: {str(content)[:800]}")
+            messages.append({"role": "assistant", "content": content, "tool_calls": calls})
+            for call in calls:
+                function = call.get("function", {})
+                name = function.get("name")
+                arguments: dict[str, Any] = {}
+                tool_decision: dict[str, str] = {}
+                try:
+                    arguments = json.loads(function.get("arguments", "{}"))
+                    tool_decision = decision(arguments.pop("decision"))
+                    if name == "find_command_examples":
+                        observation = operator.find_command_examples(arguments.get("command_type", ""), arguments.get("query", ""), int(arguments.get("limit", 5)))
+                    elif name == "get_command_context":
+                        observation = operator.get_command_context(arguments["command_key"], int(arguments.get("before", 5)), int(arguments.get("after", 5)))
+                    elif name == "get_level_metadata":
+                        observation = operator.get_level_metadata(arguments["level_key"])
+                    elif name == "validate_sample":
+                        observation = operator.validate_sample(arguments["sample"])
+                    elif name == "finish":
+                        observation = operator.finish(arguments["sample"])
+                    else:
+                        raise ValueError(f"unknown tool: {name}")
+                    status = "ok"
+                except Exception as error:
+                    observation = {"error": str(error)}
+                    status = "error"
+                trace.append({"turn": len(trace) + 1, "decision": tool_decision, "tool": name, "arguments": arguments, "observation": {"status": status, "summary": compact(observation)}})
+                messages.append({"role": "tool", "tool_call_id": call.get("id", f"call-{len(trace)}"), "content": json.dumps(observation, ensure_ascii=False)})
+                if status == "error":
+                    continue
+                if name == "finish" and observation.get("accepted"):
+                    sample = observation["sample"]
+                    record = {
+                        "schema_version": "command-agent-sft-v1",
+                        "sample_id": f"cmd-{job_id:05d}",
+                        "primary_command_type": job["command_type"],
+                        "sample_mode": job["sample_mode"],
+                        "input": {"intent": sample["intent"], "asset_catalog": sample.get("asset_catalog", [])},
+                        "output": {"commands": sample["commands"]},
+                        "tool_trace": trace,
+                        "source_examples": sorted(set(operator.source_examples)),
+                        "validation": observation["validation"],
+                    }
+                    return record, {"sample_id": record["sample_id"], "status": "success", "tool_calls": len(trace)}
+        raise RuntimeError(f"max_actions={config['max_actions']} reached without accepted finish")
+    except Exception as error:
+        return None, {"sample_id": f"cmd-{job_id:05d}", "status": "failed", "error": str(error), "tool_calls": len(trace)}
 
 
 def write_json(path: Path, data: Any) -> None:
@@ -135,7 +242,7 @@ def write_json(path: Path, data: Any) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Parallel Vibe command-mapping synthesis")
+    parser = argparse.ArgumentParser(description="Parallel tool-call synthesis of Vibe command mappings")
     sample_group = parser.add_mutually_exclusive_group(required=True)
     sample_group.add_argument("--samples", type=int, help="Total samples, distributed across command types")
     sample_group.add_argument("--per-command", type=int, help="Samples for every indexed command type")
@@ -145,31 +252,29 @@ def main() -> int:
     parser.add_argument("--api-key", default=os.getenv("VIBE_TEACHER_API_KEY", ""))
     parser.add_argument("--model", default=os.getenv("VIBE_TEACHER_MODEL", ""))
     parser.add_argument("--max-tokens", type=int, default=int(os.getenv("VIBE_TEACHER_MAX_TOKENS", "1200")))
-    parser.add_argument("--temperature", type=float, default=0.35)
+    parser.add_argument("--max-actions", type=int, default=10)
+    parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--timeout", type=int, default=120)
-    parser.add_argument("--retries", type=int, default=2)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
-    if args.workers < 1 or (args.samples is not None and args.samples < 1) or (args.per_command is not None and args.per_command < 1):
-        parser.error("workers and sample counts must be positive")
+    if args.workers < 1 or args.max_actions < 1 or (args.samples is not None and args.samples < 1) or (args.per_command is not None and args.per_command < 1):
+        parser.error("workers, max-actions, and sample counts must be positive")
     if not args.dry_run and (not args.api_base or not args.model):
         parser.error("set API/model through arguments or VIBE_TEACHER_API_BASE/VIBE_TEACHER_MODEL")
 
     database_path = DEBUGGER / "state" / "command-index.sqlite"
     build_command_database(Path(args.project), database_path)
-    database = CommandDatabase(database_path)
-    jobs = make_jobs(database, args.samples, args.per_command)
-    run_id = datetime.now().strftime("command-%Y%m%d-%H%M%S")
-    run_dir = DEBUGGER / "runs" / "command" / run_id
+    jobs = make_jobs(CommandDatabase(database_path), args.samples, args.per_command)
+    run_id = datetime.now().strftime("command-agent-%Y%m%d-%H%M%S")
+    run_dir = DEBUGGER / "runs" / "command-agent" / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     if args.dry_run:
         write_json(run_dir / "manifest.json", {"run_id": run_id, "status": "dry_run", "workers": args.workers, "job_count": len(jobs), "jobs": jobs})
         print(json.dumps({"run_dir": str(run_dir), "status": "dry_run", "job_count": len(jobs), "workers": args.workers}, ensure_ascii=False))
         return 0
 
-    config = {key: getattr(args, key) for key in ("api_base", "api_key", "model", "max_tokens", "temperature", "timeout", "retries")}
+    config = {key: getattr(args, key) for key in ("api_base", "api_key", "model", "max_tokens", "max_actions", "temperature", "timeout")}
     system = static_prompt()
-    stop = threading.Event()
     records: list[dict[str, Any]] = []
     states: list[dict[str, Any]] = []
     lock = threading.Lock()
@@ -177,8 +282,6 @@ def main() -> int:
     def worker(worker_id: int, indexed_jobs: list[tuple[int, dict[str, Any]]]) -> None:
         local_states: list[dict[str, Any]] = []
         for job_id, job in indexed_jobs:
-            if stop.is_set():
-                break
             record, state = run_job(job_id, job, database_path, config, system)
             local_states.append(state)
             write_json(run_dir / f"worker-{worker_id:02d}.json", {"worker_id": worker_id, "updated_at": datetime.now().isoformat(), "samples": local_states})
@@ -187,14 +290,15 @@ def main() -> int:
                 if record:
                     records.append(record)
 
-    buckets = [list(enumerate(jobs, 1))[index::args.workers] for index in range(args.workers)]
+    indexed = list(enumerate(jobs, 1))
+    buckets = [indexed[index::args.workers] for index in range(args.workers)]
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = [executor.submit(worker, index, bucket) for index, bucket in enumerate(buckets)]
         for future in futures:
             future.result()
 
     records.sort(key=lambda item: item["sample_id"])
-    output = REPO_ROOT / "training-data" / "command-sft" / f"{run_id}.jsonl"
+    output = REPO_ROOT / "training-data" / "command-agent-sft" / f"{run_id}.jsonl"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records), encoding="utf-8")
     manifest = {

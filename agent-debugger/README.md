@@ -22,7 +22,7 @@ python3 agent-debugger/query_command_db.py find --type SCENE_REDIRECT --limit 3
 
 ## First SFT Dataset: Command Mappings
 
-The first fine-tuning dataset is intentionally smaller than a full Agent trajectory. Each record maps a concrete Chinese authoring request and compact asset catalog to one command or a 2-4 command motif. It validates command ids, command types, parameter objects, primary command coverage, and real versus virtual resource declarations.
+The first fine-tuning dataset is intentionally smaller than a full game trajectory. Each record maps a concrete Chinese authoring request and compact asset catalog to one command or a 2-4 command motif. It validates command ids, command types, parameter objects, primary command coverage, and real versus virtual resource declarations.
 
 ```bash
 export VIBE_TEACHER_API_BASE=http://127.0.0.1:8000/v1
@@ -37,3 +37,12 @@ python3 agent-debugger/command_synthesize.py --per-command 50 --workers 5
 ```
 
 The synthesizer keeps a constant system prompt and compact command examples, allowing local vLLM prefix caching to reuse the shared prefix. About 70% of samples are atomic command mappings; about 30% are 2-4 command motifs for engine-specific dependencies such as show-image plus animation, dragging plus drop checks, state updates plus conditions, and scene flow.
+
+The teacher is not given fixed examples in advance. It receives native OpenAI-compatible tools and decides its own loop:
+
+```text
+find_command_examples -> get_command_context / get_level_metadata
+-> validate_sample -> revise or finish
+```
+
+`--max-actions 10` is only a safety cap against empty loops. Successful records retain the tool trace, so the next training stage can convert them to the model's native tool-call format.

@@ -1,8 +1,19 @@
-# Vibe Command Mapping Synthesis
+# Vibe Command Tool Agent
 
-Generate one high-quality supervised fine-tuning sample for the assigned primary command type.
+Generate one high-quality SFT sample for the assigned primary command type. You are a text-only tool agent, not a free-form code generator.
 
-Return only one JSON object with this exact shape:
+Start with the assigned command type and sample mode only. Decide for yourself which tools to call and how many retrieval steps are needed:
+
+- Use `find_command_examples` to inspect real command instances.
+- Use `get_command_context` when ordering or adjacent command dependencies matter.
+- Use `get_level_metadata` only when level dimensions, resource ids, or event structure are relevant.
+- Build one candidate sample, then call `validate_sample`.
+- If validation fails, reason from the returned errors and retrieve or revise again.
+- Call `finish` only after validation passes.
+
+Each tool call requires a compact factual `decision` object: `goal`, `evidence`, `hypothesis`, and `verification`. Do not write long chain-of-thought.
+
+The final sample must have this shape:
 
 ```json
 {
@@ -25,11 +36,8 @@ Return only one JSON object with this exact shape:
 
 Rules:
 
+- Respect `sample_mode`: `atomic` produces exactly one command; `motif` produces a tightly coupled 2-4 command block.
 - The assigned primary command type must appear in `commands`.
-- Respect `sample_mode` from the assigned job: `atomic` produces exactly one command; `motif` produces a tightly coupled 2-4 command block.
-- Use the supplied real examples as syntax evidence, but do not copy an example verbatim.
-- Vary parameter values, names, placements, conditions, and game intent across samples.
-- Use an existing resource only when it appears in the supplied reference examples or asset context.
-- Invented assets are allowed only as explicit `origin: "virtual"` records with `exists: false` and `metadata.status: "placeholder"`.
+- Use the retrieved real examples as syntax evidence, but do not copy one verbatim.
+- Existing assets must have been exposed by a retrieval tool. Invented assets are allowed only as `origin: "virtual"`, `exists: false`, and `metadata.status: "placeholder"`.
 - Do not emit login, upload, remote-user, network-write, engine-source, or arbitrary script functionality.
-- Do not include explanations, markdown, chain-of-thought, or fields outside the required JSON object.
