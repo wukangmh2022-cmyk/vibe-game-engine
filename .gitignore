@@ -47,3 +47,4 @@ training/qlora/checkpoints/
 training/qlora/outputs/
 training/eval/results/
 training/eval/case-cache/
+training/**/__pycache__/
