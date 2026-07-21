@@ -78,17 +78,18 @@ def decision(value: Any) -> dict[str, str]:
     return {key: value[key][:400] for key in keys}
 
 
-def call_teacher(config: dict[str, Any], messages: list[dict[str, Any]]) -> dict[str, Any]:
+def call_teacher(config: dict[str, Any], messages: list[dict[str, Any]], use_tools: bool = True) -> dict[str, Any]:
     endpoint = config["api_base"].rstrip("/") + "/chat/completions"
-    payload = json.dumps({
+    payload: dict[str, Any] = {
         "model": config["model"],
         "messages": messages,
-        "tools": TOOLS,
-        "tool_choice": "auto",
         "temperature": config["temperature"],
         "max_tokens": config["max_tokens"],
-    }).encode("utf-8")
-    request = urllib.request.Request(endpoint, data=payload, method="POST", headers={"Content-Type": "application/json"})
+    }
+    if use_tools:
+        payload["tools"] = TOOLS
+        payload["tool_choice"] = "auto"
+    request = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), method="POST", headers={"Content-Type": "application/json"})
     if config["api_key"]:
         request.add_header("Authorization", f"Bearer {config['api_key']}")
     try:
@@ -103,12 +104,20 @@ def call_teacher(config: dict[str, Any], messages: list[dict[str, Any]]) -> dict
 def fallback_tool_call(content: str) -> list[dict[str, Any]]:
     """Allow local APIs without native tool_call serialization to use JSON envelopes."""
     try:
-        value = json.loads(content)
+        value = parse_json_object(content)
         if isinstance(value, dict) and isinstance(value.get("tool"), str) and isinstance(value.get("arguments"), dict):
             return [{"id": "json-envelope", "type": "function", "function": {"name": value["tool"], "arguments": json.dumps(value["arguments"], ensure_ascii=False)}}]
     except Exception:
         pass
     return []
+
+
+def parse_json_object(content: str) -> dict[str, Any]:
+    """Extract the single JSON object required by the compatibility protocol."""
+    value = json.loads(content.strip())
+    if not isinstance(value, dict):
+        raise ValueError("response must be one JSON object")
+    return value
 
 
 class CommandToolOperator:
@@ -152,11 +161,14 @@ class CommandToolOperator:
         return {"accepted": True, "sample": sample, "validation": validation}
 
 
-def static_prompt() -> str:
-    return "\n\n".join([
+def static_prompt(tool_protocol: str) -> str:
+    prompt = "\n\n".join([
         (DEBUGGER / "prompts" / "command-synthesis.md").read_text(encoding="utf-8"),
         "Authoritative DSL sources: level-editor/src/guides/promptGuideInline.ts; level-editor/src/utils/commandTemplates.ts; src/commands/factory.ts. The database tools expose only real project examples and compact context.",
     ])
+    if tool_protocol == "json-envelope":
+        prompt += "\n\nTransport protocol: this local endpoint does not reliably serialize OpenAI tool_calls. For every tool action, reply with ONLY one JSON object: {\"tool\": \"tool_name\", \"arguments\": {\"decision\": {\"goal\": \"...\", \"evidence\": \"...\", \"hypothesis\": \"...\", \"verification\": \"...\"}, ...tool arguments...}}. Do not use Markdown or YAML. After every tool result, decide the next single tool yourself."
+    return prompt
 
 
 def make_jobs(database: CommandDatabase, samples: int | None, per_command: int | None) -> list[dict[str, Any]]:
@@ -170,6 +182,21 @@ def make_jobs(database: CommandDatabase, samples: int | None, per_command: int |
     return [job(command_types[index % len(command_types)], index // len(command_types)) for index in range(samples)]
 
 
+def accepted_record(job_id: int, job: dict[str, Any], sample: dict[str, Any], validation: dict[str, Any], trace: list[dict[str, Any]], operator: CommandToolOperator) -> tuple[dict[str, Any], dict[str, Any]]:
+    record = {
+        "schema_version": "command-agent-sft-v1",
+        "sample_id": f"cmd-{job_id:05d}",
+        "primary_command_type": job["command_type"],
+        "sample_mode": job["sample_mode"],
+        "input": {"intent": sample["intent"], "asset_catalog": sample.get("asset_catalog", [])},
+        "output": {"commands": sample["commands"]},
+        "tool_trace": trace,
+        "source_examples": sorted(set(operator.source_examples)),
+        "validation": validation,
+    }
+    return record, {"sample_id": record["sample_id"], "status": "success", "tool_calls": len(trace)}
+
+
 def run_job(job_id: int, job: dict[str, Any], database_path: Path, config: dict[str, Any], system: str) -> tuple[dict[str, Any] | None, dict[str, Any]]:
     operator = CommandToolOperator(CommandDatabase(database_path), job["command_type"], job["sample_mode"])
     messages: list[dict[str, Any]] = [
@@ -178,8 +205,9 @@ def run_job(job_id: int, job: dict[str, Any], database_path: Path, config: dict[
     ]
     trace: list[dict[str, Any]] = []
     try:
-        for _ in range(config["max_actions"]):
-            response = call_teacher(config, messages)
+        while len(trace) < config["max_actions"]:
+            json_envelope = config["tool_protocol"] == "json-envelope"
+            response = call_teacher(config, messages, use_tools=not json_envelope)
             choices = response.get("choices") if isinstance(response, dict) else None
             if not isinstance(choices, list) or not choices:
                 raise RuntimeError("teacher response has no choices")
@@ -188,7 +216,13 @@ def run_job(job_id: int, job: dict[str, Any], database_path: Path, config: dict[
             calls = message.get("tool_calls") or fallback_tool_call(content)
             if not calls:
                 raise RuntimeError(f"teacher returned no tool call: {str(content)[:800]}")
-            messages.append({"role": "assistant", "content": content, "tool_calls": calls})
+            # One completion may contain several calls; execute only one so the cap is
+            # measured in actual tool actions and every action gets fresh evidence.
+            calls = calls[:1]
+            if json_envelope:
+                messages.append({"role": "assistant", "content": content})
+            else:
+                messages.append({"role": "assistant", "content": content, "tool_calls": calls})
             for call in calls:
                 function = call.get("function", {})
                 name = function.get("name")
@@ -214,24 +248,37 @@ def run_job(job_id: int, job: dict[str, Any], database_path: Path, config: dict[
                     observation = {"error": str(error)}
                     status = "error"
                 trace.append({"turn": len(trace) + 1, "decision": tool_decision, "tool": name, "arguments": arguments, "observation": {"status": status, "summary": compact(observation)}})
-                messages.append({"role": "tool", "tool_call_id": call.get("id", f"call-{len(trace)}"), "content": json.dumps(observation, ensure_ascii=False)})
+                if json_envelope:
+                    messages.append({"role": "user", "content": json.dumps({"tool_result": {"tool": name, "result": observation}}, ensure_ascii=False)})
+                else:
+                    messages.append({"role": "tool", "tool_call_id": call.get("id", f"call-{len(trace)}"), "content": json.dumps(observation, ensure_ascii=False)})
                 if status == "error":
                     continue
                 if name == "finish" and observation.get("accepted"):
                     sample = observation["sample"]
-                    record = {
-                        "schema_version": "command-agent-sft-v1",
-                        "sample_id": f"cmd-{job_id:05d}",
-                        "primary_command_type": job["command_type"],
-                        "sample_mode": job["sample_mode"],
-                        "input": {"intent": sample["intent"], "asset_catalog": sample.get("asset_catalog", [])},
-                        "output": {"commands": sample["commands"]},
-                        "tool_trace": trace,
-                        "source_examples": sorted(set(operator.source_examples)),
-                        "validation": observation["validation"],
-                    }
-                    return record, {"sample_id": record["sample_id"], "status": "success", "tool_calls": len(trace)}
-        raise RuntimeError(f"max_actions={config['max_actions']} reached without accepted finish")
+                    return accepted_record(job_id, job, sample, observation["validation"], trace, operator)
+
+        messages.append({
+            "role": "user",
+            "content": "Tool-action cap reached. Using the complete conversation and tool results above, now produce the best final sample. Do not call tools. Reply with ONLY the final sample JSON object matching the required schema; no Markdown, explanation, or wrapper.",
+        })
+        response = call_teacher(config, messages, use_tools=False)
+        choices = response.get("choices") if isinstance(response, dict) else None
+        if not isinstance(choices, list) or not choices:
+            raise RuntimeError("teacher final response has no choices")
+        final_content = choices[0].get("message", {}).get("content") or ""
+        sample = parse_json_object(final_content)
+        observation = operator.finish(sample)
+        trace.append({
+            "turn": len(trace) + 1,
+            "decision": {},
+            "tool": "forced_final_validation",
+            "arguments": {"sample": sample},
+            "observation": {"status": "ok", "summary": compact(observation)},
+        })
+        if observation.get("accepted"):
+            return accepted_record(job_id, job, observation["sample"], observation["validation"], trace, operator)
+        raise RuntimeError(f"max_actions={config['max_actions']} reached and forced final sample failed validation: {compact(observation, 800)}")
     except Exception as error:
         return None, {"sample_id": f"cmd-{job_id:05d}", "status": "failed", "error": str(error), "tool_calls": len(trace)}
 
@@ -252,7 +299,8 @@ def main() -> int:
     parser.add_argument("--api-key", default=os.getenv("VIBE_TEACHER_API_KEY", ""))
     parser.add_argument("--model", default=os.getenv("VIBE_TEACHER_MODEL", ""))
     parser.add_argument("--max-tokens", type=int, default=int(os.getenv("VIBE_TEACHER_MAX_TOKENS", "1200")))
-    parser.add_argument("--max-actions", type=int, default=10)
+    parser.add_argument("--max-actions", type=int, default=int(os.getenv("VIBE_TEACHER_MAX_ACTIONS", "20")))
+    parser.add_argument("--tool-protocol", choices=("openai", "json-envelope"), default=os.getenv("VIBE_TEACHER_TOOL_PROTOCOL", "openai"), help="Use json-envelope for endpoints that return tool calls as plain text")
     parser.add_argument("--temperature", type=float, default=0.2)
     parser.add_argument("--timeout", type=int, default=120)
     parser.add_argument("--dry-run", action="store_true")
@@ -273,8 +321,8 @@ def main() -> int:
         print(json.dumps({"run_dir": str(run_dir), "status": "dry_run", "job_count": len(jobs), "workers": args.workers}, ensure_ascii=False))
         return 0
 
-    config = {key: getattr(args, key) for key in ("api_base", "api_key", "model", "max_tokens", "max_actions", "temperature", "timeout")}
-    system = static_prompt()
+    config = {key: getattr(args, key) for key in ("api_base", "api_key", "model", "max_tokens", "max_actions", "temperature", "timeout", "tool_protocol")}
+    system = static_prompt(args.tool_protocol)
     records: list[dict[str, Any]] = []
     states: list[dict[str, Any]] = []
     lock = threading.Lock()

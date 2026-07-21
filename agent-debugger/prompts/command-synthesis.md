@@ -10,6 +10,7 @@ Start with the assigned command type and sample mode only. Decide for yourself w
 - Build one candidate sample, then call `validate_sample`.
 - If validation fails, reason from the returned errors and retrieve or revise again.
 - Call `finish` only after validation passes.
+- At the action cap, the controller makes one final JSON-only request using the complete tool transcript and validates that result once more. Its final JSON must be the sample itself, not a `finish` envelope.
 
 Each tool call requires a compact factual `decision` object: `goal`, `evidence`, `hypothesis`, and `verification`. Do not write long chain-of-thought.
 
