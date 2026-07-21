@@ -54,6 +54,13 @@ class CommandDatabase:
             types = connection.execute("SELECT command_type, COUNT(*) AS count FROM commands GROUP BY command_type ORDER BY count DESC").fetchall()
         return {"levels": row["levels"], "commands": commands["commands"], "command_types": [dict(item) for item in types]}
 
+    def project_path(self) -> Path:
+        with self.connect() as connection:
+            row = connection.execute("SELECT value FROM metadata WHERE key = 'project'").fetchone()
+        if not row:
+            raise RuntimeError("command database has no project metadata")
+        return Path(row["value"])
+
     def find_commands(self, command_type: str = "", query: str = "", limit: int = 5) -> list[dict[str, Any]]:
         clauses = []
         values: list[Any] = []
@@ -217,6 +224,9 @@ def build_command_database(project: Path, output: Path) -> dict[str, Any]:
                     event_commands = event.get("commands") if isinstance(event, dict) and isinstance(event.get("commands"), list) else []
                     event_name = str(event.get("id") or event.get("name") or event_index) if isinstance(event, dict) else str(event_index)
                     command_count += index_stream(connection, scene_path, level_key, level_name, f"event/{event_name}", event_commands, command_types)
+                resource_catalog = flatten_resources(scene.get("resources"))
+                level_resource_ids = {str(resource_id) for resource_id in level.get("resources", []) if isinstance(resource_id, str)}
+                resources = [resource_catalog[resource_id] for resource_id in sorted(level_resource_ids) if resource_id in resource_catalog]
                 metadata = {
                     "description": level.get("description"),
                     "initial_state": level.get("initialState", {}),
@@ -227,7 +237,7 @@ def build_command_database(project: Path, output: Path) -> dict[str, Any]:
                     [
                         level_key, scene_path, str(scene.get("id", "")), str(scene.get("name", "")), index,
                         level_id, level_name, level.get("canvasWidth"), level.get("canvasHeight"),
-                        dump(level.get("resources", [])), dump(metadata), dump(sorted(command_types)), command_count, len(events),
+                        dump(resources), dump(metadata), dump(sorted(command_types)), command_count, len(events),
                     ],
                 )
                 level_count += 1
@@ -237,3 +247,29 @@ def build_command_database(project: Path, output: Path) -> dict[str, Any]:
         connection.close()
     stats = CommandDatabase(output).stats()
     return {"database": str(output), "level_count": level_count, **stats}
+
+
+def flatten_resources(value: Any) -> dict[str, dict[str, Any]]:
+    """Normalize a scene resource object to ids usable by the teaching tools."""
+    if not isinstance(value, dict):
+        return {}
+    kind_map = {"images": "image", "audios": "audio", "animations": "animation", "videos": "video"}
+    result: dict[str, dict[str, Any]] = {}
+    for group, kind in kind_map.items():
+        items = value.get(group)
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+                continue
+            resource_id = item["id"]
+            source = item.get("src") or item.get("url")
+            if not isinstance(source, str) or not source:
+                continue
+            result[resource_id] = {
+                "id": resource_id,
+                "type": kind,
+                "path": source,
+                "name": item.get("name") if isinstance(item.get("name"), str) else resource_id,
+            }
+    return result

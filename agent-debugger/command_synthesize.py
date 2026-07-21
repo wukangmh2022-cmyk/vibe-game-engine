@@ -17,13 +17,38 @@ from typing import Any
 
 from build_command_db import ROOT as REPO_ROOT
 from command_db import CommandDatabase, build_command_database, resource_refs
-from command_validator import CommandSampleValidator
+from command_validator import DIRECT_RUNTIME_TYPES, CommandSampleValidator
 
 DEBUGGER = REPO_ROOT / "agent-debugger"
 MOTIF_TYPES = {
     "SHOW_IMAGE", "SHOW_CHOICES", "SET_CLICKABLE", "SET_DRAGGABLE",
     "CREATE_DROP_ZONE", "CHECK_IN_AREA", "FLIP_CARD", "SET_VARIABLE",
-    "IF_CONDITION", "SCENE_REDIRECT", "NEXT_LEVEL", "UPDATE_TEXT",
+    "IF_CONDITION", "SCENE_REDIRECT", "NEXT_LEVEL", "UPDATE_TEXT", "MOVE_TO",
+    "SET_ELEMENT_STYLE", "BREAK",
+}
+REQUIRED_MOTIF_TYPES = {"MOVE_TO", "UPDATE_TEXT", "SET_ELEMENT_STYLE", "BREAK"}
+
+# Compact contracts distilled from the engine guide and concrete handlers. They
+# keep the teacher from importing unrelated game-engine semantics into this DSL.
+COMMAND_CONTRACTS = {
+    "SET_VARIABLE": {"required": ["key", "value"], "notes": "op is set/add/sub/mul/div; use scalar values only."},
+    "WAIT": {"required": ["duration"], "notes": "duration is a non-negative millisecond number."},
+    "MOVE_TO": {"required": ["elementId", "x", "y"], "precondition": "elementId must be created earlier in this motif."},
+    "SHOW_IMAGE": {"required": ["elementId", "resourceId"], "notes": "resourceId must be an existing image from level metadata."},
+    "SHOW_TEXT": {"required": ["elementId", "text"]},
+    "UPDATE_TEXT": {"required": ["elementId", "text"], "precondition": "elementId must be created earlier in this motif."},
+    "SHOW_CHOICES": {"required": ["elementId", "options"], "notes": "each option requires text; nested commands are optional."},
+    "SET_ELEMENT_STYLE": {"required": ["elementId", "style"], "precondition": "elementId must be created earlier in this motif."},
+    "NEXT_LEVEL": {"required": []},
+    "IF_CONDITION": {"required": ["condition"], "notes": "condition.type is variable or expression; branch arrays may be empty."},
+    "JUMP_TO": {"required": ["targetIndex"], "notes": "targetIndex is a zero-based main-stream index."},
+    "LOOP": {"required": ["commands"], "notes": "commands must be non-empty; BREAK only belongs in this array."},
+    "BREAK": {"required": [], "precondition": "must be nested inside LOOP.commands."},
+    "EMIT_SIGNAL": {"required": ["signal"]},
+    "BGM_PLAY": {"required": ["musicId"], "notes": "musicId must be an existing audio resource; volume is 0..1."},
+    "BGM_STOP": {"required": []},
+    "SE_PLAY": {"required": ["soundId"], "notes": "soundId must be an existing audio resource; volume is 0..1."},
+    "SCENE_REDIRECT": {"required": ["url"], "notes": "url is a scene path or this; it emits a redirect request."},
 }
 
 
@@ -57,6 +82,7 @@ def tool(name: str, description: str, properties: dict[str, Any], required: list
 
 
 TOOLS = [
+    tool("get_command_contract", "Get the authoritative compact contract for one supported command type.", {"command_type": {"type": "string"}}, ["command_type"]),
     tool("find_command_examples", "Find compact real examples by command type or semantic term.", {"command_type": {"type": "string"}, "query": {"type": "string"}, "limit": {"type": "integer", "minimum": 1, "maximum": 10}}, []),
     tool("get_command_context", "Get one command and up to ten nearby commands from its original command stream.", {"command_key": {"type": "string"}, "before": {"type": "integer", "minimum": 0, "maximum": 10}, "after": {"type": "integer", "minimum": 0, "maximum": 10}}, ["command_key"]),
     tool("get_level_metadata", "Get compact level metadata without loading full scene JSON.", {"level_key": {"type": "string"}}, ["level_key"]),
@@ -126,20 +152,32 @@ class CommandToolOperator:
         self.primary_type = primary_type
         self.sample_mode = sample_mode
         self.validator = CommandSampleValidator(database)
-        self.exposed_assets: set[str] = set()
+        self.exposed_assets: dict[str, dict[str, Any]] = {}
         self.source_examples: list[str] = []
+        self.contracts_read: set[str] = set()
         self.last_validation: dict[str, Any] = {"valid": False, "errors": ["validate_sample has not run"], "warnings": []}
 
     def _expose(self, examples: list[dict[str, Any]]) -> None:
         for example in examples:
             self.source_examples.append(example["command_key"])
-            for _, resource_id in resource_refs(example["command"].get("parameters", {})):
-                self.exposed_assets.add(resource_id)
+
+    def _expose_level_resources(self, metadata: dict[str, Any]) -> None:
+        for resource in metadata.get("resources", []):
+            if isinstance(resource, dict) and isinstance(resource.get("id"), str):
+                self.exposed_assets[resource["id"]] = resource
 
     def find_command_examples(self, command_type: str = "", query: str = "", limit: int = 5) -> dict[str, Any]:
         examples = self.database.find_commands(command_type, query, limit)
         self._expose(examples)
         return {"examples": examples}
+
+    def get_command_contract(self, command_type: str) -> dict[str, Any]:
+        normalized = command_type.upper()
+        contract = COMMAND_CONTRACTS.get(normalized)
+        if not contract:
+            raise KeyError(f"no executable command contract for {normalized}")
+        self.contracts_read.add(normalized)
+        return {"command_type": normalized, "contract": contract}
 
     def get_command_context(self, command_key: str, before: int = 5, after: int = 5) -> dict[str, Any]:
         result = self.database.command_context(command_key, before, after)
@@ -147,7 +185,9 @@ class CommandToolOperator:
         return result
 
     def get_level_metadata(self, level_key: str) -> dict[str, Any]:
-        return self.database.level_metadata(level_key)
+        metadata = self.database.level_metadata(level_key)
+        self._expose_level_resources(metadata)
+        return metadata
 
     def validate_sample(self, sample: dict[str, Any]) -> dict[str, Any]:
         minimum = 2 if self.sample_mode == "motif" else 1
@@ -155,6 +195,8 @@ class CommandToolOperator:
         return self.last_validation
 
     def finish(self, sample: dict[str, Any]) -> dict[str, Any]:
+        if self.primary_type.upper() not in self.contracts_read:
+            return {"accepted": False, "validation": {"valid": False, "errors": ["get_command_contract must be called for the assigned primary command type"], "warnings": []}}
         validation = self.validate_sample(sample)
         if not validation["valid"]:
             return {"accepted": False, "validation": validation}
@@ -172,14 +214,30 @@ def static_prompt(tool_protocol: str) -> str:
 
 
 def make_jobs(database: CommandDatabase, samples: int | None, per_command: int | None) -> list[dict[str, Any]]:
-    command_types = [item["command_type"] for item in database.stats()["command_types"]]
+    command_types = [item["command_type"] for item in database.stats()["command_types"] if item["command_type"] in DIRECT_RUNTIME_TYPES]
+    if not command_types:
+        raise RuntimeError("command database has no types supported by the runtime dry run")
     def job(command_type: str, variant: int) -> dict[str, Any]:
-        mode = "motif" if command_type in MOTIF_TYPES and variant % 4 != 0 else "atomic"
-        return {"command_type": command_type, "variant": variant, "sample_mode": mode}
+        return {"command_type": command_type, "variant": variant, "sample_mode": "atomic"}
     if per_command is not None:
-        return [job(command_type, variant) for command_type in command_types for variant in range(per_command)]
-    assert samples is not None
-    return [job(command_types[index % len(command_types)], index // len(command_types)) for index in range(samples)]
+        jobs = [job(command_type, variant) for command_type in command_types for variant in range(per_command)]
+    else:
+        assert samples is not None
+        jobs = [job(command_types[index % len(command_types)], index // len(command_types)) for index in range(samples)]
+
+    required = [index for index, item in enumerate(jobs) if item["command_type"] in REQUIRED_MOTIF_TYPES]
+    for index in required:
+        jobs[index]["sample_mode"] = "motif"
+    target_motifs = round(len(jobs) * 0.28)
+    optional = [index for index, item in enumerate(jobs) if item["command_type"] in MOTIF_TYPES and item["command_type"] not in REQUIRED_MOTIF_TYPES]
+    extra = min(max(0, target_motifs - len(required)), len(optional))
+    if extra:
+        # Evenly spread optional motifs so the early command types do not receive
+        # a disproportionate share of compound examples.
+        chosen = {optional[(slot * len(optional)) // extra] for slot in range(extra)}
+        for index in chosen:
+            jobs[index]["sample_mode"] = "motif"
+    return jobs
 
 
 def accepted_record(job_id: int, job: dict[str, Any], sample: dict[str, Any], validation: dict[str, Any], trace: list[dict[str, Any]], operator: CommandToolOperator) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -231,7 +289,9 @@ def run_job(job_id: int, job: dict[str, Any], database_path: Path, config: dict[
                 try:
                     arguments = json.loads(function.get("arguments", "{}"))
                     tool_decision = decision(arguments.pop("decision"))
-                    if name == "find_command_examples":
+                    if name == "get_command_contract":
+                        observation = operator.get_command_contract(arguments["command_type"])
+                    elif name == "find_command_examples":
                         observation = operator.find_command_examples(arguments.get("command_type", ""), arguments.get("query", ""), int(arguments.get("limit", 5)))
                     elif name == "get_command_context":
                         observation = operator.get_command_context(arguments["command_key"], int(arguments.get("before", 5)), int(arguments.get("after", 5)))

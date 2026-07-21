@@ -22,7 +22,7 @@ python3 agent-debugger/query_command_db.py find --type SCENE_REDIRECT --limit 3
 
 ## First SFT Dataset: Command Mappings
 
-The first fine-tuning dataset is intentionally smaller than a full game trajectory. Each record maps a concrete Chinese authoring request and compact asset catalog to one command or a 2-4 command motif. It validates command ids, command types, parameter objects, primary command coverage, and real versus virtual resource declarations.
+The first fine-tuning dataset is intentionally smaller than a full game trajectory. Each record maps a concrete Chinese authoring request and compact asset catalog to one command or a 2-4 command motif. The executable corpus accepts only real resources exposed by level metadata, then runs the commands through the real `CommandExecutor` with in-memory adapters before writing JSONL.
 
 ```bash
 export VIBE_TEACHER_API_BASE=http://127.0.0.1:18765/v1
@@ -36,7 +36,7 @@ python3 agent-debugger/command_synthesize.py --samples 100 --workers 4 --max-act
 python3 agent-debugger/command_synthesize.py --per-command 50 --workers 4
 ```
 
-The synthesizer keeps a constant system prompt and compact command examples, allowing local vLLM prefix caching to reuse the shared prefix. About 70% of samples are atomic command mappings; about 30% are 2-4 command motifs for engine-specific dependencies such as show-image plus animation, dragging plus drop checks, state updates plus conditions, and scene flow.
+The synthesizer keeps a constant system prompt and compact command examples, allowing local vLLM prefix caching to reuse the shared prefix. It schedules 72% atomic mappings and 28% 2-4 command motifs; commands with a required element or loop dependency are always motifs. The first executable pass intentionally excludes browser/Pixi-only commands until their dedicated runtime harness is added. Virtual-resource templates belong in a separate future corpus and are never mixed into executable samples.
 
 The teacher is not given fixed examples in advance. It chooses its own retrieval and validation loop. `DeepSeekV4` at the local endpoint above supports the default `openai` protocol. `DeepSeekV4-thinking` can be selected by changing `VIBE_TEACHER_MODEL`. Use `--tool-protocol json-envelope` only for endpoints that place a call in text rather than `message.tool_calls`.
 
