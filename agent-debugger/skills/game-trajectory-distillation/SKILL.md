@@ -19,13 +19,21 @@ Treat these as authoritative before generating a batch:
 - `src/types/index.ts`: runtime resource contract, including optional resource metadata.
 - `customer-demo/config.json` and `customer-demo/scene/*.json`: real project examples.
 
+Build the command index before teacher-model generation:
+
+```bash
+python3 agent-debugger/build_command_db.py --project customer-demo
+```
+
+The teacher should use command-index tools first: search by command type or semantic term, retrieve local command context, then read only the scene file that it intends to patch.
+
 Read [references/retrieval-map.md](references/retrieval-map.md) before selecting tasks. Read [references/trajectory-schema.md](references/trajectory-schema.md) before writing output.
 
 ## Workflow
 
 1. Record the current Git commit. Work in an isolated temporary copy or detached worktree. Never modify, commit, or push the source project.
 2. Index actual resources and scenes. Normalize every resource into `{ id, type, path, origin, exists, metadata }`.
-3. Select a category and a relevant real scene fragment using the retrieval map. Use the fragment as a reference, not as an answer to copy.
+3. Select a category and a relevant real command fragment using the SQLite command index. Retrieve at most 10 neighboring commands. Use the fragment as a reference, not as an answer to copy.
 4. Derive one concrete user task. Prefer a single level; allow at most two scene files for flow tasks.
 5. Execute a bounded loop: inspect -> short decision -> action -> real observation. Limit accepted trajectories to 3-12 actions.
 6. Validate JSON parsing, command support, resource references, `npm run build`, and `npm test -- --runInBand`.
@@ -54,7 +62,7 @@ Keep each field factual and short. Do not write lengthy chain-of-thought. Ground
 
 ## Batch Requirements
 
-Generate exactly 10 accepted JSONL records per batch. Include at least one create, modify, interaction, state/logic, scene-flow, repair, resource/layout, and validation task; use the remaining two records to balance the current corpus category counts.
+The manual batch controller generates exactly 10 accepted JSONL records per batch. The parallel controller invokes this Skill once per trajectory and generates exactly one accepted record per invocation. Across either mode, cover create, modify, interaction, state/logic, scene-flow, repair, resource/layout, and validation categories evenly.
 
 Record failed attempts only in a separate internal log. Keep an accepted repair trajectory only when it contains a real failing observation followed by a verified correction.
 

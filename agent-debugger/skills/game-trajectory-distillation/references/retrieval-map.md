@@ -1,6 +1,6 @@
 # Retrieval Map
 
-Use `rg -n -i` inside `customer-demo/scene` before selecting a task. Read only the matching local scene fragments plus their resource lists.
+Build `agent-debugger/state/command-index.sqlite` with `python3 agent-debugger/build_command_db.py --project customer-demo` before selecting a task. Query it by type or semantic terms, then request only the matching command context. Use `rg -n -i` only as a fallback.
 
 | Category | Search terms | Typical reference use |
 |---|---|---|
