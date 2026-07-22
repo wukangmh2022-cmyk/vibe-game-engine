@@ -19,7 +19,7 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 仓库包含一条面向本引擎 DSL 的可复现实验链路：先合成并严格验证“需求 -> 指令 JSON”数据，再以 QLoRA 微调开源基础模型，最后在固定题集上比较 Base 与 Adapter。第一阶段的目标是提高引擎指令、资源引用和短组合逻辑的正确率，不是直接训练完整 10 关游戏规划。
 
-完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。
+完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。关于 15 个已试玩人类关卡、一期多 worker 队列合成、分布对比及二期跨事件/浏览器交互补齐计划，见 [训练数据合成策略](docs/data-synthesis-strategy.md)。
 
 ### 数据合成与质量门
 

@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="859" viewBox="0 0 1200 859" role="img" aria-labelledby="title desc">
+<title id="title">15 source game scenes command distribution</title>
+<desc id="desc">14971 command occurrences, counting main, event, and nested command streams.</desc>
+<style>.title{font:600 20px Arial,sans-serif;fill:#172033}.subtitle{font:13px Arial,sans-serif;fill:#5a6578}.label,.value{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#273142}.bar{fill:#147d92}.axis{stroke:#cbd5e1;stroke-width:1}</style>
+<text x="190" y="26" class="title">15 个源关卡的指令出现频次</text>
+<text x="190" y="47" class="subtitle">共 14971 次，包含主线、事件与嵌套分支/循环/选项指令</text>
+<line x1="190" y1="52" x2="1105" y2="52" class="axis"/>
+<text x="176" y="78" text-anchor="end" class="label">SHOW_IMAGE</text>
+<rect x="190" y="64" width="915.0" height="17" rx="2" class="bar"/>
+<text x="1113.0" y="78" class="value">3269 (21.8%)</text>
+<text x="176" y="105" text-anchor="end" class="label">SET_VARIABLE</text>
+<rect x="190" y="91" width="529.29" height="17" rx="2" class="bar"/>
+<text x="727.29" y="105" class="value">1891 (12.6%)</text>
+<text x="176" y="132" text-anchor="end" class="label">SE_PLAY</text>
+<rect x="190" y="118" width="306.49" height="17" rx="2" class="bar"/>
+<text x="504.49" y="132" class="value">1095 (7.3%)</text>
+<text x="176" y="159" text-anchor="end" class="label">SET_ELEMENT_STYLE</text>
+<rect x="190" y="145" width="303.41" height="17" rx="2" class="bar"/>
+<text x="501.41" y="159" class="value">1084 (7.2%)</text>
+<text x="176" y="186" text-anchor="end" class="label">SET_CLICKABLE</text>
+<rect x="190" y="172" width="265.35" height="17" rx="2" class="bar"/>
+<text x="463.35" y="186" class="value">948 (6.3%)</text>
+<text x="176" y="213" text-anchor="end" class="label">EMIT_SIGNAL</text>
+<rect x="190" y="199" width="261.99" height="17" rx="2" class="bar"/>
+<text x="459.99" y="213" class="value">936 (6.3%)</text>
+<text x="176" y="240" text-anchor="end" class="label">WAIT</text>
+<rect x="190" y="226" width="251.35" height="17" rx="2" class="bar"/>
+<text x="449.35" y="240" class="value">898 (6.0%)</text>
+<text x="176" y="267" text-anchor="end" class="label">IF_CONDITION</text>
+<rect x="190" y="253" width="249.95" height="17" rx="2" class="bar"/>
+<text x="447.95" y="267" class="value">893 (6.0%)</text>
+<text x="176" y="294" text-anchor="end" class="label">SHOW_TEXT</text>
+<rect x="190" y="280" width="174.66" height="17" rx="2" class="bar"/>
+<text x="372.65999999999997" y="294" class="value">624 (4.2%)</text>
+<text x="176" y="321" text-anchor="end" class="label">UPDATE_TEXT</text>
+<rect x="190" y="307" width="157.3" height="17" rx="2" class="bar"/>
+<text x="355.3" y="321" class="value">562 (3.8%)</text>
+<text x="176" y="348" text-anchor="end" class="label">BGM_PLAY</text>
+<rect x="190" y="334" width="96.85" height="17" rx="2" class="bar"/>
+<text x="294.85" y="348" class="value">346 (2.3%)</text>
+<text x="176" y="375" text-anchor="end" class="label">ANIMATE_IN</text>
+<rect x="190" y="361" width="90.69" height="17" rx="2" class="bar"/>
+<text x="288.69" y="375" class="value">324 (2.2%)</text>
+<text x="176" y="402" text-anchor="end" class="label">SCENE_REDIRECT</text>
+<rect x="190" y="388" width="88.17" height="17" rx="2" class="bar"/>
+<text x="286.17" y="402" class="value">315 (2.1%)</text>
+<text x="176" y="429" text-anchor="end" class="label">JUMP_TO</text>
+<rect x="190" y="415" width="65.5" height="17" rx="2" class="bar"/>
+<text x="263.5" y="429" class="value">234 (1.6%)</text>
+<text x="176" y="456" text-anchor="end" class="label">SET_SELECTABLE</text>
+<rect x="190" y="442" width="60.74" height="17" rx="2" class="bar"/>
+<text x="258.74" y="456" class="value">217 (1.4%)</text>
+<text x="176" y="483" text-anchor="end" class="label">SET_DRAGGABLE</text>
+<rect x="190" y="469" width="57.66" height="17" rx="2" class="bar"/>
+<text x="255.66" y="483" class="value">206 (1.4%)</text>
+<text x="176" y="510" text-anchor="end" class="label">SCRIPT</text>
+<rect x="190" y="496" width="48.7" height="17" rx="2" class="bar"/>
+<text x="246.7" y="510" class="value">174 (1.2%)</text>
+<text x="176" y="537" text-anchor="end" class="label">NEXT_LEVEL</text>
+<rect x="190" y="523" width="45.34" height="17" rx="2" class="bar"/>
+<text x="243.34" y="537" class="value">162 (1.1%)</text>
+<text x="176" y="564" text-anchor="end" class="label">ANIMATE_OUT</text>
+<rect x="190" y="550" width="37.23" height="17" rx="2" class="bar"/>
+<text x="235.23" y="564" class="value">133 (0.9%)</text>
+<text x="176" y="591" text-anchor="end" class="label">FLIP_CARD</text>
+<rect x="190" y="577" width="34.99" height="17" rx="2" class="bar"/>
+<text x="232.99" y="591" class="value">125 (0.8%)</text>
+<text x="176" y="618" text-anchor="end" class="label">CHANGE_SELECTED_STATE</text>
+<rect x="190" y="604" width="32.47" height="17" rx="2" class="bar"/>
+<text x="230.47" y="618" class="value">116 (0.8%)</text>
+<text x="176" y="645" text-anchor="end" class="label">BREAK</text>
+<rect x="190" y="631" width="22.11" height="17" rx="2" class="bar"/>
+<text x="220.11" y="645" class="value">79 (0.5%)</text>
+<text x="176" y="672" text-anchor="end" class="label">FIREWORK_BURST</text>
+<rect x="190" y="658" width="21.27" height="17" rx="2" class="bar"/>
+<text x="219.27" y="672" class="value">76 (0.5%)</text>
+<text x="176" y="699" text-anchor="end" class="label">CHECK_IN_AREA</text>
+<rect x="190" y="685" width="21.27" height="17" rx="2" class="bar"/>
+<text x="219.27" y="699" class="value">76 (0.5%)</text>
+<text x="176" y="726" text-anchor="end" class="label">MOVE_TO</text>
+<rect x="190" y="712" width="19.59" height="17" rx="2" class="bar"/>
+<text x="217.59" y="726" class="value">70 (0.5%)</text>
+<text x="176" y="753" text-anchor="end" class="label">LOOP</text>
+<rect x="190" y="739" width="19.59" height="17" rx="2" class="bar"/>
+<text x="217.59" y="753" class="value">70 (0.5%)</text>
+<text x="176" y="780" text-anchor="end" class="label">SHOW_CHOICES</text>
+<rect x="190" y="766" width="13.44" height="17" rx="2" class="bar"/>
+<text x="211.44" y="780" class="value">48 (0.3%)</text>
+</svg>
