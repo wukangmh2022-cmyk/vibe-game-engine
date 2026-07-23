@@ -19,29 +19,33 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 仓库包含一条面向本引擎 DSL 的可复现实验链路：先合成并严格验证“需求 -> 指令 JSON”数据，再以 QLoRA 微调开源基础模型，最后在固定题集上比较 Base 与 Adapter。第一阶段的目标是提高引擎指令、资源引用和短组合逻辑的正确率，不是直接训练完整 10 关游戏规划。
 
-完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。关于 15 个已试玩人类关卡、一期多 worker 队列合成、分布对比及二期跨事件/浏览器交互补齐计划，见 [训练数据合成策略](docs/data-synthesis-strategy.md)。
+完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。关于 15 个已试玩人类关卡、一期多 worker 队列合成、二期跨事件补齐与三期浏览器互动补齐，见 [训练数据合成策略](docs/data-synthesis-strategy.md)。
+
+可直接查看最终训练视图的 [可读指令大纲（V4）](docs/training-data/level-authoring-sft-v4-command-outline.txt)。它展示中文需求、主流程和事件中的指令顺序，便于理解训练/验证样本形态；不包含原始 JSON、资源目录、命令参数或完整嵌套配置。
 
 ### 数据合成与质量门
 
 输入是 `customer-demo/scene/**/*.json` 中的真实场景、关卡、资源和指令。`agent-debugger/build_command_db.py` 将其拆为只读 SQLite 索引，教师模型只能通过工具按需取得：指令契约、真实指令示例、相邻指令上下文，以及某关卡的真实资源清单。模型自主调用工具、生成候选、请求验证；最多 20 个工具动作，达到上限后控制器强制它输出一次最终 JSON。
 
-每条合格数据的 JSONL 结构为：
+原始一期 `corpus.jsonl` 是采集记录；训练使用统一视图 `training-data/level-authoring-sft-v1.jsonl`。每条训练记录的输出都使用同一事件感知结构：
 
 ```json
 {
-  "sample_id": "cmd-00001",
-  "primary_command_type": "SHOW_IMAGE",
-  "sample_mode": "atomic|motif",
+  "schema_version": "vibe-level-authoring-sft-v1",
+  "sample_id": "phase1-g0000",
+  "source_dataset": "command-agent-sft-v1|event-coordination-sft-v2",
   "input": {
     "intent": "中文关卡功能需求",
     "asset_catalog": [{"id":"真实资源ID","type":"image","path":"相对项目路径","origin":"existing","exists":true}]
   },
-  "output": {"commands": [{"id":"...","type":"SHOW_IMAGE","parameters":{}}]},
-  "validation": {"valid": true, "runtime": {"valid": true}}
+  "output": {
+    "commands": [{"id":"...","type":"SHOW_IMAGE","parameters":{}}],
+    "extra_events": []
+  }
 }
 ```
 
-这不是仅靠 JSON schema 的筛选。写入训练集前必须全部通过：真实资源 `id/type/path` 与关卡元数据一致且磁盘文件存在；资源不能是 `virtual://` 或猜测路径；元素更新命令必须先创建同一元素；`BREAK` 必须在 `LOOP.commands`；最终以仓库实际 `CommandExecutor` 配合内存状态、资源、渲染和音频适配器预跑。浏览器/Pixi 专用交互指令暂不进入第一阶段语料，等专用运行器验证器完成后单独扩展。
+这不是仅靠 JSON schema 的筛选。写入训练集前必须全部通过：真实资源 `id/type/path` 与关卡元数据一致且磁盘文件存在；资源不能是 `virtual://` 或猜测路径；元素更新命令必须先创建同一元素；`BREAK` 必须在 `LOOP.commands`；一期指令通过仓库实际 `CommandExecutor` 配合内存状态、资源、渲染和音频适配器预跑。三期浏览器/Pixi 互动指令使用真实 handler 参数、真实资源和元素依赖的静态契约验证后直接纳入训练；浏览器回放后置，不作为当前数据入库阻塞条件。
 
 首批采样保持 `72%` 单指令 atomic 与 `28%` 2-4 指令 motif。启动合成器时使用新的兼容 API：
 
@@ -56,43 +60,47 @@ python3 agent-debugger/command_synthesize.py \
 
 ### QLoRA 微调
 
-训练输入只取 `validation.valid=true` 且 `validation.runtime.valid=true` 的记录。`training/qlora/prepare_data.py` 去重并固定随机划分训练/验证集，产出 chat-format JSONL：system 为引擎输出约束，user 为中文需求与可用资源，assistant 仅为 `intent + asset_catalog + commands` JSON。教师工具轨迹和长推理不会作为监督标签，避免把不稳定的检索过程蒸馏进模型。
+训练输入只取统一视图中已审计通过的记录。`training/qlora/prepare_data.py` 去重并固定随机划分训练/验证集，产出 chat-format JSONL：system 为引擎输出约束，user 为中文需求与可用资源，assistant 仅为 `intent + asset_catalog + commands + extra_events` JSON。普通单事件样本必须输出 `extra_events: []`；跨事件样本输出完整 EventConfig 数组。教师工具轨迹和长推理不会作为监督标签，避免把不稳定的检索过程蒸馏进模型。
 
 第一版选单卡 4-bit NF4 QLoRA，而不是全量微调：27B 密集模型全参数训练需要远超单张 4090 的显存和优化器状态；QLoRA 只训练低秩 adapter，可在 4090 级卡上进行可控实验、保存体积小，并能用同一基础模型公平比较 Base 与 Adapter。默认值为 `r=32`、`alpha=64`、最大长度 `3072`、batch `1`、梯度累积 `16`、学习率 `1e-4`、3 epoch。显存不足先降 max length 到 2048，再降 r 到 16。
 
 ```bash
 pip install -r training/qlora/requirements.txt
 python training/qlora/prepare_data.py \
-  --input training-data/command-agent-sft \
-  --output-dir training/qlora/data/command-sft-v1
+  --input training-data/level-authoring-sft-v1.jsonl \
+  --output-dir training/qlora/data/level-authoring-sft-v1
 
 python training/qlora/train_qlora.py \
   --model-name-or-path /root/autodl-tmp/Qwen-model \
-  --data-dir training/qlora/data/command-sft-v1 \
-  --output-dir training/qlora/outputs/vibe-command-qlora
+  --data-dir training/qlora/data/level-authoring-sft-v1 \
+  --output-dir training/qlora/outputs/vibe-level-authoring-qlora
 ```
 
 训练产物是 PEFT adapter，不是完整基础模型。发布时应上传 adapter、tokenizer、训练配置、数据 manifest 和评估报告；基础模型保持引用原始模型名，避免在 GitHub 仓库提交几十 GB 权重。
 
 ### 固定评估
 
-[training/eval/cases/command_benchmark_v1.json](training/eval/cases/command_benchmark_v1.json) 是人工编写、版本化的 36 个固定短指令题：当前 18 类可预跑指令各有一条简要需求和一条详细需求，每题都内置独立的真实资源列表。[level_module_benchmark_v1.json](training/eval/cases/level_module_benchmark_v1.json) 额外包含 12 个完整关卡功能块题，要求模型组合 3-12 条命令完成欢迎、答题反馈、选择、过关或跳转流程，两套题单独出分。API 只负责让 Base 和 Adapter 回答同一题，不参与生成或改写测试 query。
+[training/eval/cases/command_benchmark_v1.json](training/eval/cases/command_benchmark_v1.json) 是人工编写、版本化的 36 个固定短指令题；[level_module_benchmark_v1.json](training/eval/cases/level_module_benchmark_v1.json) 额外包含 12 个完整关卡功能块题。它们使用 `customer-demo` 的资源目录，而该目录属于训练来源范围，因此只作为运行时回归 smoke test，不作为最终泛化结论。API 只负责让 Base 和 Adapter 回答同一题，不参与生成或改写测试 query。
 
-评估器以 6-12 并发运行，默认 8 并发；每个输出都执行 JSON 提取、主指令/命令数检查、资源契约、依赖顺序和 `CommandExecutor` 预跑。先用机器评分筛掉结构或运行时错误，再从 Base/Adapter 通过与失败的差异案例中抽样导入编辑器试玩，人工仅记录需求满足、交互完成、文案和布局质量。
+评估器以 6-12 并发运行，默认 8 并发；每个输出都执行 JSON 提取、主指令/命令数检查、资源契约、依赖顺序和 `CommandExecutor` 预跑。先用机器评分筛掉结构或运行时错误，再从 Base/Adapter 通过与失败的差异案例中抽样导入编辑器试玩，人工仅记录需求满足和交互完成；文案与布局不属于当前训练目标。
+
+交互与跨事件能力使用独立的 [heldout_interaction_benchmark_v3.py](training/eval/heldout_interaction_benchmark_v3.py) 单独评分。它包含 80 条从零设计的 held-out 题，不读取训练语料、不复用训练资源或训练场景；其中 10 条为包含 6 段“然后”逻辑、多个事件和条件分支的复杂协调题。oracle 定义真实 pointer 点击/拖拽、信号输入和状态断言。评估器执行 `commands + extra_events` 的完整关卡后量化结构通过、运行时通过和交互完成率；不评判布局或审美。
 
 ```bash
-export VIBE_EVAL_API_BASE=http://HOST/v1
-export VIBE_EVAL_API_KEY=your-key
-
 python training/eval/run_eval.py \
-  --run base=Qwen-Base-Model-Id \
-  --run adapter=Vibe-Qlora-Adapter-Model-Id \
+  --profile qwen36_27b \
+  --profile adapter \
   --workers 8
 
 python training/eval/run_eval.py \
   --cases training/eval/cases/level_module_benchmark_v1.json \
-  --run base=Qwen-Base-Model-Id \
-  --run adapter=Vibe-Qlora-Adapter-Model-Id \
+  --profile qwen36_27b \
+  --profile adapter \
+  --workers 8
+
+python training/eval/run_interaction_eval.py \
+  --profile qwen36_27b \
+  --profile adapter \
   --workers 8
 ```
 
@@ -101,7 +109,7 @@ python training/eval/run_eval.py \
 | 模型 | 短指令通过/36 | 功能块通过/12 | 运行时预跑通过 | 平均响应秒数 | 训练数据版本 |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Base | 待填 | 待填 | 待填 | 待填 | - |
-| QLoRA Adapter | 待填 | 待填 | 待填 | 待填 | command-sft-v1 |
+| QLoRA Adapter | 待填 | 待填 | 待填 | 待填 | level-authoring-sft-v1 |
 
 完整关卡/十关试玩是第二阶段评估：需要先积累经过浏览器运行时验证的长轨迹数据，不能用本阶段的短指令语料强行衡量整关策划能力。
 
