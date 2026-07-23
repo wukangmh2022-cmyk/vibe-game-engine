@@ -25,7 +25,7 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。关于 15 个已试玩人类关卡、一期多 worker 队列合成、二期跨事件补齐与三期浏览器互动补齐，见 [训练数据合成策略](docs/data-synthesis-strategy.md)。
 
-可直接查看最终训练视图的 [可读指令大纲（V4）](docs/training-data/level-authoring-sft-v4-command-outline.txt)。它展示中文需求、主流程和事件中的指令顺序，便于理解训练/验证样本形态；不包含原始 JSON、资源目录、命令参数或完整嵌套配置。
+可直接查看 [训练集（可读展示文本）](docs/training-data/training-set-readable-text.txt)。该文件展示中文需求、主流程和事件中的指令顺序，便于了解训练样本形态；不包含原始 JSON、资源目录、命令参数或完整嵌套配置。
 
 ### 数据合成与质量门
 
