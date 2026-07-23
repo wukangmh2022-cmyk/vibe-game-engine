@@ -84,7 +84,19 @@ python training/qlora/train_qlora.py \
 
 ### 固定评估
 
-[training/eval/cases/command_benchmark_v1.json](training/eval/cases/command_benchmark_v1.json) 是人工编写、版本化的 36 个固定短指令题；[level_module_benchmark_v1.json](training/eval/cases/level_module_benchmark_v1.json) 额外包含 12 个完整关卡功能块题。它们使用 `customer-demo` 的资源目录，而该目录属于训练来源范围，因此只作为运行时回归 smoke test，不作为最终泛化结论。API 只负责让 Base 和 Adapter 回答同一题，不参与生成或改写测试 query。
+[training/eval/cases/command_benchmark_v1.json](training/eval/cases/command_benchmark_v1.json) 是人工编写、版本化的 36 个固定短指令题；[level_module_benchmark_v1.json](training/eval/cases/level_module_benchmark_v1.json) 额外包含 12 个完整关卡功能块题。它们使用 `customer-demo` 的资源目录，而该目录属于训练来源范围，因此只作为运行时回归 smoke test，不作为最终泛化结论。
+
+完整的编辑器 Guidance 不进入 SFT 训练语料。训练样本只保留最小 JSON 输出约束，让模型从“中文需求 -> 指令 JSON”的监督中学习 DSL；推理时才由编辑器或评估器注入版本化的完整 Guidance。正式对比固定为三组，所有组使用相同题目、资源、采样参数和运行时验证器：
+
+| 组别 | 推理上下文 | 要回答的问题 |
+| --- | --- | --- |
+| Base + Guidance | 未微调的同一基座 + 完整编辑器 Guidance | 给定完整操作说明时，基础模型能做到什么程度？ |
+| Adapter + Guidance | 同一基座挂载 LoRA + 完全相同的完整 Guidance | 在同一推理条件下，训练数据是否带来增益？ |
+| Adapter - Guidance | 同一 LoRA，不注入完整 Guidance | 模型是否把指令用法和事件结构沉淀进参数，而非只依赖长提示词？ |
+
+第三组仍发送同一份 benchmark 题面和最小输出协议，否则没有共同的可解析任务；它去掉的是数千 token 的指令定义、约束和示例。Base 与 Adapter 的主对照始终都带完整 Guidance，不能让提示词差异伪装成训练收益。
+
+我没有从 15 个原始人类关卡中硬切出测试集：它们是数量很少、质量最高的训练来源，而且同一关卡中的资源、题材和流程会高度重叠。即使按记录随机划分，测试题也会泄露同一场景和同一玩法模式，得到的高分不能说明泛化能力；反而会削弱训练中最可靠的人工样本。因此随机 validation 只用于训练过程的监控和数据完整性检查，不作为论文式测试分数。最终泛化只看下面独立的 held-out v3：它从零设计，不读取训练语料、不复用训练资源或训练场景。
 
 评估器以 6-12 并发运行，默认 8 并发；每个输出都执行 JSON 提取、主指令/命令数检查、资源契约、依赖顺序和 `CommandExecutor` 预跑。先用机器评分筛掉结构或运行时错误，再从 Base/Adapter 通过与失败的差异案例中抽样导入编辑器试玩，人工仅记录需求满足和交互完成；文案与布局不属于当前训练目标。
 
@@ -92,28 +104,40 @@ python training/qlora/train_qlora.py \
 
 ```bash
 python training/eval/run_eval.py \
-  --profile qwen36_27b \
+  --profile qwen35_9b \
   --profile adapter \
   --workers 8
 
 python training/eval/run_eval.py \
   --cases training/eval/cases/level_module_benchmark_v1.json \
-  --profile qwen36_27b \
+  --profile qwen35_9b \
+  --profile adapter \
+  --workers 8
+
+# 单独运行 Adapter - Guidance 消融组
+python training/eval/run_eval.py \
+  --profile adapter \
+  --without-guidance \
+  --workers 8
+
+python training/eval/run_interaction_eval.py \
+  --profile qwen35_9b \
   --profile adapter \
   --workers 8
 
 python training/eval/run_interaction_eval.py \
-  --profile qwen36_27b \
   --profile adapter \
+  --without-guidance \
   --workers 8
 ```
 
 训练完成后用 `training/eval/report.py` 输出下表的实际数值：
 
-| 模型 | 短指令通过/36 | 功能块通过/12 | 运行时预跑通过 | 平均响应秒数 | 训练数据版本 |
+| 组别 | 短指令通过/36 | 功能块通过/12 | 运行时预跑通过 | held-out 交互完成 | 训练数据版本 |
 | --- | ---: | ---: | ---: | ---: | --- |
-| Base | 待填 | 待填 | 待填 | 待填 | - |
-| QLoRA Adapter | 待填 | 待填 | 待填 | 待填 | level-authoring-sft-v1 |
+| Base + Guidance | 待填 | 待填 | 待填 | 待填 | - |
+| Adapter + Guidance | 待填 | 待填 | 待填 | 待填 | level-authoring-sft-v4 |
+| Adapter - Guidance | 待填 | 待填 | 待填 | 待填 | level-authoring-sft-v4 |
 
 完整关卡/十关试玩是第二阶段评估：需要先积累经过浏览器运行时验证的长轨迹数据，不能用本阶段的短指令语料强行衡量整关策划能力。
 

@@ -21,6 +21,12 @@ import sys
 sys.path.insert(0, str(DEBUGGER))
 from command_db import CommandDatabase, build_command_database
 from command_validator import CommandSampleValidator, walk_commands
+try:  # Supports both `python training/eval/...` and package-style regression imports.
+    from .editor_prompt import editor_system_prompt
+    from .eval_config import DEFAULT_ENV_FILE, endpoint_from_profile, load_settings
+except ImportError:
+    from editor_prompt import editor_system_prompt
+    from eval_config import DEFAULT_ENV_FILE, endpoint_from_profile, load_settings
 
 
 def parse_response(content: str) -> dict[str, Any]:
@@ -61,7 +67,7 @@ def request_completion(config: dict[str, Any], messages: list[dict[str, str]]) -
     return str(choices[0].get("message", {}).get("content") or ""), data.get("usage") or {}, time.monotonic() - started
 
 
-def make_messages(benchmark: dict[str, Any], case: dict[str, Any]) -> list[dict[str, str]]:
+def make_messages(benchmark: dict[str, Any], case: dict[str, Any], guidance_mode: str = "full") -> list[dict[str, str]]:
     case_kind = case.get("case_kind", "command")
     count_contract = "1 command for atomic; 2-4 top-level commands for motif" if case_kind == "command" else "3-12 top-level commands for a complete executable game feature"
     task = {
@@ -72,19 +78,24 @@ def make_messages(benchmark: dict[str, Any], case: dict[str, Any]) -> list[dict[
         "asset_catalog": case["asset_catalog"],
         "case_kind": case_kind,
         "required_command_types": case.get("required_command_types", [case["primary_command_type"]]),
-        "output_contract": {"intent": "repeat the request in Chinese", "asset_catalog": "copy only the given resources that are referenced", "commands": count_contract},
+        "output_contract": {
+            "intent": "repeat the request in Chinese",
+            "asset_catalog": "copy only the given resources that are referenced",
+            "commands": count_contract,
+            "extra_events": "additional EventConfig array; use [] when no extra event is needed",
+        },
     }
-    return [
-        {"role": "system", "content": benchmark["system"]},
-        {"role": "user", "content": json.dumps(task, ensure_ascii=False)},
-    ]
+    messages = [{"role": "user", "content": json.dumps(task, ensure_ascii=False)}]
+    if guidance_mode == "full":
+        messages.insert(0, {"role": "system", "content": editor_system_prompt()})
+    return messages
 
 
 def evaluate_one(case: dict[str, Any], benchmark: dict[str, Any], config: dict[str, Any], database_path: Path) -> dict[str, Any]:
     started_at = datetime.now(timezone.utc).isoformat()
     result: dict[str, Any] = {"case_id": case["id"], "run": config["name"], "model": config["model"], "started_at": started_at, "primary_command_type": case["primary_command_type"], "sample_mode": case["sample_mode"]}
     try:
-        raw, usage, latency = request_completion(config, make_messages(benchmark, case))
+        raw, usage, latency = request_completion(config, make_messages(benchmark, case, config["guidance_mode"]))
         result.update({"raw_output": raw, "latency_seconds": round(latency, 3), "usage": usage})
         sample = parse_response(raw)
         allowed_assets = {asset["id"]: asset for asset in case["asset_catalog"]}
@@ -117,21 +128,38 @@ def parse_run(raw: str) -> tuple[str, str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Evaluate Base and Adapter on the fixed Vibe command benchmark")
-    parser.add_argument("--api-base", default=os.getenv("VIBE_EVAL_API_BASE", ""))
-    parser.add_argument("--api-key", default=os.getenv("VIBE_EVAL_API_KEY", ""))
-    parser.add_argument("--run", type=parse_run, action="append", required=True, help="Repeat: base=model-id --run adapter=model-id")
-    parser.add_argument("--workers", type=int, default=8, help="Concurrent requests; use 6-12 according to server capacity")
+    parser.add_argument("--env-file", type=Path, default=DEFAULT_ENV_FILE, help="Local dotenv file; default: agent-debugger/.env")
+    parser.add_argument("--profile", choices=["qwen36_27b", "qwen35_9b", "adapter"], action="append", help="Named endpoint from --env-file; repeat to compare models")
+    parser.add_argument("--api-base", default="")
+    parser.add_argument("--api-key", default="")
+    parser.add_argument("--run", type=parse_run, action="append", help="Repeat: base=model-id --run adapter=model-id (uses legacy VIBE_EVAL_API_BASE/API_KEY)")
+    parser.add_argument("--workers", type=int, default=4, help="Default 4; use 1 for serial Transformers or tune upward after vLLM load testing")
     parser.add_argument("--temperature", type=float, default=0.0)
     parser.add_argument("--max-tokens", type=int, default=1200)
     parser.add_argument("--timeout", type=int, default=180)
+    parser.add_argument("--without-guidance", action="store_true", help="Do not inject the editor's full level-patch guidance; the benchmark task contract remains unchanged")
     parser.add_argument("--project", default=str(ROOT / "customer-demo"))
     parser.add_argument("--cases", default=str(Path(__file__).with_name("cases") / "command_benchmark_v1.json"))
     parser.add_argument("--output-dir", default="training/eval/results")
     args = parser.parse_args()
-    if not args.api_base or not args.api_key:
-        parser.error("set --api-base and --api-key (or VIBE_EVAL_API_BASE/VIBE_EVAL_API_KEY)")
-    if not 6 <= args.workers <= 12:
-        parser.error("workers must be between 6 and 12 for this benchmark")
+    if args.profile and args.run:
+        parser.error("use either --profile or --run, not both")
+    settings = load_settings(args.env_file)
+    if args.profile:
+        try:
+            configs = [endpoint_from_profile(profile, settings) for profile in args.profile]
+        except ValueError as error:
+            parser.error(str(error))
+    else:
+        if not args.run:
+            parser.error("provide at least one --profile or --run")
+        api_base = args.api_base or settings.get("VIBE_EVAL_API_BASE", "")
+        api_key = args.api_key or settings.get("VIBE_EVAL_API_KEY", "")
+        if not api_base or not api_key:
+            parser.error("set --api-base/--api-key, legacy VIBE_EVAL_API_BASE/API_KEY, or use a named --profile")
+        configs = [{"name": name, "model": model, "api_base": api_base, "api_key": api_key} for name, model in args.run]
+    if not 1 <= args.workers <= 32:
+        parser.error("workers must be between 1 and 32")
 
     benchmark = json.loads(Path(args.cases).read_text(encoding="utf-8"))
     cases = benchmark.get("cases")
@@ -140,8 +168,9 @@ def main() -> int:
     database_path = DEBUGGER / "state" / "command-index.sqlite"
     build_command_database(Path(args.project), database_path)
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    run_dir = Path(args.output_dir) / f"command-benchmark-v1-{timestamp}"
-    configs = [{"name": name, "model": model, "api_base": args.api_base, "api_key": args.api_key, "temperature": args.temperature, "max_tokens": args.max_tokens, "timeout": args.timeout} for name, model in args.run]
+    guidance_mode = "none" if args.without_guidance else "full"
+    run_dir = Path(args.output_dir) / f"command-benchmark-v1-{guidance_mode}-{timestamp}"
+    configs = [{**config, "temperature": args.temperature, "max_tokens": args.max_tokens, "timeout": args.timeout, "guidance_mode": guidance_mode} for config in configs]
     jobs = [(case, config) for config in configs for case in cases]
     results: list[dict[str, Any]] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
@@ -150,7 +179,7 @@ def main() -> int:
             results.append(future.result())
     results.sort(key=lambda item: (item["run"], item["case_id"]))
     write_jsonl(run_dir / "results.jsonl", results)
-    summary: dict[str, Any] = {"benchmark": benchmark["schema_version"], "case_count": len(cases), "runs": {}}
+    summary: dict[str, Any] = {"benchmark": benchmark["schema_version"], "guidance_mode": guidance_mode, "case_count": len(cases), "runs": {}}
     for config in configs:
         rows = [row for row in results if row["run"] == config["name"]]
         passed = [row for row in rows if row.get("passed")]
