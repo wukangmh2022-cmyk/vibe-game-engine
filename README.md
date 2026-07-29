@@ -128,9 +128,9 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 | DSL parse/compile 通过 | 96 / 100 | 37 / 100 | Adapter 明显更稳定 |
 | Runtime dry-run 通过 | 83 / 100 | 37 / 100 | Adapter 主流程执行仍明显领先 |
 | LLM-as-Judge 平均 overall 分 | 6.931 | 3.384 | Adapter 更贴合需求 |
-| 盲评胜出 | 82 | 10 | 另有 tie 7、neither 1 |
+| 盲评胜出 | 82 | 10 | 另有打平 7、都差 1 |
 | 公共可解析子集 | 37 条 | 37 条 | 双方都合法时再比较语义 |
-| 公共子集盲评胜出 | 21 | 9 | 另有 tie 7 |
+| 公共子集盲评胜出 | 21 | 9 | 另有打平 7 |
 | 公共子集平均 overall | 7.600 | 6.359 | 排除格式失败后 Adapter 仍领先 |
 
 补充越级对照：同一 100 条测试集上，另用 `Qwen/Qwen3.5-27B` Base、同 Guidance、`enable_thinking=false` 跑了一组。27B Base 的通用语义能力更强，但在本 DSL 工程协议上仍低于 4B Adapter 的可执行稳定性。
@@ -139,7 +139,7 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 | --- | ---: | ---: | --- |
 | DSL parse/compile 通过 | 96 / 100 | 76 / 100 | Adapter 格式与资源契约更稳 |
 | Runtime dry-run 通过 | 83 / 100 | 69 / 100 | Adapter 工程可用率更高 |
-| LLM-as-Judge 胜出 | 49 | 36 | 另有 tie 15 |
+| LLM-as-Judge 胜出 | 49 | 36 | 另有打平 15 |
 | LLM-as-Judge 平均 overall | 6.571 | 5.866 | Adapter 全量口径领先 |
 | 公共可解析子集 | 75 条 | 75 条 | 双方都合法时再比较语义 |
 | 公共子集胜出 | 28 | 32 | 27B 在合法样本里略强 |
@@ -162,7 +162,7 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 
 ### LLM-as-Judge 分类明细
 
-| 类别 | 数量 | Adapter/Base/Tie/Neither | Adapter overall | Base overall | Adapter 可解析 | Base 可解析 |
+| 类别 | 数量 | Adapter/Base/打平/都差 | Adapter overall | Base overall | Adapter 可解析 | Base 可解析 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 事件与信号流 | 10 | 9/1/0/0 | 8.600 | 3.100 | 10 | 5 |
 | 交互与选择 | 22 | 19/2/0/1 | 5.777 | 2.564 | 20 | 4 |
