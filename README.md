@@ -122,7 +122,7 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 - 4B Adapter vs 27B Base 盲评：[training/eval/results/human-fragment-v1-4b-adapter-vs-qwen35-27b-judge-nolimit/summary.json](training/eval/results/human-fragment-v1-4b-adapter-vs-qwen35-27b-judge-nolimit/summary.json)
 - 盲评脚本：[training/eval/judge_human_fragment_pairwise.py](training/eval/judge_human_fragment_pairwise.py)
 
-| 指标 | Adapter + Guidance | Base + Guidance | 结论 |
+| 指标 | 4B Adapter + Guidance | 4B Base + Guidance | 结论 |
 | --- | ---: | ---: | --- |
 | 有效生成条数 | 100 / 100 | 100 / 100 | 两组均完整返回 |
 | DSL parse/compile 通过 | 96 / 100 | 37 / 100 | Adapter 明显更稳定 |
