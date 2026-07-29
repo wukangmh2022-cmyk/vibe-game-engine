@@ -2,7 +2,7 @@
 
 目标是训练“中文需求 + 画布和资源清单 -> VGE-DSL/1”。DSL 在编辑器中编译回现有 `commands + extra_events` JSON，游戏保存与运行时协议不变。训练目标不包含教师轨迹、解释或 Thinking。
 
-最终第一阶段数据位于 `training/qlora/data/level-authoring-dsl-v3/`：以旧版 DSL 数据为只读基线，经过人工审查网页、DeepSeek/Claude/OpenAI 多轮 judge、Slot 3 API repair、手工批注合并和 final runtime gate，生成正式训练 1139 条、验证 126 条，合计 1265 条。V3 已通过 DSL 编译、序列化/解析 round-trip、静态检查和真实 JS runtime dry-run；训练目标不包含 Thinking。
+最终第一阶段数据位于 `training/qlora/data/level-authoring-dsl-v3/`：以旧版 DSL 数据为只读基线，经过人工审查网页、DeepSeek/Claude/OpenAI 多轮 judge、API repair、手工批注合并和 final runtime gate，生成正式训练 1139 条、验证 126 条，合计 1265 条。V3 已通过 DSL 编译、序列化/解析 round-trip、静态检查和真实 JS runtime dry-run；训练目标不包含 Thinking。
 
 在 AutoDL 无显卡模式准备环境和完整基础模型：
 
@@ -38,7 +38,7 @@ python3 training/qlora/audit_training_quality.py --slot 4 --workers 16
 
 进度在 `training-data/dsl-quality-audit/status.json`，全部结果在 `all-results.jsonl`，仅 gold 被判更差的记录在 `gold-worse.jsonl`，请求或解析失败在 `errors.jsonl`。中断后执行同一命令会按 source 与三段消息哈希续跑。每条告警必须人工核对；属实后明确写入 `training-data/dsl-manual-review.md` 和 `training-data/dsl-manual-repairs.jsonl`，重新生成数据，并再次运行静态、真实 JS runtime 和 tokenizer gates。
 
-训练完成的输出目录是 PEFT adapter，不是合并后的基础模型。checkpoint 以 eval loss 恢复最佳，再用 human-fragment benchmark 的 parse/runtime dry-run/Slot 3 盲化语义结果判断是否发布，不能只看 train loss。完整实验、增强与 DPO/RL 决策记录在主 README 的指令模型实验章节。
+训练完成的输出目录是 PEFT adapter，不是合并后的基础模型。checkpoint 以 eval loss 恢复最佳，再用 human-fragment benchmark 的 parse/runtime dry-run/LLM-as-Judge 盲化语义结果判断是否发布，不能只看 train loss。完整实验、增强与 DPO/RL 决策记录在主 README 的指令模型实验章节。
 
 通过固定评估后，按 [MODEL_CARD_TEMPLATE.md](MODEL_CARD_TEMPLATE.md) 登记基础模型 revision、数据 manifest、超参数和 Base/Adapter 分数。发布到 GitHub 时只上传 adapter 与报告；权重大于 100 MB 时使用 Git LFS 或 GitHub Release，基础模型只保留其原始模型 id。
 

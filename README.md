@@ -29,7 +29,7 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 ### 数据合成与质量门
 
-最终 4B DSL v3 数据不是一次性批量生成，而是“合成 -> 多模型审查 -> 人工核查 -> API 修复 -> runtime gate”的闭环。原始来源包括 15 个真实人类关卡、一阶段功能片段、二阶段事件协调样本和三阶段浏览器交互补齐样本；随后统一转换为 `VGE-DSL/1`，再用人工审查网页、DeepSeek/Claude/OpenAI 多轮 judge、Slot 3 API repair 和本地编译器/runtime 把 query、ASSETS 与 DSL 一起修到一致。
+最终 4B DSL v3 数据不是一次性批量生成，而是“合成 -> 多模型审查 -> 人工核查 -> API 修复 -> runtime gate”的闭环。原始来源包括 15 个真实人类关卡、一阶段功能片段、二阶段事件协调样本和三阶段浏览器交互补齐样本；随后统一转换为 `VGE-DSL/1`，再用人工审查网页、DeepSeek/Claude/OpenAI 多轮 judge、API repair 和本地编译器/runtime 把 query、ASSETS 与 DSL 一起修到一致。
 
 最终 `level-authoring-dsl-v3` 数据链路如下：
 
@@ -40,7 +40,7 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 | 训练集 | 1139 | 与验证集按 `source_id` 切分，不跨集合 |
 | 验证集 | 126 | 只用于 loss/过拟合观察，不作为最终泛化分数 |
 | 修复动作 | KEEP 183 / FIX 1082 / EXCLUDE 17 | 反映绝大多数样本都经过显式语义或运行时修复 |
-| 额外质量修复记录 | 972 | 来自多轮人工批注、DeepSeek/Claude/Slot 3 审查与 API repair 合并 |
+| 额外质量修复记录 | 972 | 来自多轮人工批注、DeepSeek/Claude/OpenAI API 审查与 API repair 合并 |
 
 准入不是只检查语法。正式样本必须通过 DSL parse、serialize/reparse 结构往返、资源 ID/type/path 契约、元素与控制流静态检查，以及仓库真实 `CommandExecutor` 和浏览器/Pixi handler 的 runtime dry-run。资源 ID 从文件名生成语义名称，重复项追加编号；空资源、纯下划线 ID、悬空 `JUMP_ID`、未注册命令、无法终止循环和未创建元素即交互绑定都不能进入最终训练文件。
 
@@ -99,7 +99,7 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 
 1. DSL parse/compile：能否被确定性 DSL 编译器还原成 `commands + extra_events`，并满足资源 ID/type/path、元素依赖和控制流基本契约。
 2. Runtime dry-run：对可解析输出，用真实 `CommandExecutor`、事件系统和 Pixi/browser handler 执行主流程。它会发现元素未创建就绑定点击、资源/handler 参数不匹配等运行时错误；但由于这组 human-fragment case 没有隐藏 `oracle.actions/assertions`，dry-run 不注入点击、拖拽或选择动作，不能等同于完整交互通过率。
-3. Slot 3 盲化语义评审：使用 `gpt-5.6-terra` 对 A/B 两个匿名候选做 pairwise judge。Judge 不知道候选来自 Base 还是 Adapter，只看 TASK、ASSETS、reference DSL、A/B 原始 DSL 和 parse 状态，按需求覆盖、行为正确性、资源落地、交互反馈、布局呈现和语法可执行性给分并判定胜负。
+3. LLM-as-Judge 盲化语义评审：使用 `gpt-5.6-terra` 对 A/B 两个匿名候选做 pairwise judge。Judge 不知道候选来自 Base 还是 Adapter，只看 TASK、ASSETS、reference DSL、A/B 原始 DSL 和 parse 状态，按需求覆盖、行为正确性、资源落地、交互反馈、布局呈现和语法可执行性给分并判定胜负。
 
 结果产物：
 
@@ -108,7 +108,7 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 - Base 生成：[training/eval/results/base-human-fragment-v1/generations.complete.jsonl](training/eval/results/base-human-fragment-v1/generations.complete.jsonl)
 - Adapter runtime dry-run：[training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl](training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl)
 - Base runtime dry-run：[training/eval/results/base-human-fragment-v1/generations.runtime-dry-run.jsonl](training/eval/results/base-human-fragment-v1/generations.runtime-dry-run.jsonl)
-- Slot 3 盲评：[training/eval/results/human-fragment-v1-slot3-judge/summary.json](training/eval/results/human-fragment-v1-slot3-judge/summary.json)
+- LLM-as-Judge 盲评：[training/eval/results/human-fragment-v1-slot3-judge/summary.json](training/eval/results/human-fragment-v1-slot3-judge/summary.json)
 - 盲评脚本：[training/eval/judge_human_fragment_pairwise.py](training/eval/judge_human_fragment_pairwise.py)
 
 | 指标 | Adapter + Guidance | Base + Guidance | 结论 |
@@ -116,11 +116,39 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 | 有效生成条数 | 100 / 100 | 100 / 100 | 两组均完整返回 |
 | DSL parse/compile 通过 | 96 / 100 | 37 / 100 | Adapter 明显更稳定 |
 | Runtime dry-run 通过 | 83 / 100 | 37 / 100 | Adapter 主流程执行仍明显领先 |
-| Slot 3 平均 overall 分 | 6.931 | 3.384 | Adapter 更贴合需求 |
+| LLM-as-Judge 平均 overall 分 | 6.931 | 3.384 | Adapter 更贴合需求 |
 | 盲评胜出 | 82 | 10 | 另有 tie 7、neither 1 |
 | 公共可解析子集 | 37 条 | 37 条 | 双方都合法时再比较语义 |
 | 公共子集盲评胜出 | 21 | 9 | 另有 tie 7 |
 | 公共子集平均 overall | 7.600 | 6.359 | 排除格式失败后 Adapter 仍领先 |
+
+
+### LLM-as-Judge 维度均分
+
+| 维度 | 4B Adapter | 4B Base | 差值 |
+| --- | ---: | ---: | ---: |
+| overall 总分 | 6.931 | 3.384 | +3.547 |
+| 需求覆盖 | 7.655 | 5.525 | +2.130 |
+| 行为正确性 | 6.910 | 4.050 | +2.860 |
+| 资源落地 | 8.835 | 5.730 | +3.105 |
+| 交互反馈 | 6.655 | 4.985 | +1.670 |
+| 布局呈现 | 6.630 | 4.850 | +1.780 |
+| 语法可执行性 | 9.460 | 3.950 | +5.510 |
+
+### LLM-as-Judge 分类明细
+
+| 类别 | 数量 | Adapter/Base/Tie/Neither | Adapter overall | Base overall | Adapter 可解析 | Base 可解析 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 事件与信号流 | 10 | 9/1/0/0 | 8.600 | 3.100 | 10 | 5 |
+| 交互与选择 | 22 | 19/2/0/1 | 5.777 | 2.564 | 20 | 4 |
+| 动画与过渡 | 12 | 12/0/0/0 | 8.250 | 1.250 | 12 | 0 |
+| 变量定义与状态管理 | 10 | 2/1/7/0 | 8.400 | 8.000 | 10 | 10 |
+| 场景与导航 | 5 | 5/0/0/0 | 5.400 | 1.800 | 5 | 0 |
+| 文本操作 | 12 | 9/3/0/0 | 7.417 | 5.083 | 12 | 8 |
+| 计时与倒计时 | 8 | 7/1/0/0 | 5.750 | 2.875 | 8 | 2 |
+| 资源加载与UI初始化 | 12 | 11/1/0/0 | 6.583 | 2.333 | 12 | 4 |
+| 逻辑控制与循环 | 4 | 3/1/0/0 | 3.500 | 1.500 | 2 | 0 |
+| 音效与媒体 | 5 | 5/0/0/0 | 8.400 | 5.800 | 5 | 4 |
 
 Base 的大量失败不是网络或截断导致：两组都有完整 `raw_output`，Base 失败样本的 completion token 通常远低于输出上限。抽查显示主要是 DSL 语法和资源契约问题，例如给资源 ID 误加引号、动画参数格式错误、JSON/animation 子字段不完整、条件表达式写成 DSL 不支持的 `&&`。因此报告同时保留两种口径：全量口径衡量生产可用率，失败也必须计入；公共可解析子集衡量“双方都已经能生成合法 DSL 时，谁更符合 query 和 reference 语义”。
 
@@ -130,7 +158,7 @@ Adapter 的 13 条“可解析但 dry-run 失败”主要集中在交互与文�
 
 ### 下一步
 
-当前第一阶段已完成 4B DSL v3 的单变量 SFT 对照：同一 4B Base 与挂载 LoRA Adapter 使用逐字一致的 Guidance、TASK、CANVAS、ASSETS 和推理参数进行比较。Adapter 在 DSL 可解析率、runtime dry-run、Slot 3 盲化语义评审以及公共可解析子集上均稳定优于 Base，因此可以把这一版视为第一阶段成功闭环。下一步不急于直接扩大到 27B；应先补带隐藏 `oracle.actions/assertions` 的真实交互 benchmark，专门压测点击、拖拽、选择、跨事件信号和元素生命周期。现阶段不使用 RL；若 SFT 已建立稳定正增益但仍有可重复偏差，优先考虑由编译器、runtime、盲评和人工复核证据构造 chosen/rejected 的离线 DPO，而不是纯主观奖励。
+当前第一阶段已完成 4B DSL v3 的单变量 SFT 对照：同一 4B Base 与挂载 LoRA Adapter 使用逐字一致的 Guidance、TASK、CANVAS、ASSETS 和推理参数进行比较。Adapter 在 DSL 可解析率、runtime dry-run、LLM-as-Judge 盲化语义评审以及公共可解析子集上均稳定优于 Base，因此可以把这一版视为第一阶段成功闭环。下一步不急于直接扩大到 27B；应先补带隐藏 `oracle.actions/assertions` 的真实交互 benchmark，专门压测点击、拖拽、选择、跨事件信号和元素生命周期。现阶段不使用 RL；若 SFT 已建立稳定正增益但仍有可重复偏差，优先考虑由编译器、runtime、盲评和人工复核证据构造 chosen/rejected 的离线 DPO，而不是纯主观奖励。
 
 未来 TODO：把“真实用户口语需求 -> 可训练 DSL”拆成两层，而不是要求小模型直接从一句短口语里猜完整变量、流程和资源使用。第一层是最终 runtime 也会使用的规划扩句提示词：用和当前训练目标一致的同型号/同系列模型，最好是同一基座模型，把用户原话扩成工程化任务说明。这个同分布约束是核心：只有同一类模型才知道自己更自然地说“把开关打开”“把变量设为 true”还是别的表述；数据合成时不强行改写它的口语风格，而是顺着该模型自己的语言分布生成 query。规划扩句提示词只约束它必须讲清初始化变量、状态开关、顺序流程、分支/跳转、循环退出、资源引用和交互反馈；同时只用引擎能力的自然词汇描述能力边界，例如显示图片/文本/按钮/选项、移动图片、透明度或缩放变化、播放入场/循环/出场动画、翻牌、音效、背景音乐、变量判断和下一关。第二层再由 SFT 小模型学习“工程化任务说明 + ASSETS -> VGE-DSL/1”的稳定映射。
 
