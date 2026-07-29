@@ -1,0 +1,216 @@
+{
+  "schema_version": "human-fragment-v1-pairwise-slot3-judge",
+  "created_at": "2026-07-29T11:35:28.370975+00:00",
+  "slot": "3",
+  "judge_model": "gpt-5.6-terra",
+  "candidate_identity_blinded": true,
+  "reference_dsl_shared": true,
+  "cases": "training/eval/cases/human_fragment_benchmark_v1.json",
+  "adapter_results": "training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl",
+  "base_results": "training/eval/results/qwen35-27b-human-fragment-v1-nothink/generations.runtime-dry-run.jsonl",
+  "summary": {
+    "total": 100,
+    "winner_counts": {
+      "adapter": 49,
+      "base": 36,
+      "tie": 15,
+      "neither": 0
+    },
+    "parse_valid": {
+      "adapter": 96,
+      "base": 76,
+      "both_valid": 75,
+      "both_invalid": 3
+    },
+    "mean_overall": {
+      "adapter": 6.571,
+      "base": 5.866
+    },
+    "by_category": {
+      "事件与信号流": {
+        "total": 10,
+        "winner_counts": {
+          "adapter": 0,
+          "base": 1,
+          "tie": 9,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 8.5,
+          "base": 9.2
+        },
+        "parse_valid": {
+          "adapter": 10,
+          "base": 10
+        }
+      },
+      "交互与选择": {
+        "total": 22,
+        "winner_counts": {
+          "adapter": 10,
+          "base": 12,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 5.364,
+          "base": 5.009
+        },
+        "parse_valid": {
+          "adapter": 20,
+          "base": 12
+        }
+      },
+      "动画与过渡": {
+        "total": 12,
+        "winner_counts": {
+          "adapter": 12,
+          "base": 0,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 8.083,
+          "base": 3.917
+        },
+        "parse_valid": {
+          "adapter": 12,
+          "base": 9
+        }
+      },
+      "变量定义与状态管理": {
+        "total": 10,
+        "winner_counts": {
+          "adapter": 5,
+          "base": 0,
+          "tie": 5,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 9.2,
+          "base": 7.2
+        },
+        "parse_valid": {
+          "adapter": 10,
+          "base": 10
+        }
+      },
+      "场景与导航": {
+        "total": 5,
+        "winner_counts": {
+          "adapter": 3,
+          "base": 2,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 4.62,
+          "base": 5.76
+        },
+        "parse_valid": {
+          "adapter": 5,
+          "base": 3
+        }
+      },
+      "文本操作": {
+        "total": 12,
+        "winner_counts": {
+          "adapter": 5,
+          "base": 7,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 6.75,
+          "base": 6.083
+        },
+        "parse_valid": {
+          "adapter": 12,
+          "base": 11
+        }
+      },
+      "计时与倒计时": {
+        "total": 8,
+        "winner_counts": {
+          "adapter": 4,
+          "base": 4,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 5.225,
+          "base": 4.862
+        },
+        "parse_valid": {
+          "adapter": 8,
+          "base": 4
+        }
+      },
+      "资源加载与UI初始化": {
+        "total": 12,
+        "winner_counts": {
+          "adapter": 5,
+          "base": 7,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 5.608,
+          "base": 6.042
+        },
+        "parse_valid": {
+          "adapter": 12,
+          "base": 11
+        }
+      },
+      "逻辑控制与循环": {
+        "total": 4,
+        "winner_counts": {
+          "adapter": 1,
+          "base": 3,
+          "tie": 0,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 2.975,
+          "base": 4.55
+        },
+        "parse_valid": {
+          "adapter": 2,
+          "base": 1
+        }
+      },
+      "音效与媒体": {
+        "total": 5,
+        "winner_counts": {
+          "adapter": 4,
+          "base": 0,
+          "tie": 1,
+          "neither": 0
+        },
+        "mean_overall": {
+          "adapter": 8.0,
+          "base": 6.8
+        },
+        "parse_valid": {
+          "adapter": 5,
+          "base": 5
+        }
+      }
+    },
+    "common_valid_subset": {
+      "total": 75,
+      "winner_counts": {
+        "adapter": 28,
+        "base": 32,
+        "tie": 15,
+        "neither": 0
+      },
+      "mean_overall": {
+        "adapter": 6.835,
+        "base": 6.889
+      }
+    }
+  },
+  "errors": []
+}

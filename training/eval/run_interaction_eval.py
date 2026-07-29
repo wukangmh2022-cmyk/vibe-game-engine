@@ -96,6 +96,12 @@ def request_completion(config: dict[str, Any], messages: list[dict[str, str]]) -
         "model": config["model"], "messages": messages,
         "temperature": config["temperature"], "max_tokens": config["max_tokens"],
     }
+    # Different OpenAI-compatible Qwen providers look for different knobs.
+    # vLLM/Qwen chat templates accept chat_template_kwargs, while SiliconFlow's
+    # Qwen endpoint requires a top-level enable_thinking flag. Send both; APIs
+    # that ignore the unknown field still preserve the intended non-thinking
+    # evaluation distribution.
+    payload["enable_thinking"] = False
     payload["chat_template_kwargs"] = {"enable_thinking": False}
     request = urllib.request.Request(
         config["api_base"].rstrip("/") + "/chat/completions",

@@ -13,6 +13,15 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 - [智慧健脑客户示例](https://wukangmh2022-cmyk.github.io/vibe-game-engine/)
   面向客户的静态试玩版，已移除登录、账号、进度同步和分数上传。
 
+### 模型下载
+
+已训练好的第一阶段模型是 Qwen3-4B-Instruct-2507 的 PEFT LoRA adapter，不包含基础模型权重。Adapter 文件已通过 Git LFS 保存在本仓库：
+
+- [adapter_config.json](training/qlora/outputs/vibe-level-qwen3-4b-dsl-v3/adapter_config.json)
+- [adapter_model.safetensors](training/qlora/outputs/vibe-level-qwen3-4b-dsl-v3/adapter_model.safetensors)
+
+下载方式：克隆仓库后执行 `git lfs pull`，再按 [training/inference/start_qwen3_4b_dsl_v3_vllm.sh](training/inference/start_qwen3_4b_dsl_v3_vllm.sh) 挂载到同一基础模型上推理。
+
 ## AI 生成关卡
 
 编辑器的 AI 面板将关卡需求、800x600 画布和已选资源整理为统一的 `TASK/CANVAS/ASSETS` 消息。填写自己的 OpenRouter API Key 后，模型返回 `VGE-DSL/1`；编辑器先解析并校验 DSL，再编译为可写入关卡的 JSON。密钥只保存在当前浏览器，不会提交到项目或 GitHub Pages。生成结果仍可在指令树中逐条调整，并立刻在右侧 Pixi 画布预览。
@@ -109,6 +118,8 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 - Adapter runtime dry-run：[training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl](training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl)
 - Base runtime dry-run：[training/eval/results/base-human-fragment-v1/generations.runtime-dry-run.jsonl](training/eval/results/base-human-fragment-v1/generations.runtime-dry-run.jsonl)
 - LLM-as-Judge 盲评：[training/eval/results/human-fragment-v1-slot3-judge/summary.json](training/eval/results/human-fragment-v1-slot3-judge/summary.json)
+- 27B Base no-thinking 生成与 runtime：[training/eval/results/qwen35-27b-human-fragment-v1-nothink](training/eval/results/qwen35-27b-human-fragment-v1-nothink)
+- 4B Adapter vs 27B Base 盲评：[training/eval/results/human-fragment-v1-4b-adapter-vs-qwen35-27b-judge-nolimit/summary.json](training/eval/results/human-fragment-v1-4b-adapter-vs-qwen35-27b-judge-nolimit/summary.json)
 - 盲评脚本：[training/eval/judge_human_fragment_pairwise.py](training/eval/judge_human_fragment_pairwise.py)
 
 | 指标 | Adapter + Guidance | Base + Guidance | 结论 |
@@ -121,6 +132,20 @@ Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、�
 | 公共可解析子集 | 37 条 | 37 条 | 双方都合法时再比较语义 |
 | 公共子集盲评胜出 | 21 | 9 | 另有 tie 7 |
 | 公共子集平均 overall | 7.600 | 6.359 | 排除格式失败后 Adapter 仍领先 |
+
+补充越级对照：同一 100 条测试集上，另用 `Qwen/Qwen3.5-27B` Base、同 Guidance、`enable_thinking=false` 跑了一组。27B Base 的通用语义能力更强，但在本 DSL 工程协议上仍低于 4B Adapter 的可执行稳定性。
+
+| 指标 | 4B Adapter | Qwen3.5-27B Base | 结论 |
+| --- | ---: | ---: | --- |
+| DSL parse/compile 通过 | 96 / 100 | 76 / 100 | Adapter 格式与资源契约更稳 |
+| Runtime dry-run 通过 | 83 / 100 | 69 / 100 | Adapter 工程可用率更高 |
+| LLM-as-Judge 胜出 | 49 | 36 | 另有 tie 15 |
+| LLM-as-Judge 平均 overall | 6.571 | 5.866 | Adapter 全量口径领先 |
+| 公共可解析子集 | 75 条 | 75 条 | 双方都合法时再比较语义 |
+| 公共子集胜出 | 28 | 32 | 27B 在合法样本里略强 |
+| 公共子集平均 overall | 6.835 | 6.889 | 27B 合法样本语义略高 |
+
+这组结果说明：当前 SFT 的主要收益不是让 4B 获得全面通用智能，而是把小模型稳定拉进 VGE-DSL 的产品协议分布；它在可解析、可执行和资源契约上已经形成对 27B Base 的工程可用性优势。
 
 
 ### LLM-as-Judge 维度均分
@@ -158,11 +183,14 @@ Adapter 的 13 条“可解析但 dry-run 失败”主要集中在交互与文�
 
 ### 下一步
 
-当前第一阶段已完成 4B DSL v3 的单变量 SFT 对照：同一 4B Base 与挂载 LoRA Adapter 使用逐字一致的 Guidance、TASK、CANVAS、ASSETS 和推理参数进行比较。Adapter 在 DSL 可解析率、runtime dry-run、LLM-as-Judge 盲化语义评审以及公共可解析子集上均稳定优于 Base，因此可以把这一版视为第一阶段成功闭环。下一步不急于直接扩大到 27B；应先补带隐藏 `oracle.actions/assertions` 的真实交互 benchmark，专门压测点击、拖拽、选择、跨事件信号和元素生命周期。现阶段不使用 RL；若 SFT 已建立稳定正增益但仍有可重复偏差，优先考虑由编译器、runtime、盲评和人工复核证据构造 chosen/rejected 的离线 DPO，而不是纯主观奖励。
+第一阶段已经闭环：4B Adapter 在同 prompt、同资源、同推理参数下，明显提升 DSL 可解析率、runtime dry-run 和全量 LLM-as-Judge 分数。后续路线收敛为四件事：
 
-未来 TODO：把“真实用户口语需求 -> 可训练 DSL”拆成两层，而不是要求小模型直接从一句短口语里猜完整变量、流程和资源使用。第一层是最终 runtime 也会使用的规划扩句提示词：用和当前训练目标一致的同型号/同系列模型，最好是同一基座模型，把用户原话扩成工程化任务说明。这个同分布约束是核心：只有同一类模型才知道自己更自然地说“把开关打开”“把变量设为 true”还是别的表述；数据合成时不强行改写它的口语风格，而是顺着该模型自己的语言分布生成 query。规划扩句提示词只约束它必须讲清初始化变量、状态开关、顺序流程、分支/跳转、循环退出、资源引用和交互反馈；同时只用引擎能力的自然词汇描述能力边界，例如显示图片/文本/按钮/选项、移动图片、透明度或缩放变化、播放入场/循环/出场动画、翻牌、音效、背景音乐、变量判断和下一关。第二层再由 SFT 小模型学习“工程化任务说明 + ASSETS -> VGE-DSL/1”的稳定映射。
+1. 补一套带隐藏 `oracle.actions/assertions` 的交互 benchmark，专门验证点击、拖拽、选择、跨事件信号、循环退出和元素生命周期，而不只看主流程 dry-run。
+2. 在线生成链路拆成两层：先用提示词工程把用户一句话扩写成“工程化关卡规划”，明确变量、资源、流程、分支、跳转和反馈；再把这份规划交给 LoRA/DPO 后的小模型输出可编译 DSL。
+3. 下一版训练从 SFT 继续：用更多可试玩完整关卡构造“规划说明 -> 上千行完整关卡 DSL”的长样本，让模型学习跨事件、跨页面和多阶段玩法组织。
+4. 在 SFT 稳定后做离线 DPO：chosen 来自 runtime/人工试玩/LLM-as-Judge 通过的答案，rejected 来自 parse 失败、资源幻觉、元素生命周期错误、语义缺失或人工判差的候选；目标是提升偏好排序和少犯工程错误，而不是替代编译器校验。
 
-这条路线不强行统一口语表达。像“打开某个开关”和“把某变量设为 true”这类同义表达，应保留真实分布；规划扩句模型负责把口语意图自然地落到变量和流程上，而不是让训练 query 全部变成机械日志。更理想的数据合成流程是：frontier model 先生成可试玩的完整关卡 DSL/JSON 组合，经过 runtime 和人工试玩确认正确，再反向拆解出自然但精确的规划说明，标出每段描述对应的 DSL 指令片段。这样得到的 SFT 样本既有同分布自然表述，又有经过测试的明确指令轨迹；后续 DPO 再使用编译器、runtime、试玩和盲评证据构造 chosen/rejected。
+这条路线保留自然口语分布：用户可以继续说短句；规划扩写层负责把短句变成模型容易执行的精确任务，小模型只专注稳定地产出 VGE-DSL/1。
 
 ## 功能概览
 
