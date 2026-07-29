@@ -32,7 +32,7 @@ Base 和 Adapter 的输入必须逐字一致：同 system prompt、同 user prom
 
 ### LLM-as-Judge 分类明细
 
-| 类别 | 数量 | Adapter/Base/打平/都差 | Adapter overall | Base overall | Adapter 可解析 | Base 可解析 |
+| 类别 | 数量 | 4B Adapter/4B Base/打平/都差 | 4B Adapter overall | 4B Base overall | 4B Adapter 可解析 | 4B Base 可解析 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | 事件与信号流 | 10 | 9/1/0/0 | 8.600 | 3.100 | 10 | 5 |
 | 交互与选择 | 22 | 19/2/0/1 | 5.777 | 2.564 | 20 | 4 |
