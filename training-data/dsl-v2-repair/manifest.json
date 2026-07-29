@@ -1,0 +1,8 @@
+{
+  "schema_version": "vge-dsl-repair-workset-v2",
+  "base_dir": "training/qlora/data/level-authoring-dsl-v1",
+  "recheck": "training-data/deepseek-manual-recheck.jsonl",
+  "base_rows": 1282,
+  "pending_rows": 480,
+  "excluded_recheck_rows": 1
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": "vibe-level-output-contract-v1",
+  "status": "active_for_unified_level_authoring_sft",
+  "purpose": "Unify one-event and multi-event level-authoring samples under one complete output shape.",
+  "input_contract": {
+    "intent": "A concrete Chinese request for the current level. Source game names and source level numbers must not appear. State explicitly whether an independent event is needed."
+  },
+  "output_contract": {
+    "commands": "Required array. The current level's main-flow commands, with one or more commands allowed.",
+    "extra_events": "Required array. Empty when the request needs no cross-event coordination; otherwise each item is a complete EventConfig object."
+  },
+  "one_event_example": {
+    "input": {
+      "intent": "在当前关卡显示题目，等待玩家选择后更新分数；这个需求不需要跨事件协同。"
+    },
+    "output": {
+      "commands": [
+        {"id": "show-question", "type": "SHOW_TEXT", "parameters": {"elementId": "question", "text": "请选择正确答案"}},
+        {"id": "show-options", "type": "SHOW_CHOICES", "parameters": {"elementId": "answers", "options": []}}
+      ],
+      "extra_events": []
+    }
+  },
+  "multi_event_example": {
+    "input": {
+      "intent": "开始答题后让倒计时独立运行，每秒刷新时间文本；主流程继续展示题目和选项。这个需求需要一个跨事件协同的倒计时事件。"
+    },
+    "output": {
+      "commands": [
+        {"id": "start-timer", "type": "EMIT_SIGNAL", "parameters": {"signal": "timer_start"}},
+        {"id": "show-question", "type": "SHOW_TEXT", "parameters": {"elementId": "question", "text": "请选择正确答案"}}
+      ],
+      "extra_events": [
+        {
+          "id": "timer-event",
+          "name": "倒计时更新",
+          "triggers": [{"type": "custom", "target": "timer_start"}],
+          "commands": [
+            {"id": "init-seconds", "type": "SET_VARIABLE", "parameters": {"key": "seconds", "op": "set", "value": 30}},
+            {"id": "timer-loop", "type": "LOOP", "parameters": {"loopType": "while", "condition": {"type": "variable", "key": "seconds", "operator": "gt", "value": 0}, "commands": [{"id": "timer-wait", "type": "WAIT", "parameters": {"duration": 1000}}, {"id": "timer-decrement", "type": "SET_VARIABLE", "parameters": {"key": "seconds", "op": "sub", "value": 1}}, {"id": "timer-refresh", "type": "UPDATE_TEXT", "parameters": {"elementId": "timer", "text": "{seconds}"}}]}}
+          ]
+        }
+      ]
+    }
+  },
+  "runtime_rules": [
+    "Register all extra_events before the main commands run.",
+    "Use EMIT_SIGNAL plus a custom trigger target to start an independent event; do not copy that event's commands into the producer's command list.",
+    "An event may coordinate through shared level variables, shared element IDs, and signals. It receives its own temporary event-instance scope at runtime.",
+    "Use auto/immediate only for a level-load background task. Use custom signals for a task that begins after a main-flow or interaction milestone.",
+    "The current runtime supports LOOP and ANIMATE_LOOP. Do not generate SET_INTERVAL, LOOP_ANIMATION, or CHECK_VARIABLE because they are not current engine commands.",
+    "IF_CONDITION belongs inside the relevant main flow or event commands. It is not itself an event trigger type in the current runtime."
+  ],
+  "migration_rules_for_later": [
+    "Keep corpus.jsonl as the immutable phase-1 acquisition record.",
+    "Build training-data/level-authoring-sft-v1.jsonl as the normalized training view, adding extra_events: [] to one-event records.",
+    "Append the sentence '该需求不需要跨事件协同。' only in the normalized training view when a one-event intent does not already state the event requirement.",
+    "Train only from the unified training view after its validation manifest reports zero invalid records."
+  ]
+}

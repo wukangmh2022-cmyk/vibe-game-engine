@@ -1,0 +1,21 @@
+{
+  "schema_version": "vibe-level-authoring-sft-v1-manifest",
+  "output": "training-data/level-authoring-sft-v1.jsonl",
+  "sources": [
+    "training-data/command-agent-sft/corpus.jsonl",
+    "training-data/event-coordination-sft-v2.json",
+    "training-data/interaction-sft-v3.json"
+  ],
+  "total_records": 1539,
+  "phase1_records": 999,
+  "phase2_records": 300,
+  "phase3_records": 240,
+  "phase1_legacy_records_repaired": 17,
+  "validation": {
+    "validator": "agent-debugger/event_coordination_validator.py",
+    "mode": "level_context",
+    "valid": 1539,
+    "invalid": 0
+  },
+  "source_corpora_immutable": true
+}

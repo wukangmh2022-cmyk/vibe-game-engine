@@ -18,7 +18,10 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 DEBUGGER = ROOT / "agent-debugger"
 import sys
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(DEBUGGER))
+from training.dsl.level_dsl import compile_patch
+from training.eval.user_prompt import render_level_dsl_user_prompt
 from command_db import CommandDatabase, build_command_database
 from command_validator import CommandSampleValidator, walk_commands
 try:  # Supports both `python training/eval/...` and package-style regression imports.
@@ -29,28 +32,39 @@ except ImportError:
     from eval_config import DEFAULT_ENV_FILE, endpoint_from_profile, load_settings
 
 
-def parse_response(content: str) -> dict[str, Any]:
+def parse_response(content: str, *, intent: str = "", asset_catalog: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     text = content.strip()
     if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.I)
+        text = re.sub(r"^```\w*\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
     try:
-        value = json.loads(text)
-    except json.JSONDecodeError:
-        start, end = text.find("{"), text.rfind("}")
-        if start < 0 or end <= start:
-            raise ValueError("response did not contain a JSON object")
-        value = json.loads(text[start:end + 1])
-    if not isinstance(value, dict):
-        raise ValueError("response JSON must be an object")
-    return value
+        return compile_patch(text, intent=intent, asset_catalog=asset_catalog or [])
+    except ValueError:
+        pass
+    decoder = json.JSONDecoder()
+    candidates: list[dict[str, Any]] = []
+    for offset, character in enumerate(text):
+        if character != "{":
+            continue
+        try:
+            value, _ = decoder.raw_decode(text, offset)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            candidates.append(value)
+    required = {"intent", "asset_catalog", "commands", "extra_events"}
+    matches = [value for value in candidates if required <= set(value)]
+    if not matches:
+        raise ValueError("response did not contain a complete level JSON object with intent, asset_catalog, commands, and extra_events")
+    return matches[-1]
 
 
 def request_completion(config: dict[str, Any], messages: list[dict[str, str]]) -> tuple[str, dict[str, Any], float]:
     started = time.monotonic()
+    payload = {"model": config["model"], "messages": messages, "temperature": config["temperature"], "max_tokens": config["max_tokens"], "chat_template_kwargs": {"enable_thinking": False}}
     request = urllib.request.Request(
         config["api_base"].rstrip("/") + "/chat/completions",
-        data=json.dumps({"model": config["model"], "messages": messages, "temperature": config["temperature"], "max_tokens": config["max_tokens"]}).encode(),
+        data=json.dumps(payload).encode(),
         method="POST",
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {config['api_key']}"},
     )
@@ -68,24 +82,10 @@ def request_completion(config: dict[str, Any], messages: list[dict[str, str]]) -
 
 
 def make_messages(benchmark: dict[str, Any], case: dict[str, Any], guidance_mode: str = "full") -> list[dict[str, str]]:
-    case_kind = case.get("case_kind", "command")
-    count_contract = "1 command for atomic; 2-4 top-level commands for motif" if case_kind == "command" else "3-12 top-level commands for a complete executable game feature"
-    task = {
-        "case_id": case["id"],
-        "primary_command_type": case["primary_command_type"],
-        "sample_mode": case["sample_mode"],
-        "intent": case["intent"],
-        "asset_catalog": case["asset_catalog"],
-        "case_kind": case_kind,
-        "required_command_types": case.get("required_command_types", [case["primary_command_type"]]),
-        "output_contract": {
-            "intent": "repeat the request in Chinese",
-            "asset_catalog": "copy only the given resources that are referenced",
-            "commands": count_contract,
-            "extra_events": "additional EventConfig array; use [] when no extra event is needed",
-        },
-    }
-    messages = [{"role": "user", "content": json.dumps(task, ensure_ascii=False)}]
+    messages = [{"role": "user", "content": render_level_dsl_user_prompt(
+        case["intent"], case.get("asset_catalog", []),
+        int(case.get("canvas_width", 800)), int(case.get("canvas_height", 600)),
+    )}]
     if guidance_mode == "full":
         messages.insert(0, {"role": "system", "content": editor_system_prompt()})
     return messages
@@ -97,7 +97,7 @@ def evaluate_one(case: dict[str, Any], benchmark: dict[str, Any], config: dict[s
     try:
         raw, usage, latency = request_completion(config, make_messages(benchmark, case, config["guidance_mode"]))
         result.update({"raw_output": raw, "latency_seconds": round(latency, 3), "usage": usage})
-        sample = parse_response(raw)
+        sample = parse_response(raw, intent=case["intent"], asset_catalog=case["asset_catalog"])
         allowed_assets = {asset["id"]: asset for asset in case["asset_catalog"]}
         case_kind = case.get("case_kind", "command")
         min_commands = 3 if case_kind == "module" else (2 if case["sample_mode"] == "motif" else 1)
@@ -135,7 +135,7 @@ def main() -> int:
     parser.add_argument("--run", type=parse_run, action="append", help="Repeat: base=model-id --run adapter=model-id (uses legacy VIBE_EVAL_API_BASE/API_KEY)")
     parser.add_argument("--workers", type=int, default=4, help="Default 4; use 1 for serial Transformers or tune upward after vLLM load testing")
     parser.add_argument("--temperature", type=float, default=0.0)
-    parser.add_argument("--max-tokens", type=int, default=1200)
+    parser.add_argument("--max-tokens", type=int, default=768)
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--without-guidance", action="store_true", help="Do not inject the editor's full level-patch guidance; the benchmark task contract remains unchanged")
     parser.add_argument("--project", default=str(ROOT / "customer-demo"))
@@ -179,7 +179,7 @@ def main() -> int:
             results.append(future.result())
     results.sort(key=lambda item: (item["run"], item["case_id"]))
     write_jsonl(run_dir / "results.jsonl", results)
-    summary: dict[str, Any] = {"benchmark": benchmark["schema_version"], "guidance_mode": guidance_mode, "case_count": len(cases), "runs": {}}
+    summary: dict[str, Any] = {"benchmark": benchmark["schema_version"], "prompt_mode": "vge_dsl_1_canonical", "guidance_mode": guidance_mode, "case_count": len(cases), "runs": {}}
     for config in configs:
         rows = [row for row in results if row["run"] == config["name"]]
         passed = [row for row in rows if row.get("passed")]

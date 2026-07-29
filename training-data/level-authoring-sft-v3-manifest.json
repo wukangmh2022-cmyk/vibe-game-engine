@@ -1,0 +1,17 @@
+{
+  "schema_version": "level-authoring-sft-v3-candidate-manifest",
+  "candidate": "training-data/level-authoring-sft-v3.jsonl",
+  "total_records": 1534,
+  "retained_phase1_and_phase3_records": 1234,
+  "replaced_phase2_records": 300,
+  "legacy_runtime_interpolation_repairs": {
+    "records": 3,
+    "occurrences": 5
+  },
+  "sources": [
+    "training-data/level-authoring-sft-v1-runtime-passed.jsonl",
+    "training-data/event-coordination-sft-v3.json"
+  ],
+  "old_versions_preserved": true,
+  "acceptance": "Run validate_unified_runtime.py; only its passed view may be formatted for training."
+}

@@ -1,5 +1,6 @@
 {
   "scope": {
+    "source": "15 source game scenes",
     "scene_count": 15,
     "level_count": 135,
     "scenes": [
@@ -34,216 +35,216 @@
       "command_type": "SHOW_IMAGE",
       "count": 3269,
       "share_percent": 21.836,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 2,
       "command_type": "SET_VARIABLE",
       "count": 1891,
       "share_percent": 12.631,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 3,
       "command_type": "SE_PLAY",
       "count": 1095,
       "share_percent": 7.314,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 4,
       "command_type": "SET_ELEMENT_STYLE",
       "count": 1084,
       "share_percent": 7.241,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 5,
       "command_type": "SET_CLICKABLE",
       "count": 948,
       "share_percent": 6.332,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 6,
       "command_type": "EMIT_SIGNAL",
       "count": 936,
       "share_percent": 6.252,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 7,
       "command_type": "WAIT",
       "count": 898,
       "share_percent": 5.998,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 8,
       "command_type": "IF_CONDITION",
       "count": 893,
       "share_percent": 5.965,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 9,
       "command_type": "SHOW_TEXT",
       "count": 624,
       "share_percent": 4.168,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 10,
       "command_type": "UPDATE_TEXT",
       "count": 562,
       "share_percent": 3.754,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 11,
       "command_type": "BGM_PLAY",
       "count": 346,
       "share_percent": 2.311,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 12,
       "command_type": "ANIMATE_IN",
       "count": 324,
       "share_percent": 2.164,
-      "scenes_using": 9,
-      "level_coverage_percent": 60.0
+      "groups_using": 9,
+      "group_coverage_percent": 60.0
     },
     {
       "rank": 13,
       "command_type": "SCENE_REDIRECT",
       "count": 315,
       "share_percent": 2.104,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 14,
       "command_type": "JUMP_TO",
       "count": 234,
       "share_percent": 1.563,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 15,
       "command_type": "SET_SELECTABLE",
       "count": 217,
       "share_percent": 1.449,
-      "scenes_using": 4,
-      "level_coverage_percent": 26.667
+      "groups_using": 4,
+      "group_coverage_percent": 26.667
     },
     {
       "rank": 16,
       "command_type": "SET_DRAGGABLE",
       "count": 206,
       "share_percent": 1.376,
-      "scenes_using": 3,
-      "level_coverage_percent": 20.0
+      "groups_using": 3,
+      "group_coverage_percent": 20.0
     },
     {
       "rank": 17,
       "command_type": "SCRIPT",
       "count": 174,
       "share_percent": 1.162,
-      "scenes_using": 7,
-      "level_coverage_percent": 46.667
+      "groups_using": 7,
+      "group_coverage_percent": 46.667
     },
     {
       "rank": 18,
       "command_type": "NEXT_LEVEL",
       "count": 162,
       "share_percent": 1.082,
-      "scenes_using": 15,
-      "level_coverage_percent": 100.0
+      "groups_using": 15,
+      "group_coverage_percent": 100.0
     },
     {
       "rank": 19,
       "command_type": "ANIMATE_OUT",
       "count": 133,
       "share_percent": 0.888,
-      "scenes_using": 3,
-      "level_coverage_percent": 20.0
+      "groups_using": 3,
+      "group_coverage_percent": 20.0
     },
     {
       "rank": 20,
       "command_type": "FLIP_CARD",
       "count": 125,
       "share_percent": 0.835,
-      "scenes_using": 1,
-      "level_coverage_percent": 6.667
+      "groups_using": 1,
+      "group_coverage_percent": 6.667
     },
     {
       "rank": 21,
       "command_type": "CHANGE_SELECTED_STATE",
       "count": 116,
       "share_percent": 0.775,
-      "scenes_using": 1,
-      "level_coverage_percent": 6.667
+      "groups_using": 1,
+      "group_coverage_percent": 6.667
     },
     {
       "rank": 22,
       "command_type": "BREAK",
       "count": 79,
       "share_percent": 0.528,
-      "scenes_using": 4,
-      "level_coverage_percent": 26.667
+      "groups_using": 4,
+      "group_coverage_percent": 26.667
     },
     {
       "rank": 23,
       "command_type": "FIREWORK_BURST",
       "count": 76,
       "share_percent": 0.508,
-      "scenes_using": 2,
-      "level_coverage_percent": 13.333
+      "groups_using": 2,
+      "group_coverage_percent": 13.333
     },
     {
       "rank": 24,
       "command_type": "CHECK_IN_AREA",
       "count": 76,
       "share_percent": 0.508,
-      "scenes_using": 3,
-      "level_coverage_percent": 20.0
+      "groups_using": 3,
+      "group_coverage_percent": 20.0
     },
     {
       "rank": 25,
       "command_type": "MOVE_TO",
       "count": 70,
       "share_percent": 0.468,
-      "scenes_using": 3,
-      "level_coverage_percent": 20.0
+      "groups_using": 3,
+      "group_coverage_percent": 20.0
     },
     {
       "rank": 26,
       "command_type": "LOOP",
       "count": 70,
       "share_percent": 0.468,
-      "scenes_using": 4,
-      "level_coverage_percent": 26.667
+      "groups_using": 4,
+      "group_coverage_percent": 26.667
     },
     {
       "rank": 27,
       "command_type": "SHOW_CHOICES",
       "count": 48,
       "share_percent": 0.321,
-      "scenes_using": 5,
-      "level_coverage_percent": 33.333
+      "groups_using": 5,
+      "group_coverage_percent": 33.333
     }
   ],
   "by_scene": {

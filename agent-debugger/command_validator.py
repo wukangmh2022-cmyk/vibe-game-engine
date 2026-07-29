@@ -32,7 +32,7 @@ REQUIRED_PARAMETERS = {
     "MOVE_TO": ("elementId", "x", "y"), "SHOW_IMAGE": ("elementId", "resourceId"),
     "SHOW_TEXT": ("elementId", "text"), "UPDATE_TEXT": ("elementId", "text"),
     "SHOW_CHOICES": ("elementId", "options"), "SET_ELEMENT_STYLE": ("elementId", "style"),
-    "IF_CONDITION": ("condition",), "JUMP_TO": ("target",), "LOOP": ("commands",),
+    "IF_CONDITION": ("condition", "trueCommands", "falseCommands"), "JUMP_TO": ("target",), "LOOP": ("commands",),
     "EMIT_SIGNAL": ("signal",), "BGM_PLAY": ("musicId",), "SE_PLAY": ("soundId",),
     "SCENE_REDIRECT": ("url",),
 }
@@ -127,8 +127,11 @@ class CommandSampleValidator:
                 continue
             for required in REQUIRED_PARAMETERS.get(command_type, ()):
                 value = parameters.get(required)
-                if value is None or value == "" or value == []:
+                empty_branch = command_type == "IF_CONDITION" and required in {"trueCommands", "falseCommands"} and value == []
+                if value is None or value == "" or (value == [] and not empty_branch):
                     errors.append(f"{command_id or command_type} missing required parameter: {required}")
+            if command_type == "IF_CONDITION":
+                errors.extend(self._validate_if_condition(command_id or command_type, parameters))
             for field_path, resource_id in resource_refs(parameters):
                 if resource_id not in asset_ids:
                     errors.append(f"resource id {resource_id} is not declared in asset_catalog")
@@ -145,6 +148,38 @@ class CommandSampleValidator:
         if runtime and not runtime.get("valid"):
             errors.append(f"runtime dry run failed: {runtime.get('error') or runtime.get('results')}")
         return {"valid": not errors, "errors": errors, "warnings": sorted(set(warnings)), "runtime": runtime}
+
+    @staticmethod
+    def _validate_if_condition(command_id: str, parameters: dict[str, Any]) -> list[str]:
+        """Require the exact branch and condition shape consumed by IfConditionHandler.
+
+        The runtime defaults absent branches to empty arrays.  Treating aliases such
+        as ``thenCommands`` as valid would therefore create examples whose intended
+        branch is silently discarded during playback.
+        """
+        errors: list[str] = []
+        for branch in ("trueCommands", "falseCommands"):
+            if not isinstance(parameters.get(branch), list):
+                errors.append(f"{command_id} {branch} must be an array")
+        aliases = sorted(key for key in ("then", "else", "thenCommands", "elseCommands") if key in parameters)
+        if aliases:
+            errors.append(f"{command_id} uses unsupported IF_CONDITION branch field(s): {', '.join(aliases)}; use trueCommands/falseCommands")
+        condition = parameters.get("condition")
+        if not isinstance(condition, dict):
+            return errors
+        condition_type = condition.get("type")
+        if condition_type == "variable":
+            for field in ("key", "operator", "value"):
+                if field not in condition or condition[field] is None or condition[field] == "":
+                    errors.append(f"{command_id} variable condition requires {field}")
+            if "variable" in condition or "left" in condition or "right" in condition:
+                errors.append(f"{command_id} variable condition uses unsupported field(s); use key/operator/value")
+        elif condition_type == "expression":
+            if not isinstance(condition.get("expression"), str) or not condition["expression"].strip():
+                errors.append(f"{command_id} expression condition requires a non-empty expression")
+        else:
+            errors.append(f"{command_id} condition.type must be variable or expression")
+        return errors
 
     def _validate_execution_plan(self, commands: list[dict[str, Any]], known_elements: set[str] | None = None, in_loop: bool = False) -> list[str]:
         """Catch ordering errors before invoking the actual command handlers."""
@@ -195,7 +230,19 @@ class CommandSampleValidator:
             )
             if result.returncode != 0:
                 return {"valid": False, "error": result.stderr[-600:] or f"runner exited {result.returncode}"}
-            return json.loads(result.stdout)
+            try:
+                return json.loads(result.stdout)
+            except json.JSONDecodeError as first_error:
+                # The runner suppresses known handler logging, but keep the
+                # parser tolerant of legacy handlers that print before the
+                # final one-line JSON result.
+                for line in reversed(result.stdout.splitlines()):
+                    if line.strip():
+                        try:
+                            return json.loads(line)
+                        except json.JSONDecodeError:
+                            continue
+                raise first_error
         except subprocess.TimeoutExpired:
             return {"valid": False, "error": "runtime dry run timed out"}
         except Exception as error:

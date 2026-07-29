@@ -1,0 +1,81 @@
+{"source_id": "phase1-g0013", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "连击成功后播放一次掌声音效，并停留 800 毫秒让庆祝反馈完整呈现。", "dsl": "SE \"掌声\" vol=0.8 loop=false fade=200\nWAIT 800"}
+{"source_id": "phase1-g0018", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "重试路径中先播放一次游戏结束音效作为失败反馈，再等待 800 毫秒让玩家准备重试。", "dsl": "SE \"游戏结束\" vol=0.8\nWAIT 800"}
+{"source_id": "phase1-g0031", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "通关结算时播放一次游戏结束音效，并等待 1200 毫秒让反馈完整呈现。", "dsl": "SE \"游戏结束\"\nWAIT 1200"}
+{"source_id": "phase1-g0035", "class": "MEDIUM_VAR_QUERY_OVERBROAD", "first_cmd": "VAR", "line_count": 1, "task": "玩家配对答对时把状态「分数」增加2分，作为答对反馈的单步计分设置。", "dsl": "VAR \"分数\" + 2"}
+{"source_id": "phase1-g0036", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "这一关离场时先播放一次游戏结束音效，再等待 800 毫秒完成离场过渡。", "dsl": "SE \"游戏结束\" vol=0.75\nWAIT 800"}
+{"source_id": "phase1-g0041", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "这一关里，进度条刷新时先播一声系统反馈音效，再停顿400毫秒让玩家看清进度变化。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 400"}
+{"source_id": "phase1-g0050", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "这一关的重试路径里，只做一件事：直接进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0054", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "这一关答错时播放一次游戏结束音效，并等待 800 毫秒作为错误反馈。", "dsl": "SE \"游戏结束\" vol=0.8\nWAIT 800"}
+{"source_id": "phase1-g0048", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "新手引导提示中，先播放系统反馈音效提醒玩家注意，再短暂停顿 800 毫秒让提示停留片刻。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 800"}
+{"source_id": "phase1-g0066", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "关卡中，玩家选择错误后播放系统提示音效并停顿 500 毫秒，为重试路径提供听觉反馈。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 500"}
+{"source_id": "phase1-g0067", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "玩家答对后播放一次掌声音效，并等待 500 毫秒让反馈结束。", "dsl": "SE \"掌声\"\nWAIT 500"}
+{"source_id": "phase1-g0072", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "焦点切换时播放一次“1003-问题”提示音，再等待 600 毫秒让玩家注意新焦点。", "dsl": "SE \"1003-问题\" vol=0.8\nWAIT 600"}
+{"source_id": "phase1-g0077", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "关卡中，玩家完成连击后播放掌声音效庆祝，然后停顿500毫秒让玩家感受庆祝氛围。", "dsl": "SE \"掌声\" vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 500"}
+{"source_id": "phase1-g0084", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "离场过渡时，播放游戏结束音效，随后停顿800毫秒，为场景切换留出缓冲时间。", "dsl": "SE \"游戏结束\" vol=1\nWAIT 800"}
+{"source_id": "phase1-g0085", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "玩家成功揭示药品咨询资源后，播放一次掌声音效，并等待 800 毫秒让反馈完整呈现。", "dsl": "SE \"掌声\"\nWAIT 800"}
+{"source_id": "phase1-g0095", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "通关结算时，等待1500毫秒，让胜利弹窗动画完整播放后再继续后续流程。", "dsl": "WAIT 1500"}
+{"source_id": "phase1-g0105", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "通关结算时，以0.7音量播放一次掌声，为胜利弹窗营造庆祝氛围。", "dsl": "SE \"掌声\" vol=0.7 loop=false fade=120"}
+{"source_id": "phase1-g0110", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "结束后，为离场过渡停顿0.6秒。", "dsl": "WAIT 600"}
+{"source_id": "phase1-g0135", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "玩家打出连击时单独播放一次掌声音效作为连击庆祝反馈。", "dsl": "SE \"掌声\" vol=1 loop=false fade=0 delay=0 interrupt=false"}
+{"source_id": "phase1-g0140", "class": "MEDIUM_VAR_QUERY_OVERBROAD", "first_cmd": "VAR", "line_count": 1, "task": "重试路径里，只做一件事：把状态「重试次数」设为0，方便玩家失败后从干净状态重新挑战。", "dsl": "VAR \"重试次数\" = 0 temporary=false"}
+{"source_id": "phase1-g0141", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "答对时播放一次掌声音效，等待 500 毫秒让它形成短促的正确反馈。", "dsl": "SE \"掌声\" vol=0.85 loop=false\nWAIT 500"}
+{"source_id": "phase1-g0195", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 1, "task": "完成进度刷新时，以 0.8 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.8 loop=false"}
+{"source_id": "phase1-g0204", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "做焦点切换时，先播放系统反馈音效，再等待 400 毫秒让玩家注意当前高亮药品区域。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 400"}
+{"source_id": "phase1-g0215", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "玩家答对题目后先停顿1.5秒，作为答对反馈的阅读与展示节奏。", "dsl": "WAIT 1500"}
+{"source_id": "phase1-g0223", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "结算得分时播放一次掌声音效，并等待 800 毫秒让庆祝反馈完整呈现。", "dsl": "SE \"掌声\" vol=0.8 loop=false\nWAIT 800"}
+{"source_id": "phase1-g0315", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "玩家达成连击后立刻以 0.85 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.85 loop=false"}
+{"source_id": "phase1-g0320", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "重试路径开始前等待900毫秒。", "dsl": "WAIT 900"}
+{"source_id": "phase1-g0328", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "提示刷新时播放一次“1002-问题”提示音，并等待 800 毫秒让反馈完整呈现。", "dsl": "SE \"1002-问题\" vol=0.7\nWAIT 800"}
+{"source_id": "phase1-g0333", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "通关结算时播放一次游戏结束音效，并等待 1200 毫秒让反馈完整呈现。", "dsl": "SE \"游戏结束\" vol=0.85\nWAIT 1200"}
+{"source_id": "phase1-g0345", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "答对题目导致分数增加时播放掌声音效作为得分反馈。", "dsl": "SE \"掌声\" vol=0.8"}
+{"source_id": "phase1-g0365", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "完成通关结算后，单步执行进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0369", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "玩家答对时以 0.7 音量播放一次掌声音效，并等待 800 毫秒让反馈完整呈现。", "dsl": "SE \"掌声\" vol=0.7 loop=false\nWAIT 800"}
+{"source_id": "phase1-g0350", "class": "MEDIUM_VAR_QUERY_OVERBROAD", "first_cmd": "VAR", "line_count": 1, "task": "开始时，将新手引导提示已展示标记设为 true，供后续提示逻辑读取。", "dsl": "VAR xiaolongbaoTutorialHintShown = true"}
+{"source_id": "phase1-g0414", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "答错时先响一下系统反馈音，停顿 800 毫秒，让玩家有时间看到反馈。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 800"}
+{"source_id": "phase1-g0530", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "新手引导提示出现后等待 1500 毫秒，让玩家看清内容再继续。", "dsl": "WAIT 1500"}
+{"source_id": "phase1-g0525", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "玩家分数变化时以 0.8 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.8 loop=false"}
+{"source_id": "phase1-g0606", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "重试路径里，先播放系统反馈音效提示玩家可再挑战，再等待 800 毫秒后进入重试流程。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 800"}
+{"source_id": "phase1-g0607", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "答对题目后播放一次系统反馈音，并等待 800 毫秒。", "dsl": "SE 001-System01 vol=0.8\nWAIT 800"}
+{"source_id": "phase1-g0624", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "这一关离场时，先播放游戏结束音效作为反馈，再停顿800毫秒做离场过渡。", "dsl": "SE \"游戏结束\" vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 800"}
+{"source_id": "phase1-g0635", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "这一关通关结算时，先单步等待1500毫秒，让胜利结果停留片刻再进入后续流程。", "dsl": "WAIT 1500"}
+{"source_id": "phase1-g0735", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 1, "task": "完成进度刷新时，以 0.8 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.8 loop=false"}
+{"source_id": "phase1-g0800", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "新手引导提示流程里，只做一件事：玩家看完引导后直接进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0804", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "瓜果全部完成分类后播放一次游戏结束音效，并等待 800 毫秒让玩家听完离场提示。", "dsl": "SE \"游戏结束\" vol=0.8\nWAIT 800"}
+{"source_id": "phase1-g0816", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "新手引导中，先播放描述提示音效，再停顿1.5秒让玩家听清引导内容。", "dsl": "SE \"1002-描述\" vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 1500"}
+{"source_id": "phase1-g0809", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "当进度刷新完成时先播放一声系统提示音，再停顿500毫秒，让玩家留意最新进度。", "dsl": "SE 001-System01\nWAIT 500"}
+{"source_id": "phase1-g0840", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "BGM", "line_count": 1, "task": "焦点切换到下一道分类题时，循环播放项目背景音乐烘托节奏。", "dsl": "BGM bgm loop=true"}
+{"source_id": "phase1-g0834", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "关卡的重试路径中，播放“游戏结束”反馈音效后停顿 800 毫秒，再继续后续重试流程。", "dsl": "SE \"游戏结束\" vol=0.8\nWAIT 800"}
+{"source_id": "phase1-g0845", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "关卡中，玩家完成一次连击后，停顿 700 毫秒再继续展示庆祝反馈。", "dsl": "WAIT 700"}
+{"source_id": "phase1-g0425", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "环境氛围切换后等待 1000 毫秒，再继续后续流程。", "dsl": "WAIT 1000"}
+{"source_id": "phase1-g0451", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "分数变化时播放一次系统提示音，并等待 800 毫秒让反馈完整呈现。", "dsl": "SE 001-System01 vol=0.45\nWAIT 800"}
+{"source_id": "phase1-g0455", "class": "MEDIUM_VAR_QUERY_OVERBROAD", "first_cmd": "VAR", "line_count": 1, "task": "当玩家完成这一关时，将通关结算标记设为已完成。", "dsl": "VAR levelClearStatus = true"}
+{"source_id": "phase1-g0461", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "为这一关揭示食材时播放一声掌声反馈，并停顿半秒让玩家看清结果。", "dsl": "SE \"掌声\" vol=0.8\nWAIT 500"}
+{"source_id": "phase1-g0468", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "为这一关加入清晰的倒计时节拍：播放一次提示音后停顿半秒，再衔接后续流程。", "dsl": "SE 001-System01 vol=0.85 loop=false fade=0 delay=0 interrupt=false\nWAIT 500"}
+{"source_id": "phase1-g0469", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "连击庆祝时以 0.75 音量播放一次掌声音效，并等待 800 毫秒。", "dsl": "SE \"掌声\" vol=0.75 loop=false\nWAIT 800"}
+{"source_id": "phase1-g0487", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "通关结算时以 0.8 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.8 loop=false"}
+{"source_id": "phase1-g0497", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "完成一次答题进度刷新时，播放确认反馈音效，并停顿半秒让玩家感知更新。", "dsl": "SE 001-System01 vol=0.8 loop=false fade=0 delay=0 interrupt=false\nWAIT 500"}
+{"source_id": "phase1-g0561", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 1, "task": "通关结算提示出现时以 0.7 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.7 loop=false"}
+{"source_id": "phase1-g0575", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "完成连击庆祝相关的单步进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0597", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "答对题目时以 0.85 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.85 loop=false"}
+{"source_id": "phase1-g0625", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "资源揭示结束后播放一次系统反馈音，并等待 1000 毫秒。", "dsl": "SE 001-System01 vol=0.8\nWAIT 1000"}
+{"source_id": "phase1-g0642", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "答错时先播放一声提示音效，再停顿约半秒，让玩家看清错误反馈。", "dsl": "SE 001-System01 vol=1 loop=false fade=0 delay=0 interrupt=false\nWAIT 500"}
+{"source_id": "phase1-g0665", "class": "MEDIUM_VAR_QUERY_OVERBROAD", "first_cmd": "VAR", "line_count": 1, "task": "完成连击庆祝相关的单步设置状态：将 combo_celebrate_triggered 设为 true。", "dsl": "VAR combo_celebrate_triggered = true"}
+{"source_id": "phase1-g0684", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "新手引导阶段播放一次“1006-描述”提示音，随后等待 1200 毫秒，方便玩家看清操作说明。", "dsl": "SE \"1006-描述\" vol=0.8\nWAIT 1200"}
+{"source_id": "phase1-g0697", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "连击达成时播放一次系统庆祝提示音，并等待 800 毫秒。", "dsl": "SE 001-System01 vol=0.7\nWAIT 800"}
+{"source_id": "phase1-g0748", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "玩家答错时播放一次游戏结束音效，并等待 800 毫秒。", "dsl": "SE \"游戏结束\" vol=0.8\nWAIT 800"}
+{"source_id": "phase1-g0771", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "连击达成时以 0.9 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.9 loop=false"}
+{"source_id": "phase1-g0785", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "完成分数变化相关的单步进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0789", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "通关结算时以 0.85 音量播放一次掌声音效。", "dsl": "SE \"掌声\" vol=0.85 loop=false"}
+{"source_id": "phase1-g0835", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 1, "task": "答对后播放一次系统反馈音，完成正确反馈收尾。", "dsl": "SE 001-System01 vol=0.8"}
+{"source_id": "phase1-g0870", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 1, "task": "为这一关配置答错时的提示音效。", "dsl": "SE 001-System01"}
+{"source_id": "phase1-g0950", "class": "HIGH_WAIT_QUERY_OVERBROAD", "first_cmd": "WAIT", "line_count": 1, "task": "只加一段等待，作为计时节拍，停顿600毫秒后再继续后续流程。", "dsl": "WAIT 600"}
+{"source_id": "phase1-g0976", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "答错时播放一次系统提示音，并等待 800 毫秒。", "dsl": "SE 001-System01 vol=0.45\nWAIT 800"}
+{"source_id": "phase1-g0995", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "这一关进度刷新完成后，直接进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0999", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "连击达成时以 0.85 音量播放一次掌声音效，并等待 800 毫秒。", "dsl": "SE \"掌声\" vol=0.85 loop=false\nWAIT 800"}
+{"source_id": "phase1-g0228", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "这一关的新手引导开始时播放一次“0002_01-问诊”提示音，再等待 1000 毫秒让玩家留意操作说明。", "dsl": "SE \"0002_01-问诊\" vol=0.35\nWAIT 1000"}
+{"source_id": "phase1-g0241", "class": "LOW_ATOMIC_OK_BUT_WORDY", "first_cmd": "SE", "line_count": 2, "task": "连击达成时以 0.65 音量播放一次掌声音效，并等待 800 毫秒。", "dsl": "SE \"掌声\" vol=0.65 loop=false\nWAIT 800"}
+{"source_id": "phase1-g0260", "class": "MEDIUM_NEXT_QUERY_OVERBROAD", "first_cmd": "NEXT", "line_count": 1, "task": "在新手引导提示结束后，直接进入下一关。", "dsl": "NEXT"}
+{"source_id": "phase1-g0269", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "在玩家完成一步配药后播放一声简短的进度确认音效，并停顿半秒，让进度刷新更清晰。", "dsl": "SE 001-System01 vol=0.7\nWAIT 500"}
+{"source_id": "phase1-g0276", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "为这一关的新手引导播放一段简短的提示音，随后停顿半秒，让玩家留意接下来的操作说明。", "dsl": "SE 001-System01 vol=0.65 loop=false fade=0 delay=0 interrupt=false\nWAIT 500"}
+{"source_id": "phase1-g0282", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 2, "task": "玩家答错时播放一次系统提示音，并等待 1000 毫秒后继续后续反馈。", "dsl": "SE 001-System01 vol=0.5\nWAIT 1000"}
+{"source_id": "phase1-g0520", "class": "MEDIUM_AUDIO_QUERY_OVERBROAD", "first_cmd": "SE", "line_count": 1, "task": "答错时播放一次“1001-问题”提示音作为错误反馈。", "dsl": "SE \"1001-问题\" vol=0.8"}

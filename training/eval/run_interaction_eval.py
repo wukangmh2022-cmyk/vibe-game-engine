@@ -31,6 +31,9 @@ DEBUGGER = ROOT / "agent-debugger"
 RUNNER = DEBUGGER / "runtime_level_dry_run.js"
 DEFAULT_CASES = Path(__file__).with_name("heldout_interaction_benchmark_v3.py")
 sys.path.insert(0, str(DEBUGGER))
+sys.path.insert(0, str(ROOT))
+from training.dsl.level_dsl import compile_patch
+from training.eval.user_prompt import render_level_dsl_user_prompt
 from event_coordination_validator import EventCoordinationValidator, command_resource_refs, walk_commands
 from validate_unified_runtime import PLACEHOLDER_AUDIO, PLACEHOLDER_IMAGE
 try:  # Supports both `python training/eval/...` and package-style regression imports.
@@ -41,21 +44,34 @@ except ImportError:
     from eval_config import DEFAULT_ENV_FILE, endpoint_from_profile, load_settings
 
 
-def parse_response(content: str) -> dict[str, Any]:
+def parse_response(content: str, *, intent: str = "", asset_catalog: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+    """Extract the final complete level object from regular or thinking output."""
     text = content.strip()
     if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.I)
+        text = re.sub(r"^```\w*\s*", "", text)
         text = re.sub(r"\s*```$", "", text)
     try:
-        value = json.loads(text)
-    except json.JSONDecodeError:
-        start, end = text.find("{"), text.rfind("}")
-        if start < 0 or end <= start:
-            raise ValueError("response did not contain a JSON object")
-        value = json.loads(text[start : end + 1])
-    if not isinstance(value, dict):
-        raise ValueError("response JSON must be an object")
-    return value
+        return compile_patch(text, intent=intent, asset_catalog=asset_catalog or [])
+    except ValueError:
+        pass
+    decoder = json.JSONDecoder()
+    candidates: list[dict[str, Any]] = []
+    for offset, character in enumerate(text):
+        if character != "{":
+            continue
+        try:
+            value, _ = decoder.raw_decode(text, offset)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            candidates.append(value)
+    required = {"intent", "asset_catalog", "commands", "extra_events"}
+    matches = [value for value in candidates if required <= set(value)]
+    if not matches:
+        raise ValueError("response did not contain a complete level JSON object with intent, asset_catalog, commands, and extra_events")
+    # Reasoning can contain drafts and JSON examples. The final complete object
+    # is the last one emitted by the model.
+    return matches[-1]
 
 
 def load_benchmark(path: Path) -> dict[str, Any]:
@@ -76,9 +92,14 @@ def load_benchmark(path: Path) -> dict[str, Any]:
 
 def request_completion(config: dict[str, Any], messages: list[dict[str, str]]) -> tuple[str, dict[str, Any], float]:
     started = time.monotonic()
+    payload: dict[str, Any] = {
+        "model": config["model"], "messages": messages,
+        "temperature": config["temperature"], "max_tokens": config["max_tokens"],
+    }
+    payload["chat_template_kwargs"] = {"enable_thinking": False}
     request = urllib.request.Request(
         config["api_base"].rstrip("/") + "/chat/completions",
-        data=json.dumps({"model": config["model"], "messages": messages, "temperature": config["temperature"], "max_tokens": config["max_tokens"]}).encode(),
+        data=json.dumps(payload).encode(),
         method="POST",
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {config['api_key']}"},
     )
@@ -92,22 +113,20 @@ def request_completion(config: dict[str, Any], messages: list[dict[str, str]]) -
     choices = data.get("choices") or []
     if not choices:
         raise RuntimeError("response has no choices")
-    return str(choices[0].get("message", {}).get("content") or ""), data.get("usage") or {}, time.monotonic() - started
+    message = choices[0].get("message") or {}
+    answer = str(message.get("content") or "")
+    reasoning = str(message.get("reasoning_content") or "")
+    # Persist unexpected reasoning separately in the artifact for diagnostics;
+    # production DSL evaluation still requests thinking=false.
+    raw = f"<think>\n{reasoning}\n</think>\n\n{answer}" if reasoning else answer
+    return raw, data.get("usage") or {}, time.monotonic() - started
 
 
 def make_messages(benchmark: dict[str, Any], case: dict[str, Any], guidance_mode: str = "full") -> list[dict[str, str]]:
-    task = {
-        "case_id": case["id"],
-        "intent": case["intent"],
-        "asset_catalog": case.get("asset_catalog", []),
-        "output_contract": {
-            "intent": "repeat the request in Chinese",
-            "asset_catalog": "copy only referenced resources from the given catalog",
-            "commands": "main event command array",
-            "extra_events": "additional EventConfig array; use [] when no extra event is needed",
-        },
-    }
-    messages = [{"role": "user", "content": json.dumps(task, ensure_ascii=False)}]
+    messages = [{"role": "user", "content": render_level_dsl_user_prompt(
+        case["intent"], case.get("asset_catalog", []),
+        int(case.get("canvas_width", 800)), int(case.get("canvas_height", 600)),
+    )}]
     if guidance_mode == "full":
         messages.insert(0, {"role": "system", "content": editor_system_prompt()})
     return messages
@@ -362,7 +381,7 @@ def evaluate_one(case: dict[str, Any], benchmark: dict[str, Any], config: dict[s
     row: dict[str, Any] = {"case_id": case["id"], "run": config["name"], "model": config["model"], "started_at": datetime.now(timezone.utc).isoformat(), "category": case["category"]}
     try:
         raw, usage, latency = request_completion(config, make_messages(benchmark, case, config["guidance_mode"]))
-        sample = parse_response(raw)
+        sample = parse_response(raw, intent=case["intent"], asset_catalog=case.get("asset_catalog", []))
         validation = validate_output(sample, case)
         runtime = run_runtime(sample, case, config["runtime_timeout"]) if validation["valid"] else None
         row.update({"raw_output": raw, "usage": usage, "latency_seconds": round(latency, 3), "sample": sample, "validation": validation, "runtime": runtime})
@@ -395,10 +414,11 @@ def main() -> int:
     parser.add_argument("--run", type=parse_run, action="append", help="Repeat: base=model-id --run adapter=model-id (uses legacy VIBE_EVAL_API_BASE/API_KEY)")
     parser.add_argument("--workers", type=int, default=4, help="Default 4; use 1 for serial Transformers or tune upward after vLLM load testing")
     parser.add_argument("--temperature", type=float, default=0.0)
-    parser.add_argument("--max-tokens", type=int, default=1800)
+    parser.add_argument("--max-tokens", type=int, default=768, help="VGE-DSL output budget; thinking is always disabled")
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--runtime-timeout", type=int, default=10)
     parser.add_argument("--without-guidance", action="store_true", help="Do not inject the editor's full level-patch guidance; the benchmark task contract remains unchanged")
+    parser.add_argument("--disable-thinking", action="store_true", default=True, help="Deprecated compatibility flag; DSL evaluation always disables thinking")
     parser.add_argument("--cases", type=Path, default=DEFAULT_CASES, help="Versioned .json or benchmark .py module")
     parser.add_argument("--output-dir", default="training/eval/results")
     args = parser.parse_args()
@@ -426,7 +446,7 @@ def main() -> int:
     if not isinstance(cases, list) or not cases:
         raise SystemExit("benchmark has no cases")
     guidance_mode = "none" if args.without_guidance else "full"
-    configs = [{**config, "temperature": args.temperature, "max_tokens": args.max_tokens, "timeout": args.timeout, "runtime_timeout": args.runtime_timeout, "guidance_mode": guidance_mode} for config in configs]
+    configs = [{**config, "temperature": args.temperature, "max_tokens": args.max_tokens, "timeout": args.timeout, "runtime_timeout": args.runtime_timeout, "guidance_mode": guidance_mode, "disable_thinking": args.disable_thinking} for config in configs]
     rows: list[dict[str, Any]] = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
         futures = [executor.submit(evaluate_one, case, benchmark, config) for config in configs for case in cases]
@@ -436,7 +456,7 @@ def main() -> int:
     benchmark_slug = re.sub(r"[^a-z0-9]+", "-", str(benchmark["schema_version"]).lower()).strip("-")
     run_dir = Path(args.output_dir) / f"{benchmark_slug}-{guidance_mode}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     write_jsonl(run_dir / "results.jsonl", rows)
-    summary: dict[str, Any] = {"benchmark": benchmark["schema_version"], "guidance_mode": guidance_mode, "case_count": len(cases), "runs": {}}
+    summary: dict[str, Any] = {"benchmark": benchmark["schema_version"], "prompt_mode": "vge_dsl_1_canonical", "guidance_mode": guidance_mode, "thinking_enabled": False, "case_count": len(cases), "runs": {}}
     for config in configs:
         model_rows = [row for row in rows if row["run"] == config["name"]]
         categories: dict[str, dict[str, int]] = {}

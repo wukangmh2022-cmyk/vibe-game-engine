@@ -114,11 +114,11 @@ def count_source_scenes() -> tuple[Counter[str], Counter[str], dict[str, Counter
     }
 
 
-def count_corpus(corpus_path: Path) -> tuple[Counter[str], Counter[str], dict[str, Counter[str]], dict[str, Any]]:
+def count_corpus(corpus_path: Path, include_all: bool = False) -> tuple[Counter[str], Counter[str], dict[str, Counter[str]], dict[str, Any]]:
     total_by_type: Counter[str] = Counter()
     total_by_context: Counter[str] = Counter()
     batch_counts: dict[str, Counter[str]] = defaultdict(Counter)
-    plan_ids: set[str] = set()
+    record_ids: set[str] = set()
     skipped_lines = 0
     for raw in corpus_path.read_text(encoding="utf-8").splitlines():
         try:
@@ -127,26 +127,34 @@ def count_corpus(corpus_path: Path) -> tuple[Counter[str], Counter[str], dict[st
             skipped_lines += 1
             continue
         plan_id = record.get("plan_id")
-        if not isinstance(plan_id, str) or not plan_id.startswith("g"):
+        if not include_all and (not isinstance(plan_id, str) or not plan_id.startswith("g")):
             continue
         output = record.get("output")
         commands = output.get("commands") if isinstance(output, dict) else None
         if not isinstance(commands, list):
             continue
-        plan_ids.add(plan_id)
-        batch_id = str(record.get("batch_id", "unknown"))
+        record_ids.add(str(record.get("sample_id") or plan_id or len(record_ids)))
+        batch_id = str(record.get("source_dataset") or record.get("batch_id", "unknown"))
         for command, context in iter_commands(commands, "top_level"):
             command_type = str(command.get("type") or "UNKNOWN").upper()
             total_by_type[command_type] += 1
             total_by_context[context] += 1
             batch_counts[batch_id][command_type] += 1
+        for event in output.get("extra_events", []) if isinstance(output, dict) else []:
+            if not isinstance(event, dict):
+                continue
+            for command, context in iter_commands(event.get("commands"), "event"):
+                command_type = str(command.get("type") or "UNKNOWN").upper()
+                total_by_type[command_type] += 1
+                total_by_context[context] += 1
+                batch_counts[batch_id][command_type] += 1
     return total_by_type, total_by_context, dict(batch_counts), {
-        "source": "in-progress command-agent SFT corpus snapshot",
+        "source": "level-authoring SFT corpus" if include_all else "phase-1 command-agent SFT corpus",
         "corpus_path": str(corpus_path),
-        "accepted_samples": len(plan_ids),
-        "unique_plan_ids": len(plan_ids),
+        "accepted_samples": len(record_ids),
+        "unique_plan_ids": len(record_ids),
         "skipped_malformed_lines": skipped_lines,
-        "counting_rule": "top-level and nested branch/loop/choice commands are all counted once per occurrence; only gxxxx planned records are included",
+        "counting_rule": "top-level, event, and nested branch/loop/choice commands are all counted once per occurrence" + ("; all records are included" if include_all else "; only gxxxx planned records are included"),
     }
 
 
@@ -154,13 +162,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Count command distributions in source scenes or an SFT corpus")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--corpus", type=Path, help="Count accepted gxxxx samples in this JSONL corpus instead of source scenes")
+    parser.add_argument("--include-all", action="store_true", help="Include every JSONL record and each output.extra_events command stream")
     args = parser.parse_args()
 
     if args.corpus:
-        total_by_type, total_by_context, group_counts, scope = count_corpus(args.corpus)
-        chart_title = "进行中 1000 条 SFT 语料的指令出现频次"
-        chart_subtitle = f"当前已验收 {scope['accepted_samples']} 条；共 {{total}} 次，包含顶层与嵌套指令"
-        prefix = "sft-command-frequency"
+        total_by_type, total_by_context, group_counts, scope = count_corpus(args.corpus, args.include_all)
+        chart_title = "统一关卡创作 SFT 语料的指令出现频次" if args.include_all else "一期紧凑 SFT 语料的指令出现频次"
+        chart_subtitle = f"最终已验收 {scope['accepted_samples']} 条；共 {{total}} 次，包含顶层、事件与嵌套指令" if args.include_all else f"最终已验收 {scope['accepted_samples']} 条；共 {{total}} 次，包含顶层与嵌套指令"
+        prefix = "level-authoring-command-frequency" if args.include_all else "sft-command-frequency"
         group_label = "by_batch"
     else:
         total_by_type, total_by_context, group_counts, scope = count_source_scenes()
@@ -184,7 +193,11 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     csv_path = args.output_dir / f"{prefix}.csv"
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]) if rows else ["rank", "command_type", "count", "share_percent", "groups_using", "group_coverage_percent"])
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=list(rows[0]) if rows else ["rank", "command_type", "count", "share_percent", "groups_using", "group_coverage_percent"],
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(rows)
     report = {

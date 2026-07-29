@@ -64,7 +64,11 @@ export class ShowTextHandler extends BaseCommandHandler {
       // Background skin (nine-slice) if skinId is provided
       let createdBgId: string | null = null;
       try {
-        const skinId: string | undefined = (p.skinId || p.panel?.skinId);
+        const explicitSkinId: string | undefined = (p.skinId || p.panel?.skinId);
+        const defaultSkinId = blocking && (context.resourceManager as any)?.getSkin?.('dialog-default-9slice')
+          ? 'dialog-default-9slice'
+          : undefined;
+        const skinId: string | undefined = explicitSkinId || defaultSkinId;
         // Use per-side padding computed above
         if (skinId && (context.renderManager as any)?.getNode) {
           const sk = (context.resourceManager as any)?.getSkin?.(skinId);
@@ -212,7 +216,7 @@ export class ShowTextHandler extends BaseCommandHandler {
       const dismissOnContinue: boolean = p.dismissOnContinue === false ? false : (!!p.blocking || !!p.waitForClick);
       if (blocking) {
         // Only propagate panelResourceId when explicit skin exists and is resolvable
-        const sid = p.skinId || p.panel?.skinId;
+        const sid = p.skinId || p.panel?.skinId || (blocking && (context.resourceManager as any)?.getSkin?.('dialog-default-9slice') ? 'dialog-default-9slice' : undefined);
         const panelResourceId = sid ? (context.resourceManager as any)?.getSkin?.(sid)?.imageId : undefined;
         context.eventManager.emit('text_displayed', { elementId, blocking: true, dismissOnContinue, panelResourceId });
       await new Promise<void>((resolve) => {

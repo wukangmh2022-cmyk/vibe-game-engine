@@ -1,0 +1,2 @@
+{"failed_at": "2026-07-26T09:33:03.358101+00:00", "source_id": "phase1-g0033", "row_id": "phase1-g0033:q1", "error": "teacher API connection failed: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)"}
+{"failed_at": "2026-07-26T09:33:24.027585+00:00", "source_id": "phase1-g0043", "row_id": "phase1-g0043:q1", "error": "teacher API connection failed: [SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1028)"}

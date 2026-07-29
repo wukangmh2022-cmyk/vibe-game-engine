@@ -12,11 +12,12 @@ import { CommandTreePanel } from './components/CommandTreePanel';
 import { CombinedLibraryPanel } from './components/CombinedLibraryPanel';
 import { ProjectHome } from './components/ProjectHome';
 import { TriggerModalEditor } from './components/TriggerModalEditor';
-import { AIGenerateModal } from './components/AIGenerateModal';
+import { AIGenerateModal, GeneratedLevelPatch } from './components/AIGenerateModal';
 import './App.css';
 import { runAndLogTemplateSanity } from './utils/templateSanity';
 import vfs from './utils/vfs';
 import { attachRuntimeSceneUrl } from './utils/sceneMeta';
+import { resourceIdFromPath, resourceNameFromPath } from './utils/resourceId';
 
 interface AppState {
   currentProject: GameProject | null;
@@ -673,7 +674,7 @@ const App: React.FC = () => {
         const cfg = await vfs.readJSON<any>('config.json');
         const skins = (cfg && (cfg.skins || (cfg.resources && cfg.resources.skins))) || [];
         const list: Array<{ id: string; imageId?: string; url?: string; slice?: any; name?: string }> = Array.isArray(skins) ? skins : [];
-        list.forEach(s => { editorResources.push({ id: s.id, type: 'skin', name: s.name || s.id, imageId: (s as any).imageId, url: (s as any).url, slice: s.slice }); });
+        list.forEach(s => { editorResources.push({ id: s.id, type: 'skin', name: s.name || s.id, path: (s as any).url || (s as any).imageId || '', imageId: (s as any).imageId, url: (s as any).url, slice: s.slice }); });
       } catch {}
       
       setAppState(prev => ({
@@ -811,6 +812,47 @@ const App: React.FC = () => {
         }
       } catch {}
 
+      return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, runtimeGameData: nextRuntime, unsaved: true };
+    });
+  };
+
+  // AI protocol applies a complete level patch. Commands target the currently
+  // visible main flow; generated cross-event logic is persisted as level.events.
+  const handleAIGeneratedPatch = (patch: GeneratedLevelPatch) => {
+    const commands = Array.isArray(patch?.commands) ? patch.commands : [];
+    const extraEvents = Array.isArray(patch?.extra_events) ? patch.extra_events : [];
+    setAppState(prev => {
+      if (!prev.currentProject) return prev;
+      const curLevelId = prev.currentLevelId;
+      const editingEventId = prev.selectedEventId;
+      const nextLevels = prev.currentProject.levels.map(level => {
+        if (level.id !== curLevelId) return level;
+        const lv: any = { ...level };
+        if (editingEventId) {
+          lv.events = (Array.isArray(lv.events) ? lv.events : []).map((event: any) => event?.id === editingEventId ? { ...event, commands } : event);
+        } else {
+          lv.rawCommands = commands;
+          lv.events = extraEvents;
+        }
+        return lv;
+      });
+      let nextRuntime = prev.runtimeGameData;
+      try {
+        if (nextRuntime && Array.isArray((nextRuntime as any).levels)) {
+          const clone = JSON.parse(JSON.stringify(nextRuntime));
+          const runtimeLevel = clone.levels.find((level: any) => level?.id === curLevelId) || clone.levels[0];
+          if (runtimeLevel) {
+            if (editingEventId) {
+              const nextLevel: any = nextLevels.find((level: any) => level.id === curLevelId);
+              runtimeLevel.events = JSON.parse(JSON.stringify(nextLevel?.events || []));
+            } else {
+              runtimeLevel.commands = JSON.parse(JSON.stringify(commands));
+              runtimeLevel.events = JSON.parse(JSON.stringify(extraEvents));
+            }
+          }
+          nextRuntime = clone;
+        }
+      } catch {}
       return { ...prev, currentProject: { ...prev.currentProject, levels: nextLevels }, runtimeGameData: nextRuntime, unsaved: true };
     });
   };
@@ -1371,10 +1413,9 @@ const App: React.FC = () => {
                     : (/\.(mp3|wav|ogg|m4a)$/i.test(low) ? 'audio'
                       : (/\.(mp4|webm|mov)$/i.test(low) ? 'video'
                         : (/\.(json)$/i.test(low) ? 'animation' : 'image'))));
-                const name = p.split('/').pop()!.replace(/\.[^.]+$/, '');
                 const used = new Set((prev.currentProject.resources || []).map(r => r.id));
-                let id = name.replace(/[^a-zA-Z0-9_\-]/g, '_') || 'res';
-                if (used.has(id)) { let i=1; while (used.has(`${id}_${i}`)) i++; id = `${id}_${i}`; }
+                const name = resourceNameFromPath(p);
+                const id = resourceIdFromPath(p, used);
                 const merged = [ ...(prev.currentProject.resources || []), { id, type, src: p, path: p, name } ];
                 // Sync into runtime JSON when present
                 let nextRuntime = prev.runtimeGameData;
@@ -1479,10 +1520,7 @@ const App: React.FC = () => {
           } catch { return []; }
         })()}
         onCancel={closeAIGenerate}
-        onApplyCommands={(cmds) => {
-          // AI 生成的 commands JSON → 写回当前关卡（替换 commands 列表）
-          try { handleTreeCommandsChange(Array.isArray(cmds) ? cmds : []); } catch {}
-        }}
+        onApplyCommands={(patch) => { try { handleAIGeneratedPatch(patch); } catch {} }}
       />
       </>
       )}

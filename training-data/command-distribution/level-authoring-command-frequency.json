@@ -1,0 +1,292 @@
+{
+  "scope": {
+    "source": "level-authoring SFT corpus",
+    "corpus_path": "training-data/level-authoring-sft-v1.jsonl",
+    "accepted_samples": 1539,
+    "unique_plan_ids": 1539,
+    "skipped_malformed_lines": 0,
+    "counting_rule": "top-level, event, and nested branch/loop/choice commands are all counted once per occurrence; all records are included"
+  },
+  "total_command_occurrences": 5007,
+  "command_type_count": 28,
+  "by_execution_context": {
+    "event": 470,
+    "nested": 1049,
+    "top_level": 3488
+  },
+  "distribution": [
+    {
+      "rank": 1,
+      "command_type": "SET_VARIABLE",
+      "count": 853,
+      "share_percent": 17.036,
+      "groups_using": 3,
+      "group_coverage_percent": 100.0
+    },
+    {
+      "rank": 2,
+      "command_type": "SHOW_IMAGE",
+      "count": 495,
+      "share_percent": 9.886,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 3,
+      "command_type": "EMIT_SIGNAL",
+      "count": 452,
+      "share_percent": 9.027,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 4,
+      "command_type": "SHOW_TEXT",
+      "count": 427,
+      "share_percent": 8.528,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 5,
+      "command_type": "IF_CONDITION",
+      "count": 370,
+      "share_percent": 7.39,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 6,
+      "command_type": "WAIT",
+      "count": 304,
+      "share_percent": 6.071,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 7,
+      "command_type": "UPDATE_TEXT",
+      "count": 248,
+      "share_percent": 4.953,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 8,
+      "command_type": "LOOP",
+      "count": 219,
+      "share_percent": 4.374,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 9,
+      "command_type": "SE_PLAY",
+      "count": 195,
+      "share_percent": 3.895,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 10,
+      "command_type": "NEXT_LEVEL",
+      "count": 153,
+      "share_percent": 3.056,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 11,
+      "command_type": "BGM_PLAY",
+      "count": 142,
+      "share_percent": 2.836,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 12,
+      "command_type": "SET_ELEMENT_STYLE",
+      "count": 128,
+      "share_percent": 2.556,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 13,
+      "command_type": "BREAK",
+      "count": 124,
+      "share_percent": 2.477,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 14,
+      "command_type": "BGM_STOP",
+      "count": 112,
+      "share_percent": 2.237,
+      "groups_using": 2,
+      "group_coverage_percent": 66.667
+    },
+    {
+      "rank": 15,
+      "command_type": "MOVE_TO",
+      "count": 108,
+      "share_percent": 2.157,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 16,
+      "command_type": "SHOW_CHOICES",
+      "count": 94,
+      "share_percent": 1.877,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 17,
+      "command_type": "SCENE_REDIRECT",
+      "count": 79,
+      "share_percent": 1.578,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 18,
+      "command_type": "FIREWORK_BURST",
+      "count": 75,
+      "share_percent": 1.498,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 19,
+      "command_type": "SET_SELECTABLE",
+      "count": 60,
+      "share_percent": 1.198,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 20,
+      "command_type": "SET_DRAGGABLE",
+      "count": 60,
+      "share_percent": 1.198,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 21,
+      "command_type": "JUMP_TO",
+      "count": 54,
+      "share_percent": 1.078,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 22,
+      "command_type": "SET_CLICKABLE",
+      "count": 45,
+      "share_percent": 0.899,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 23,
+      "command_type": "ANIMATE_LOOP",
+      "count": 35,
+      "share_percent": 0.699,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 24,
+      "command_type": "ANIMATE_IN",
+      "count": 35,
+      "share_percent": 0.699,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 25,
+      "command_type": "CHECK_IN_AREA",
+      "count": 35,
+      "share_percent": 0.699,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 26,
+      "command_type": "ANIMATE_OUT",
+      "count": 35,
+      "share_percent": 0.699,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 27,
+      "command_type": "FLIP_CARD",
+      "count": 35,
+      "share_percent": 0.699,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    },
+    {
+      "rank": 28,
+      "command_type": "CHANGE_SELECTED_STATE",
+      "count": 35,
+      "share_percent": 0.699,
+      "groups_using": 1,
+      "group_coverage_percent": 33.333
+    }
+  ],
+  "by_batch": {
+    "command-agent-sft-v1": {
+      "BGM_PLAY": 107,
+      "BGM_STOP": 77,
+      "BREAK": 124,
+      "EMIT_SIGNAL": 107,
+      "IF_CONDITION": 190,
+      "JUMP_TO": 54,
+      "LOOP": 129,
+      "MOVE_TO": 108,
+      "NEXT_LEVEL": 128,
+      "SCENE_REDIRECT": 79,
+      "SET_ELEMENT_STYLE": 128,
+      "SET_VARIABLE": 338,
+      "SE_PLAY": 75,
+      "SHOW_CHOICES": 94,
+      "SHOW_IMAGE": 255,
+      "SHOW_TEXT": 172,
+      "UPDATE_TEXT": 68,
+      "WAIT": 214
+    },
+    "event-coordination-sft-v2": {
+      "ANIMATE_LOOP": 35,
+      "BGM_PLAY": 35,
+      "BGM_STOP": 35,
+      "EMIT_SIGNAL": 345,
+      "FIREWORK_BURST": 75,
+      "IF_CONDITION": 180,
+      "LOOP": 90,
+      "NEXT_LEVEL": 25,
+      "SET_VARIABLE": 445,
+      "SE_PLAY": 120,
+      "SHOW_TEXT": 255,
+      "UPDATE_TEXT": 180,
+      "WAIT": 90
+    },
+    "interaction-sft-v3": {
+      "ANIMATE_IN": 35,
+      "ANIMATE_OUT": 35,
+      "CHANGE_SELECTED_STATE": 35,
+      "CHECK_IN_AREA": 35,
+      "FLIP_CARD": 35,
+      "SET_CLICKABLE": 45,
+      "SET_DRAGGABLE": 60,
+      "SET_SELECTABLE": 60,
+      "SET_VARIABLE": 70,
+      "SHOW_IMAGE": 240
+    }
+  }
+}

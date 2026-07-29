@@ -1,0 +1,11 @@
+{
+  "schema_version": "vge-dsl-pairwise-audit-status-v1",
+  "updated_at": "2026-07-26T09:06:26.316390+00:00",
+  "total_rows": 1283,
+  "scheduled_this_run": 1283,
+  "completed_rows": 18,
+  "gold_worse_rows": 10,
+  "error_rows": 0,
+  "model": "grok-4.5",
+  "endpoint_slot": "2"
+}

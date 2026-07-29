@@ -4,7 +4,7 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 该项目提供覆盖资源管理、场景配置、指令树、事件编排和 Pixi 运行时预览的可视化编辑器。编辑器支持以无代码方式组合画面、动画、音频、点击、拖拽、条件分支和关卡跳转，并将编辑结果保存为可由同一运行时执行的关卡数据。
 
-该项目在编辑器中集成 AI 关卡生成模块。模块根据当前画布、已有指令和可用资源生成 `commands + extra_events`；配套模型以经过资源引用、依赖关系和真实运行时验证的中文“需求 -> 指令 JSON”数据进行微调，用于提高生成关卡的结构正确性和可执行性。
+该项目在编辑器中集成 AI 关卡生成模块。模块根据当前画布和可用资源生成紧凑的 `VGE-DSL/1`，再由编辑器的确定性解析器编译为现有 `commands + extra_events` JSON；游戏保存格式和运行时协议不变。配套模型使用经过人工语义审查、资源契约检查和真实运行时验证的中文“需求 -> DSL”数据微调。
 
 ## 在线使用
 
@@ -15,43 +15,38 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 ## AI 生成关卡
 
-编辑器的 AI 面板将关卡需求、画布尺寸、当前指令树和已选资源整理为符合引擎规范的提示词。填写自己的 OpenRouter API Key 后，可直接生成可写入关卡的 `commands` JSON；密钥只保存在当前浏览器，不会提交到项目或 GitHub Pages。生成结果仍可在指令树中逐条调整，并立刻在右侧 Pixi 画布预览。
+编辑器的 AI 面板将关卡需求、800x600 画布和已选资源整理为统一的 `TASK/CANVAS/ASSETS` 消息。填写自己的 OpenRouter API Key 后，模型返回 `VGE-DSL/1`；编辑器先解析并校验 DSL，再编译为可写入关卡的 JSON。密钥只保存在当前浏览器，不会提交到项目或 GitHub Pages。生成结果仍可在指令树中逐条调整，并立刻在右侧 Pixi 画布预览。
 
 典型流程：描述玩法 -> 选择要引用的图片、音频或动画资源 -> 生成关卡指令 -> 在预览中验证 -> 保存或导出工程。
 
 ## 指令模型实验
 
-仓库包含一条面向本引擎 DSL 的可复现实验链路：先合成并严格验证“需求 -> 指令 JSON”数据，再以 QLoRA 微调开源基础模型，最后在固定题集上比较 Base 与 Adapter。当前训练以可验证的功能片段和事件组合为输出单元，并不以一个完整关卡作为单次输出进行训练。
+仓库包含一条面向本引擎 DSL 的可复现实验链路：原始 JSON 指令语料经逐条人工审查和显式修复后转换为 token-efficient DSL，以 QLoRA 微调开源基础模型，最后在固定 held-out 题集上比较 Base 与 Adapter。训练答案只包含可编译 DSL，不包含 JSON、解释或 Thinking。
 
-完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。关于 15 个已试玩人类关卡、一期多 worker 队列合成、二期跨事件补齐与三期浏览器互动补齐，见 [训练数据合成策略](docs/data-synthesis-strategy.md)。
+完整说明与脚本在 [training/README.md](training/README.md)，分为 `agent-debugger/`、`training/qlora/` 和 `training/eval/` 三部分。关于 15 个已试玩人类关卡、一期多 worker 队列合成、二期跨事件补齐、三期浏览器互动补齐和 DSL v3 审查修复，见下方数据合成与质量门、[训练数据人工审查台账](training-data/dsl-manual-review.md) 和 [DSL v3 manifest](training/qlora/data/level-authoring-dsl-v3/manifest.json)。
 
-可直接查看 [训练集（可读展示文本）](docs/training-data/training-set-readable-text.txt)。该文件展示中文需求、主流程和事件中的指令顺序，便于了解训练样本形态；不包含原始 JSON、资源目录、命令参数或完整嵌套配置。
+正式 chat-format 数据、转换档案、manifest、runtime 质量报告和 tokenizer 报告位于 [training/qlora/data/level-authoring-dsl-v3](training/qlora/data/level-authoring-dsl-v3)。
 
 ### 数据合成与质量门
 
-输入是 `customer-demo/scene/**/*.json` 中的真实场景、关卡、资源和指令。`agent-debugger/build_command_db.py` 将其拆为只读 SQLite 索引，教师模型只能通过工具按需取得：指令契约、真实指令示例、相邻指令上下文，以及某关卡的真实资源清单。模型自主调用工具、生成候选、请求验证；最多 20 个工具动作，达到上限后控制器强制它输出一次最终 JSON。
+最终 4B DSL v3 数据不是一次性批量生成，而是“合成 -> 多模型审查 -> 人工核查 -> API 修复 -> runtime gate”的闭环。原始来源包括 15 个真实人类关卡、一阶段功能片段、二阶段事件协调样本和三阶段浏览器交互补齐样本；随后统一转换为 `VGE-DSL/1`，再用人工审查网页、DeepSeek/Claude/OpenAI 多轮 judge、Slot 3 API repair 和本地编译器/runtime 把 query、ASSETS 与 DSL 一起修到一致。
 
-原始一期 `corpus.jsonl` 是采集记录；训练使用统一视图 `training-data/level-authoring-sft-v1.jsonl`。每条训练记录的输出都使用同一事件感知结构：
+最终 `level-authoring-dsl-v3` 数据链路如下：
 
-```json
-{
-  "schema_version": "vibe-level-authoring-sft-v1",
-  "sample_id": "phase1-g0000",
-  "source_dataset": "command-agent-sft-v1|event-coordination-sft-v2",
-  "input": {
-    "intent": "中文关卡功能需求",
-    "asset_catalog": [{"id":"真实资源ID","type":"image","path":"相对项目路径","origin":"existing","exists":true}]
-  },
-  "output": {
-    "commands": [{"id":"...","type":"SHOW_IMAGE","parameters":{}}],
-    "extra_events": []
-  }
-}
-```
+| 阶段 | 数量 | 说明 |
+| --- | ---: | --- |
+| 源候选 | 1282 | 来自真实关卡片段、功能片段、事件协调和交互补齐 |
+| 转换后保留 | 1265 | 17 条因 final runtime gate 仍非终止、malformed 或无法可靠验证而排除 |
+| 训练集 | 1139 | 与验证集按 `source_id` 切分，不跨集合 |
+| 验证集 | 126 | 只用于 loss/过拟合观察，不作为最终泛化分数 |
+| 修复动作 | KEEP 183 / FIX 1082 / EXCLUDE 17 | 反映绝大多数样本都经过显式语义或运行时修复 |
+| 额外质量修复记录 | 972 | 来自多轮人工批注、DeepSeek/Claude/Slot 3 审查与 API repair 合并 |
 
-这不是仅靠 JSON schema 的筛选。写入训练集前必须全部通过：真实资源 `id/type/path` 与关卡元数据一致且磁盘文件存在；资源不能是 `virtual://` 或猜测路径；元素更新命令必须先创建同一元素；`BREAK` 必须在 `LOOP.commands`；一期指令通过仓库实际 `CommandExecutor` 配合内存状态、资源、渲染和音频适配器预跑。三期浏览器/Pixi 互动指令使用真实 handler 参数、真实资源和元素依赖的静态契约验证后直接纳入训练；浏览器回放后置，不作为当前数据入库阻塞条件。
+准入不是只检查语法。正式样本必须通过 DSL parse、serialize/reparse 结构往返、资源 ID/type/path 契约、元素与控制流静态检查，以及仓库真实 `CommandExecutor` 和浏览器/Pixi handler 的 runtime dry-run。资源 ID 从文件名生成语义名称，重复项追加编号；空资源、纯下划线 ID、悬空 `JUMP_ID`、未注册命令、无法终止循环和未创建元素即交互绑定都不能进入最终训练文件。
 
-首批采样保持 `72%` 单指令 atomic 与 `28%` 2-4 指令 motif。启动合成器时使用新的兼容 API：
+每条正式消息固定为三段：system 使用编辑器与评估共享的完整 V3 Guidance；user 使用 `TASK + CANVAS + ASSETS(id | type | path)`；assistant 只输出 DSL。训练、推理和评估均显式设置 `enable_thinking=false`。人工与机器审查保留版本化 ledger，不覆盖原始数据；正式数据和报告见 [level-authoring-dsl-v3](training/qlora/data/level-authoring-dsl-v3)、[quality-report.json](training/qlora/data/level-authoring-dsl-v3/quality-report.json) 与 [dsl-manual-review.md](training-data/dsl-manual-review.md)。
+
+如需继续合成候选，教师采集入口仍为低层工具；新候选必须再进入同样的多轮审查和 runtime gate，不能直接合入训练集：
 
 ```bash
 export VIBE_TEACHER_API_BASE=http://HOST/v1
@@ -64,86 +59,82 @@ python3 agent-debugger/command_synthesize.py \
 
 ### QLoRA 微调
 
-训练输入只取统一视图中已审计通过的记录。`training/qlora/prepare_data.py` 去重并固定随机划分训练/验证集，产出 chat-format JSONL：system 为引擎输出约束，user 为中文需求与可用资源，assistant 仅为 `intent + asset_catalog + commands + extra_events` JSON。普通单事件样本必须输出 `extra_events: []`；跨事件样本输出完整 EventConfig 数组。教师工具轨迹和长推理不会作为监督标签，避免把不稳定的检索过程蒸馏进模型。
+当前第一阶段使用 Qwen3-4B-Instruct-2507 做单卡 QLoRA：LoRA `r=32`、`alpha=64`、micro batch `1`、梯度累积训练，学习率 `1e-4`，3 epoch。DSL v3 精确 tokenizer 预检最终使用 `max_length=2048`，最长样本已压缩到 2048 以内，训练代码禁止静默截断，并按 `eval_loss` 恢复最佳 checkpoint。27B 只在 4B 固定评估取得稳定正增益后训练，建议使用 `r=64`、`alpha=128` 和至少 48 GB 显存。
 
-第一版选单卡 4-bit NF4 QLoRA，而不是全量微调：27B 密集模型全参数训练需要远超单张 4090 的显存和优化器状态；QLoRA 只训练低秩 adapter，可在 4090 级卡上进行可控实验、保存体积小，并能用同一基础模型公平比较 Base 与 Adapter。默认值为 `r=32`、`alpha=64`、最大长度 `3072`、batch `1`、梯度累积 `16`、学习率 `1e-4`、3 epoch。显存不足先降 max length 到 2048，再降 r 到 16。
+AutoDL 分为无显卡准备和 GPU 训练两个阶段。准备脚本安装隔离依赖、下载完整基础模型并重跑 tokenizer 门禁；GPU 脚本不允许临时下载，缺环境或模型会立即退出：
 
 ```bash
-pip install -r training/qlora/requirements.txt
-python training/qlora/prepare_data.py \
-  --input training-data/level-authoring-sft-v1.jsonl \
-  --output-dir training/qlora/data/level-authoring-sft-v1
+# 无显卡模式
+MODEL_DIR=/root/training/models/Qwen3-4B-Instruct-2507 \
+  bash training/qlora/prepare_qwen35_4b.sh
 
-python training/qlora/train_qlora.py \
-  --model-name-or-path /root/autodl-tmp/Qwen-model \
-  --data-dir training/qlora/data/level-authoring-sft-v1 \
-  --output-dir training/qlora/outputs/vibe-level-authoring-qlora
+# 看到 READY_FOR_GPU 后切换 GPU
+set -o pipefail
+MODEL_DIR=/root/training/models/Qwen3-4B-Instruct-2507 \
+  bash training/qlora/run_qwen35_4b.sh 2>&1 \
+  | tee training/qlora/qwen3-4b-dsl-v3-train.log
 ```
 
-训练产物是 PEFT adapter，不是完整基础模型。发布时应上传 adapter、tokenizer、训练配置、数据 manifest 和评估报告；基础模型保持引用原始模型名，避免在 GitHub 仓库提交几十 GB 权重。
+训练产物位于 `training/qlora/outputs/vibe-level-qwen3-4b-dsl-v3`，是 PEFT adapter，不是完整基础模型。发布时上传 adapter、训练配置、数据 manifest 和评估报告；基础模型保持引用原始模型名。
 
 ### 固定评估
 
-[training/eval/cases/command_benchmark_v1.json](training/eval/cases/command_benchmark_v1.json) 是人工编写、版本化的 36 个固定短指令题；[level_module_benchmark_v1.json](training/eval/cases/level_module_benchmark_v1.json) 额外包含 12 个完整关卡功能块题。它们使用 `customer-demo` 的资源目录，而该目录属于训练来源范围，因此只作为运行时回归 smoke test，不作为最终泛化结论。
+当前正式评估不再使用旧的 36 条短指令题或模板化 intent 作为泛化结论。那些集合仍可作为引擎回归 smoke test，但它们题面重复、资源分布固定，无法衡量小模型是否真正学会把“工程化关卡需求 + 资源清单”映射成可执行 DSL。
 
-完整的编辑器 Guidance 不进入 SFT 训练语料。训练样本只保留最小 JSON 输出约束，让模型从“中文需求 -> 指令 JSON”的监督中学习 DSL；推理时才由编辑器或评估器注入版本化的完整 Guidance。正式对比固定为三组，所有组使用相同题目、资源、采样参数和运行时验证器：
+新的主评估集是 `human_fragment_benchmark_v1`：从 15 个已试玩人类游戏的第一关 DSL 中抽取 100 个片段，按真实关卡轨迹覆盖 UI 初始化、变量状态、事件信号、点击/选择/拖拽、动画过渡、文本更新、计时、音效、场景跳转和循环控制。每条 case 保留人类片段的 `reference_dsl` 作为语义锚点，并把该片段实际依赖的资源整理为 `asset_catalog`。模型看到的输入仍是编辑器最终会发送的格式：
 
-| 组别 | 推理上下文 | 要回答的问题 |
-| --- | --- | --- |
-| Base + Guidance | 未微调的同一基座 + 完整编辑器 Guidance | 给定完整操作说明时，基础模型能做到什么程度？ |
-| Adapter + Guidance | 同一基座挂载 LoRA + 完全相同的完整 Guidance | 在同一推理条件下，训练数据是否带来增益？ |
-| Adapter - Guidance | 同一 LoRA，不注入完整 Guidance | 模型是否把指令用法和事件结构沉淀进参数，而非只依赖长提示词？ |
-
-第三组仍发送同一份 benchmark 题面和最小输出协议，否则没有共同的可解析任务；它去掉的是数千 token 的指令定义、约束和示例。Base 与 Adapter 的主对照始终都带完整 Guidance，不能让提示词差异伪装成训练收益。
-
-我没有从 15 个原始人类关卡中硬切出测试集：它们是数量很少、质量最高的训练来源，而且同一关卡中的资源、题材和流程会高度重叠。即使按记录随机划分，测试题也会泄露同一场景和同一玩法模式，得到的高分不能说明泛化能力；反而会削弱训练中最可靠的人工样本。因此随机 validation 只用于训练过程的监控和数据完整性检查，不作为论文式测试分数。最终泛化只看下面独立的 held-out v3：它从零设计，不读取训练语料、不复用训练资源或训练场景。
-
-评估器以 6-12 并发运行，默认 8 并发；每个输出都执行 JSON 提取、主指令/命令数检查、资源契约、依赖顺序和 `CommandExecutor` 预跑。先用机器评分筛掉结构或运行时错误，再从 Base/Adapter 通过与失败的差异案例中抽样导入编辑器试玩，人工仅记录需求满足和交互完成；文案与布局不属于当前训练目标。
-
-交互与跨事件能力使用独立的 [heldout_interaction_benchmark_v3.py](training/eval/heldout_interaction_benchmark_v3.py) 单独评分。它包含 80 条从零设计的 held-out 题，不读取训练语料、不复用训练资源或训练场景；其中 10 条为包含 6 段“然后”逻辑、多个事件和条件分支的复杂协调题。oracle 定义真实 pointer 点击/拖拽、信号输入和状态断言。评估器执行 `commands + extra_events` 的完整关卡后量化结构通过、运行时通过和交互完成率；不评判布局或审美。
-
-```bash
-python training/eval/run_eval.py \
-  --profile qwen35_9b \
-  --profile adapter \
-  --workers 8
-
-python training/eval/run_eval.py \
-  --cases training/eval/cases/level_module_benchmark_v1.json \
-  --profile qwen35_9b \
-  --profile adapter \
-  --workers 8
-
-# 单独运行 Adapter - Guidance 消融组
-python training/eval/run_eval.py \
-  --profile adapter \
-  --without-guidance \
-  --workers 8
-
-python training/eval/run_interaction_eval.py \
-  --profile qwen35_9b \
-  --profile adapter \
-  --workers 8
-
-python training/eval/run_interaction_eval.py \
-  --profile adapter \
-  --without-guidance \
-  --workers 8
+```text
+system: LEVEL_PATCH_PROMPT_V3
+user:
+TASK
+<工程化关卡需求>
+CANVAS 800 600
+ASSETS id | type | path
+<本题资源>
 ```
 
-训练完成后用 `training/eval/report.py` 输出下表的实际数值：
+Base 与 Adapter 的对照严格保持同分布：同一条 system Guidance、同一条 user prompt、同一资源清单、同一基座 tokenizer、`temperature=0`、`enable_thinking=false`。唯一自变量是是否在同一 Qwen3-4B-Instruct-2507 基座上挂载 `vibe-level-qwen3-4b-dsl-v3` LoRA。两条超长 prompt 因 `prompt + max_tokens=768` 超过 2048 上下文，两组都用同样的 `max_tokens=512` 补跑，避免输出预算成为偏差来源。
 
-| 组别 | 短指令通过/36 | 功能块通过/12 | 运行时预跑通过 | held-out 交互完成 | 训练数据版本 |
-| --- | ---: | ---: | ---: | ---: | --- |
-| Base + Guidance | 待填 | 待填 | 待填 | 待填 | - |
-| Adapter + Guidance | 待填 | 待填 | 待填 | 待填 | level-authoring-sft-v4 |
-| Adapter - Guidance | 待填 | 待填 | 待填 | 待填 | level-authoring-sft-v4 |
+评估分三层，分别回答不同问题：
 
-完整关卡/十关试玩是第二阶段评估：需要先积累经过浏览器运行时验证的长轨迹数据，不能用本阶段的短指令语料强行衡量整关策划能力。
+1. DSL parse/compile：能否被确定性 DSL 编译器还原成 `commands + extra_events`，并满足资源 ID/type/path、元素依赖和控制流基本契约。
+2. Runtime dry-run：对可解析输出，用真实 `CommandExecutor`、事件系统和 Pixi/browser handler 执行主流程。它会发现元素未创建就绑定点击、资源/handler 参数不匹配等运行时错误；但由于这组 human-fragment case 没有隐藏 `oracle.actions/assertions`，dry-run 不注入点击、拖拽或选择动作，不能等同于完整交互通过率。
+3. Slot 3 盲化语义评审：使用 `gpt-5.6-terra` 对 A/B 两个匿名候选做 pairwise judge。Judge 不知道候选来自 Base 还是 Adapter，只看 TASK、ASSETS、reference DSL、A/B 原始 DSL 和 parse 状态，按需求覆盖、行为正确性、资源落地、交互反馈、布局呈现和语法可执行性给分并判定胜负。
+
+结果产物：
+
+- 测试集：[training/eval/cases/human_fragment_benchmark_v1.json](training/eval/cases/human_fragment_benchmark_v1.json)
+- Adapter 生成：[training/eval/results/adapter-human-fragment-v1/generations.complete.jsonl](training/eval/results/adapter-human-fragment-v1/generations.complete.jsonl)
+- Base 生成：[training/eval/results/base-human-fragment-v1/generations.complete.jsonl](training/eval/results/base-human-fragment-v1/generations.complete.jsonl)
+- Adapter runtime dry-run：[training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl](training/eval/results/adapter-human-fragment-v1/generations.runtime-dry-run.jsonl)
+- Base runtime dry-run：[training/eval/results/base-human-fragment-v1/generations.runtime-dry-run.jsonl](training/eval/results/base-human-fragment-v1/generations.runtime-dry-run.jsonl)
+- Slot 3 盲评：[training/eval/results/human-fragment-v1-slot3-judge/summary.json](training/eval/results/human-fragment-v1-slot3-judge/summary.json)
+- 盲评脚本：[training/eval/judge_human_fragment_pairwise.py](training/eval/judge_human_fragment_pairwise.py)
+
+| 指标 | Adapter + Guidance | Base + Guidance | 结论 |
+| --- | ---: | ---: | --- |
+| 有效生成条数 | 100 / 100 | 100 / 100 | 两组均完整返回 |
+| DSL parse/compile 通过 | 96 / 100 | 37 / 100 | Adapter 明显更稳定 |
+| Runtime dry-run 通过 | 83 / 100 | 37 / 100 | Adapter 主流程执行仍明显领先 |
+| Slot 3 平均 overall 分 | 6.931 | 3.384 | Adapter 更贴合需求 |
+| 盲评胜出 | 82 | 10 | 另有 tie 7、neither 1 |
+| 公共可解析子集 | 37 条 | 37 条 | 双方都合法时再比较语义 |
+| 公共子集盲评胜出 | 21 | 9 | 另有 tie 7 |
+| 公共子集平均 overall | 7.600 | 6.359 | 排除格式失败后 Adapter 仍领先 |
+
+Base 的大量失败不是网络或截断导致：两组都有完整 `raw_output`，Base 失败样本的 completion token 通常远低于输出上限。抽查显示主要是 DSL 语法和资源契约问题，例如给资源 ID 误加引号、动画参数格式错误、JSON/animation 子字段不完整、条件表达式写成 DSL 不支持的 `&&`。因此报告同时保留两种口径：全量口径衡量生产可用率，失败也必须计入；公共可解析子集衡量“双方都已经能生成合法 DSL 时，谁更符合 query 和 reference 语义”。
+
+Adapter 的 13 条“可解析但 dry-run 失败”主要集中在交互与文本类片段，典型原因是对 `introduce`、`submit-btn`、`show_image_1` 等元素先绑定点击/选择但没有先创建。这说明 4B SFT 已经显著学到 DSL 格式、资源引用和多数流程结构，但下一轮仍要强化元素生命周期：先创建可见元素，再绑定 CLICK/SELECT/DRAG/STYLE/TEXT_SET。
+
+按当前 100 条人类片段对照，4B DSL v3 SFT 已显示明确正增益：它不仅提升了格式服从和资源引用稳定性，也在真实引擎主流程 dry-run 以及双方都可解析样本的盲化语义比较中继续领先。更严格的下一步是重新构造带隐藏 `oracle.actions/assertions` 的 interaction benchmark，验证这种优势是否完整转化为点击、拖拽、选择和跨事件断言下的真实可玩交互完成率。
 
 ### 下一步
 
-目前的模型更适合生成可验证的功能片段，还不能稳定写出一整关复杂玩法。下一步会积累从长需求到多事件关卡、再到浏览器试玩的完整轨迹，先用 SFT 建立基础能力，再根据真实运行是否完成目标来持续筛选和优化；如果自动反馈足够可靠，可以尝试 GRPO 一类的强化学习，而人类偏好数据足够时也可以采用 DPO。核心标准不会是“回答像不像 JSON”，而是生成的关卡能否真正运行、完成交互目标，并在新的 held-out 题上持续保持通过率。
+当前先完成 9B 的单变量 SFT 对照。只有 Adapter + Guidance 在固定 runtime、交互 oracle 和盲化语义联合通过率上稳定优于 Base + Guidance，才进入 27B 训练。现阶段不使用 RL；若 SFT 已建立稳定正增益但仍有可重复偏差，优先考虑由编译器和 runtime 证据构造 chosen/rejected 的离线 DPO，而不是纯主观奖励。
+
+未来 TODO：把“真实用户口语需求 -> 可训练 DSL”拆成两层，而不是要求小模型直接从一句短口语里猜完整变量、流程和资源使用。第一层是最终 runtime 也会使用的规划扩句提示词：用和当前训练目标一致的同型号/同系列模型，最好是同一基座模型，把用户原话扩成工程化任务说明。这个同分布约束是核心：只有同一类模型才知道自己更自然地说“把开关打开”“把变量设为 true”还是别的表述；数据合成时不强行改写它的口语风格，而是顺着该模型自己的语言分布生成 query。规划扩句提示词只约束它必须讲清初始化变量、状态开关、顺序流程、分支/跳转、循环退出、资源引用和交互反馈；同时只用引擎能力的自然词汇描述能力边界，例如显示图片/文本/按钮/选项、移动图片、透明度或缩放变化、播放入场/循环/出场动画、翻牌、音效、背景音乐、变量判断和下一关。第二层再由 SFT 小模型学习“工程化任务说明 + ASSETS -> VGE-DSL/1”的稳定映射。
+
+这条路线不强行统一口语表达。像“打开某个开关”和“把某变量设为 true”这类同义表达，应保留真实分布；规划扩句模型负责把口语意图自然地落到变量和流程上，而不是让训练 query 全部变成机械日志。更理想的数据合成流程是：frontier model 先生成可试玩的完整关卡 DSL/JSON 组合，经过 runtime 和人工试玩确认正确，再反向拆解出自然但精确的规划说明，标出每段描述对应的 DSL 指令片段。这样得到的 SFT 样本既有同分布自然表述，又有经过测试的明确指令轨迹；后续 DPO 再使用编译器、runtime、试玩和盲评证据构造 chosen/rejected。
 
 ## 功能概览
 

@@ -18,6 +18,7 @@ level-editor/coverage/
 # OS and editor files
 .DS_Store
 *.log
+*.pid
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -35,6 +36,8 @@ CLAUDE.md
 # Misc
 *.local
 *.tmp
+*.tar.gz
+__pycache__/
 agent-debugger/progress.json
 agent-debugger/runs/
 agent-debugger/state/
@@ -47,4 +50,10 @@ training/qlora/checkpoints/
 training/qlora/outputs/
 training/eval/results/
 training/eval/case-cache/
+training/autodl.env
+training/qlora/adapters.zip
+training/eval/results/**/.ipynb_checkpoints/
 training/**/__pycache__/
+
+# Local backup/noise files
+*_副本

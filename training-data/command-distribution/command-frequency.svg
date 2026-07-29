@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="859" viewBox="0 0 1200 859" role="img" aria-labelledby="title desc">
-<title id="title">15 source game scenes command distribution</title>
-<desc id="desc">14971 command occurrences, counting main, event, and nested command streams.</desc>
+<title id="title">15 个源关卡的指令出现频次</title>
+<desc id="desc">共 14971 次，包含主线、事件与嵌套分支/循环/选项指令</desc>
 <style>.title{font:600 20px Arial,sans-serif;fill:#172033}.subtitle{font:13px Arial,sans-serif;fill:#5a6578}.label,.value{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#273142}.bar{fill:#147d92}.axis{stroke:#cbd5e1;stroke-width:1}</style>
 <text x="190" y="26" class="title">15 个源关卡的指令出现频次</text>
 <text x="190" y="47" class="subtitle">共 14971 次，包含主线、事件与嵌套分支/循环/选项指令</text>

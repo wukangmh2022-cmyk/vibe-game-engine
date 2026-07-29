@@ -1,0 +1,21 @@
+{
+  "version": "human-fragment-query-v2-balanced",
+  "source": "/Users/pippo/github-repo/vibe-game-engine/training/eval/generated_human_fragments/v1/items.jsonl",
+  "count": 100,
+  "local_rebalance_count": 58,
+  "local_split_count": 3,
+  "parse_error_count": 0,
+  "max_resource_init": 15,
+  "categories": {
+    "资源加载与UI初始化": 12,
+    "变量定义与状态管理": 10,
+    "事件与信号流": 10,
+    "交互与选择": 22,
+    "动画与过渡": 12,
+    "文本操作": 12,
+    "计时与倒计时": 8,
+    "音效与媒体": 5,
+    "场景与导航": 5,
+    "逻辑控制与循环": 4
+  }
+}

@@ -128,7 +128,11 @@ export class ShowChoicesHandler extends BaseCommandHandler {
       const ui: any = {};
       const assignIf = (k: string, v: any) => { if (v != null) (ui as any)[k] = v; };
       assignIf('rowMax', (command.parameters?.rowMax ?? (command.parameters as any)?.maxrow ?? (command.parameters as any)?.maxRow ?? command.parameters?.ui?.rowMax ?? (command.parameters as any)?.ui?.maxrow ?? (command.parameters as any)?.ui?.maxRow));
-      assignIf('buttonSkinId', command.parameters?.buttonSkinId || command.parameters?.ui?.buttonSkinId);
+      const explicitButtonSkinId = command.parameters?.buttonSkinId || command.parameters?.ui?.buttonSkinId;
+      const defaultButtonSkinId = (context.resourceManager as any)?.getSkin?.('btn-primary-9slice')
+        ? 'btn-primary-9slice'
+        : ((context.resourceManager as any)?.getSkin?.('dialog-default-9slice') ? 'dialog-default-9slice' : undefined);
+      assignIf('buttonSkinId', explicitButtonSkinId || defaultButtonSkinId);
       assignIf('selectedSkinId', (command.parameters as any)?.selectedSkinId || (command.parameters as any)?.ui?.selectedSkinId);
       assignIf('buttonResourceId', command.parameters?.buttonResourceId || command.parameters?.ui?.buttonResourceId);
       assignIf('fontSize', command.parameters?.fontSize || command.parameters?.ui?.fontSize);

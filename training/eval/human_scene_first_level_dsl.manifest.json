@@ -1,0 +1,276 @@
+{
+  "scene_count": 15,
+  "scenes": [
+    {
+      "scene_file": "农具速记.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 23,
+      "top_level_commands": 8,
+      "events": 4,
+      "nested_main_commands": 12,
+      "nested_event_commands": 79,
+      "removed_unsupported_commands": [
+        {
+          "id": "script_12",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_13",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 103
+    },
+    {
+      "scene_file": "各就各位.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 31,
+      "top_level_commands": 6,
+      "events": 3,
+      "nested_main_commands": 10,
+      "nested_event_commands": 106,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 126
+    },
+    {
+      "scene_file": "小小药剂师.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 22,
+      "top_level_commands": 16,
+      "events": 4,
+      "nested_main_commands": 19,
+      "nested_event_commands": 69,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 104
+    },
+    {
+      "scene_file": "小笼包派对.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 17,
+      "top_level_commands": 6,
+      "events": 5,
+      "nested_main_commands": 10,
+      "nested_event_commands": 66,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 96
+    },
+    {
+      "scene_file": "手疾眼快.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 27,
+      "top_level_commands": 9,
+      "events": 4,
+      "nested_main_commands": 13,
+      "nested_event_commands": 99,
+      "removed_unsupported_commands": [
+        {
+          "id": "rand_xy",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_2",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_1",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_12",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_13",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 126
+    },
+    {
+      "scene_file": "服药小管家.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 24,
+      "top_level_commands": 16,
+      "events": 4,
+      "nested_main_commands": 19,
+      "nested_event_commands": 78,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 114
+    },
+    {
+      "scene_file": "瓜果分类.json",
+      "scene_name": "新场景",
+      "level_id": "level1_copy_1",
+      "level_name": "关卡1-1",
+      "resource_count": 25,
+      "top_level_commands": 8,
+      "events": 3,
+      "nested_main_commands": 12,
+      "nested_event_commands": 76,
+      "removed_unsupported_commands": [
+        {
+          "id": "script_12",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_13",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 99
+    },
+    {
+      "scene_file": "老火锅记忆.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 26,
+      "top_level_commands": 6,
+      "events": 3,
+      "nested_main_commands": 10,
+      "nested_event_commands": 83,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 104
+    },
+    {
+      "scene_file": "药品规划家.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 24,
+      "top_level_commands": 16,
+      "events": 6,
+      "nested_main_commands": 19,
+      "nested_event_commands": 102,
+      "removed_unsupported_commands": [
+        {
+          "id": "script_12",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_13",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "rand_xy",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 144
+    },
+    {
+      "scene_file": "药片领航员.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 30,
+      "top_level_commands": 16,
+      "events": 5,
+      "nested_main_commands": 19,
+      "nested_event_commands": 97,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 131
+    },
+    {
+      "scene_file": "虫虫大作战.json",
+      "scene_name": "新场景",
+      "level_id": "level1_copy_1_copy_1",
+      "level_name": "关卡1 -1",
+      "resource_count": 17,
+      "top_level_commands": 6,
+      "events": 4,
+      "nested_main_commands": 10,
+      "nested_event_commands": 55,
+      "removed_unsupported_commands": [
+        {
+          "id": "rand_xy",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_1",
+          "type": "SCRIPT"
+        },
+        {
+          "id": "script_1",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 77
+    },
+    {
+      "scene_file": "记忆衣橱.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 26,
+      "top_level_commands": 6,
+      "events": 4,
+      "nested_main_commands": 10,
+      "nested_event_commands": 139,
+      "removed_unsupported_commands": [
+        {
+          "id": "script_1",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 155
+    },
+    {
+      "scene_file": "谁知盘中餐.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 24,
+      "top_level_commands": 6,
+      "events": 4,
+      "nested_main_commands": 10,
+      "nested_event_commands": 94,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 121
+    },
+    {
+      "scene_file": "速记消除战.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 22,
+      "top_level_commands": 6,
+      "events": 4,
+      "nested_main_commands": 10,
+      "nested_event_commands": 99,
+      "removed_unsupported_commands": [
+        {
+          "id": "script_3",
+          "type": "SCRIPT"
+        }
+      ],
+      "dsl_lines": 126
+    },
+    {
+      "scene_file": "顺序记忆师.json",
+      "scene_name": "新场景",
+      "level_id": "level1",
+      "level_name": "关卡1",
+      "resource_count": 26,
+      "top_level_commands": 16,
+      "events": 5,
+      "nested_main_commands": 19,
+      "nested_event_commands": 80,
+      "removed_unsupported_commands": [],
+      "dsl_lines": 116
+    }
+  ],
+  "errors": []
+}

@@ -215,11 +215,16 @@ export async function mountRuntime(
       const c = arr[i];
       if (!c || typeof c !== 'object') continue;
       if (c.id) { allIndex.set(c.id, c); try { cmdPos.set(c.id, { arr: arr as any, idx: i }); } catch {} }
-      if (Array.isArray((c as any).commands)) indexCommands((c as any).commands);
-      if (Array.isArray((c as any).trueCommands)) indexCommands((c as any).trueCommands);
-      if (Array.isArray((c as any).falseCommands)) indexCommands((c as any).falseCommands);
+      const params = (c as any).parameters || c;
+      for (const field of ['commands', 'trueCommands', 'falseCommands', 'onSelectedCommands', 'onCancelSelectedCommands']) {
+        if (Array.isArray(params[field])) indexCommands(params[field]);
+      }
+      if (Array.isArray(params.options)) {
+        for (const option of params.options) indexCommands(option?.commands);
+      }
     }
   };
+  indexCommands(level?.commands || []);
   // Track level-scoped listeners so we can remove them on level switch
   const levelDisposers: Array<() => void> = [];
   const onLevel = (event: string, listener: any) => { eventManager.on(event, listener); levelDisposers.push(() => { try { eventManager.off(event, listener); } catch {} }); };

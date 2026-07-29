@@ -10,6 +10,15 @@ const fs = require("fs");
 const { CommandExecutor } = require("../src/core/CommandExecutor");
 const { createDefaultHandlers } = require("../src/commands/factory");
 
+// Handlers are allowed to print user-facing diagnostics in the real game.
+// The dry-run protocol, however, reserves stdout for exactly one JSON result.
+// Suppress console output here instead of changing production handlers.
+const writeResult = process.stdout.write.bind(process.stdout);
+console.log = noOp;
+console.info = noOp;
+console.warn = noOp;
+console.error = noOp;
+
 // A dry run verifies handler contracts, not real-time duration. Never sleep while
 // validating generated data.
 global.setTimeout = (callback) => { queueMicrotask(callback); return 0; };
@@ -94,6 +103,15 @@ async function main() {
   const assets = Array.isArray(input.assets) ? input.assets : [];
   const resources = new Map(assets.map((asset) => [asset.id, { id: asset.id, type: asset.type, url: asset.path, src: asset.path }]));
   const stateManager = makeStateManager();
+  const commands = Array.isArray(input.commands) ? input.commands : [];
+  // An atomic BGM_STOP sample expresses "stop the BGM that is already playing
+  // in this level".  It has no preceding BGM_PLAY command by design, so seed
+  // only this pre-existing runtime context for handler-contract validation.
+  if (commands.some((command) => command && command.type === "BGM_STOP")
+      && !commands.some((command) => command && command.type === "BGM_PLAY")) {
+    stateManager.setVariable("current_bgm", "dry-run-existing-bgm");
+    stateManager.setVariable("bgm_playing", true);
+  }
   const renderManager = makeRenderManager();
   const logger = { debug: noOp, info: noOp, warn: noOp, error: noOp };
   const executor = new CommandExecutor(
@@ -107,17 +125,17 @@ async function main() {
   createDefaultHandlers().forEach((handler) => executor.registerHandler(handler));
 
   const results = [];
-  for (const command of input.commands || []) {
+  for (const command of commands) {
     const result = await executor.executeCommand(command);
     results.push({ id: command.id, type: command.type, success: !!result.success, error: result.error || null });
     if (!result.success) {
-      process.stdout.write(JSON.stringify({ valid: false, results, state: Object.fromEntries(stateManager.values) }));
+      writeResult(JSON.stringify({ valid: false, results, state: Object.fromEntries(stateManager.values) }));
       return;
     }
   }
-  process.stdout.write(JSON.stringify({ valid: true, results, state: Object.fromEntries(stateManager.values) }));
+  writeResult(JSON.stringify({ valid: true, results, state: Object.fromEntries(stateManager.values) }));
 }
 
 main().catch((error) => {
-  process.stdout.write(JSON.stringify({ valid: false, error: error instanceof Error ? error.message : String(error) }));
+  writeResult(JSON.stringify({ valid: false, error: error instanceof Error ? error.message : String(error) }));
 });

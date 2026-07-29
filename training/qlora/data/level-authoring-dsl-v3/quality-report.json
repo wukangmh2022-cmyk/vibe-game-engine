@@ -1,0 +1,775 @@
+{
+  "schema_version": "vge-dsl-quality-report-v1",
+  "converted_rows": 1265,
+  "train_rows": 1139,
+  "validation_rows": 126,
+  "static_valid": true,
+  "runtime_executed": false,
+  "runtime_valid": false,
+  "warning_rows": 239,
+  "errors": {},
+  "warnings": {
+    "phase1-g0154": [
+      "event listens for external signal 'tutorial_finished'"
+    ],
+    "phase1-g0159": [
+      "event listens for external signal 'reveal_finished'"
+    ],
+    "phase1-g0172": [
+      "event listens for external signal 'retry_confirmed'"
+    ],
+    "phase1-g0177": [
+      "event listens for external signal 'round_settled'"
+    ],
+    "phase1-g0325": [
+      "event listens for external signal 'party_started'"
+    ],
+    "phase1-g0341": [
+      "event listens for external signal 'items_ready'",
+      "signal 'continue_classification' has no local ON handler"
+    ],
+    "phase1-g0339": [
+      "event listens for external signal 'wardrobe_interrupt'"
+    ],
+    "phase1-g0361": [
+      "event listens for external signal 'answer_correct'"
+    ],
+    "phase1-g0379": [
+      "event listens for external signal 'combo_five'"
+    ],
+    "phase1-g0387": [
+      "event listens for external signal 'reveal_finished'"
+    ],
+    "phase1-g0343": [
+      "event listens for external signal 'medicine_checked'"
+    ],
+    "phase1-g0397": [
+      "event listens for external signal 'settlement_finished'"
+    ],
+    "phase1-g0382": [
+      "event listens for external signal 'tutorial_finished'"
+    ],
+    "phase1-g0398": [
+      "signal 'tutorial_continue' has no local ON handler"
+    ],
+    "phase1-g0364": [
+      "event listens for external signal 'path_selected'"
+    ],
+    "phase1-g0430": [
+      "event listens for external signal 'result_checked'"
+    ],
+    "phase1-g0627": [
+      "event listens for external signal 'medication_synced'"
+    ],
+    "phase1-g0643": [
+      "event listens for external signal 'state_changed'"
+    ],
+    "phase1-g0712": [
+      "event listens for external signal 'retry_started'"
+    ],
+    "phase1-g0709": [
+      "event listens for external signal 'result_checked'"
+    ],
+    "phase1-g0717": [
+      "event listens for external signal 'consultation_finished'"
+    ],
+    "phase1-g0728": [
+      "event listens for external signal 'retry_scored'"
+    ],
+    "phase1-g0817": [
+      "event listens for external signal 'recall_finished'"
+    ],
+    "phase1-g0833": [
+      "event listens for external signal 'medicine_sorted'",
+      "signal 'next_sorting_round' has no local ON handler"
+    ],
+    "phase1-g0837": [
+      "event listens for external signal 'resource_collected'"
+    ],
+    "phase1-g0904": [
+      "event listens for external signal 'branch_confirmed'"
+    ],
+    "phase1-g0919": [
+      "event listens for external signal 'combo_five'"
+    ],
+    "phase1-g0922": [
+      "event listens for external signal 'tutorial_finished'"
+    ],
+    "phase1-g0901": [
+      "event listens for external signal 'answer_correct'"
+    ],
+    "phase1-g0927": [
+      "event listens for external signal 'reveal_finished'"
+    ],
+    "phase1-g0344": [
+      "event listens for external signal 'wardrobe_matched'",
+      "signal 'show_next_hint' has no local ON handler"
+    ],
+    "phase1-g0417": [
+      "event listens for external signal 'progress_synced'"
+    ],
+    "phase1-g0467": [
+      "event listens for external signal 'answer_correct'",
+      "signal 'score_milestone' has no local ON handler"
+    ],
+    "phase1-g0502": [
+      "event listens for external signal 'exit_started'"
+    ],
+    "phase1-g0535": [
+      "event listens for external signal 'resource_found'"
+    ],
+    "phase1-g0554": [
+      "signal 'focus_next' has no local ON handler"
+    ],
+    "phase1-g0556": [
+      "event listens for external signal 'hint_finished'"
+    ],
+    "phase1-g0574": [
+      "event listens for external signal 'timer_finished'"
+    ],
+    "phase1-g0579": [
+      "event listens for external signal 'ambience_stop'"
+    ],
+    "phase1-g0572": [
+      "signal 'refresh_hint' has no local ON handler"
+    ],
+    "phase1-g0658": [
+      "event listens for external signal 'answer_wrong'"
+    ],
+    "phase1-g0664": [
+      "signal 'timer_finished' has no local ON handler"
+    ],
+    "phase1-g0732": [
+      "event listens for external signal 'wrong_answer'"
+    ],
+    "phase1-g0766": [
+      "event listens for external signal 'focus_ready'"
+    ],
+    "phase1-g0798": [
+      "signal 'switch_focus' has no local ON handler"
+    ],
+    "phase1-g0851": [
+      "event listens for external signal 'answer_correct'",
+      "signal 'correct_milestone' has no local ON handler"
+    ],
+    "phase1-g0853": [
+      "event listens for external signal 'hint_finished'"
+    ],
+    "phase1-g0871": [
+      "event listens for external signal 'state_synced'"
+    ],
+    "phase1-g0892": [
+      "signal 'level_beat_complete' has no local ON handler"
+    ],
+    "phase1-g0889": [
+      "event listens for external signal 'progress_refreshed'"
+    ],
+    "phase1-g0963": [
+      "event listens for external signal 'progress_refreshed'"
+    ],
+    "phase1-g0974": [
+      "signal 'begin_exit' has no local ON handler"
+    ],
+    "phase1-g0994": [
+      "event listens for external signal 'focus_changed'"
+    ],
+    "phase1-g0214": [
+      "event listens for external signal 'retry'"
+    ],
+    "phase1-g0221": [
+      "signal 'progress_ready' has no local ON handler"
+    ],
+    "phase1-g0190": [
+      "event listens for external signal 'exit_started'"
+    ],
+    "phase1-g0259": [
+      "event listens for external signal 'settlement_finished'"
+    ],
+    "phase1-g0277": [
+      "event listens for external signal 'flow_finished'"
+    ],
+    "phase1-g0293": [
+      "event listens for external signal 'ambience_tick'",
+      "signal 'ambience_cycle' has no local ON handler"
+    ],
+    "phase1-g0661": [
+      "event listens for external signal 'progress_refreshed'"
+    ],
+    "phase1-g0970": [
+      "signal 'tutorial_replay' has no local ON handler"
+    ],
+    "phase1-g0130": [
+      "element 'option_left' is referenced without creation in this standalone sample",
+      "element 'option_timer' is referenced without creation in this standalone sample",
+      "element 'option_hint' is referenced without creation in this standalone sample",
+      "event listens for external signal 'SELECT'"
+    ],
+    "phase1-g0253": [
+      "event listens for external signal 'SELECT'"
+    ],
+    "phase1-g0287": [
+      "element 'score-increase' is referenced without creation in this standalone sample",
+      "element 'score-decrease' is referenced without creation in this standalone sample",
+      "element 'score-unchanged' is referenced without creation in this standalone sample",
+      "event listens for external signal 'SELECT'"
+    ],
+    "phase1-g0174": [
+      "event listens for external signal 'SELECT'"
+    ],
+    "phase1-g0443": [
+      "event listens for external signal 'SELECT'"
+    ],
+    "phase3-interaction-v3-029": [
+      "event listens for external signal 'phase3_029_dismiss'"
+    ],
+    "phase3-interaction-v3-033": [
+      "event listens for external signal 'phase3_033_dismiss'"
+    ],
+    "phase3-interaction-v3-037": [
+      "event listens for external signal 'phase3_037_dismiss'"
+    ],
+    "phase3-interaction-v3-041": [
+      "event listens for external signal 'phase3_041_dismiss'"
+    ],
+    "phase3-interaction-v3-045": [
+      "event listens for external signal 'phase3_045_dismiss'"
+    ],
+    "phase3-interaction-v3-049": [
+      "event listens for external signal 'phase3_049_dismiss'"
+    ],
+    "phase3-interaction-v3-129": [
+      "event listens for external signal 'phase3_129_dismiss'"
+    ],
+    "phase3-interaction-v3-133": [
+      "event listens for external signal 'phase3_133_dismiss'"
+    ],
+    "phase3-interaction-v3-137": [
+      "event listens for external signal 'phase3_137_dismiss'"
+    ],
+    "phase3-interaction-v3-141": [
+      "event listens for external signal 'phase3_141_dismiss'"
+    ],
+    "phase3-interaction-v3-145": [
+      "event listens for external signal 'phase3_145_dismiss'"
+    ],
+    "phase3-interaction-v3-149": [
+      "event listens for external signal 'phase3_149_dismiss'"
+    ],
+    "phase2-event-coordination-v3-008": [
+      "event listens for external signal 'option_12'",
+      "event listens for external signal 'option_8'"
+    ],
+    "phase2-event-coordination-v3-046": [
+      "event listens for external signal 'ecv3_046_finished'"
+    ],
+    "phase2-event-coordination-v3-047": [
+      "event listens for external signal 'ecv3_047_finished'"
+    ],
+    "phase2-event-coordination-v3-048": [
+      "event listens for external signal 'ecv3_048_finished'"
+    ],
+    "phase2-event-coordination-v3-049": [
+      "event listens for external signal 'ecv3_049_finished'"
+    ],
+    "phase2-event-coordination-v3-050": [
+      "event listens for external signal 'ecv3_050_finished'"
+    ],
+    "phase2-event-coordination-v3-051": [
+      "event listens for external signal 'ecv3_051_finished'"
+    ],
+    "phase2-event-coordination-v3-052": [
+      "event listens for external signal 'ecv3_052_finished'"
+    ],
+    "phase2-event-coordination-v3-053": [
+      "event listens for external signal 'ecv3_053_finished'"
+    ],
+    "phase2-event-coordination-v3-054": [
+      "event listens for external signal 'ecv3_054_finished'"
+    ],
+    "phase2-event-coordination-v3-055": [
+      "event listens for external signal 'ecv3_055_finished'"
+    ],
+    "phase2-event-coordination-v3-056": [
+      "event listens for external signal 'ecv3_056_finished'"
+    ],
+    "phase2-event-coordination-v3-057": [
+      "event listens for external signal 'ecv3_057_finished'"
+    ],
+    "phase2-event-coordination-v3-058": [
+      "event listens for external signal 'ecv3_058_finished'"
+    ],
+    "phase2-event-coordination-v3-059": [
+      "event listens for external signal 'ecv3_059_finished'"
+    ],
+    "phase2-event-coordination-v3-060": [
+      "event listens for external signal 'ecv3_060_finished'"
+    ],
+    "phase2-event-coordination-v3-061": [
+      "event listens for external signal 'ecv3_061_finished'"
+    ],
+    "phase2-event-coordination-v3-062": [
+      "event listens for external signal 'ecv3_062_finished'"
+    ],
+    "phase2-event-coordination-v3-063": [
+      "event listens for external signal 'ecv3_063_finished'"
+    ],
+    "phase2-event-coordination-v3-064": [
+      "event listens for external signal 'ecv3_064_finished'"
+    ],
+    "phase2-event-coordination-v3-065": [
+      "event listens for external signal 'ecv3_065_finished'"
+    ],
+    "phase2-event-coordination-v3-066": [
+      "event listens for external signal 'ecv3_066_finished'"
+    ],
+    "phase2-event-coordination-v3-067": [
+      "event listens for external signal 'ecv3_067_finished'"
+    ],
+    "phase2-event-coordination-v3-068": [
+      "event listens for external signal 'ecv3_068_finished'"
+    ],
+    "phase2-event-coordination-v3-069": [
+      "event listens for external signal 'ecv3_069_finished'"
+    ],
+    "phase2-event-coordination-v3-070": [
+      "event listens for external signal 'ecv3_070_finished'"
+    ],
+    "phase2-event-coordination-v3-071": [
+      "event listens for external signal 'ecv3_071_finished'"
+    ],
+    "phase2-event-coordination-v3-072": [
+      "event listens for external signal 'ecv3_072_finished'"
+    ],
+    "phase2-event-coordination-v3-073": [
+      "event listens for external signal 'ecv3_073_finished'"
+    ],
+    "phase2-event-coordination-v3-074": [
+      "event listens for external signal 'ecv3_074_finished'"
+    ],
+    "phase2-event-coordination-v3-075": [
+      "event listens for external signal 'ecv3_075_finished'"
+    ],
+    "phase2-event-coordination-v3-076": [
+      "event listens for external signal 'ecv3_076_finished'"
+    ],
+    "phase2-event-coordination-v3-077": [
+      "event listens for external signal 'ecv3_077_finished'"
+    ],
+    "phase2-event-coordination-v3-078": [
+      "event listens for external signal 'ecv3_078_finished'"
+    ],
+    "phase2-event-coordination-v3-079": [
+      "event listens for external signal 'ecv3_079_finished'"
+    ],
+    "phase2-event-coordination-v3-080": [
+      "event listens for external signal 'ecv3_080_finished'"
+    ],
+    "phase2-event-coordination-v3-113": [
+      "event listens for external signal 'SELECT'"
+    ],
+    "phase2-event-coordination-v3-116": [
+      "event listens for external signal 'ecv3_116_correct'"
+    ],
+    "phase2-event-coordination-v3-118": [
+      "event listens for external signal 'ecv3_118_correct'"
+    ],
+    "phase2-event-coordination-v3-120": [
+      "event listens for external signal 'ecv3_120_correct'"
+    ],
+    "phase2-event-coordination-v3-121": [
+      "event listens for external signal 'ecv3_121_correct'"
+    ],
+    "phase2-event-coordination-v3-122": [
+      "event listens for external signal 'ecv3_122_correct'"
+    ],
+    "phase2-event-coordination-v3-124": [
+      "event listens for external signal 'ecv3_124_correct'"
+    ],
+    "phase2-event-coordination-v3-125": [
+      "event listens for external signal 'ecv3_125_correct'"
+    ],
+    "phase2-event-coordination-v3-126": [
+      "event listens for external signal 'ecv3_126_correct'"
+    ],
+    "phase2-event-coordination-v3-129": [
+      "event listens for external signal 'ecv3_129_correct'"
+    ],
+    "phase2-event-coordination-v3-130": [
+      "event listens for external signal 'ecv3_130_correct'"
+    ],
+    "phase2-event-coordination-v3-134": [
+      "event listens for external signal 'ecv3_134_correct'"
+    ],
+    "phase2-event-coordination-v3-135": [
+      "event listens for external signal 'ecv3_135_completed'"
+    ],
+    "phase2-event-coordination-v3-137": [
+      "event listens for external signal 'ecv3_137_correct'"
+    ],
+    "phase2-event-coordination-v3-138": [
+      "event listens for external signal 'ecv3_138_correct'"
+    ],
+    "phase2-event-coordination-v3-139": [
+      "event listens for external signal 'ecv3_139_completed'"
+    ],
+    "phase2-event-coordination-v3-140": [
+      "event listens for external signal 'ecv3_140_correct'"
+    ],
+    "phase2-event-coordination-v3-144": [
+      "event listens for external signal 'ecv3_144_correct'"
+    ],
+    "phase2-event-coordination-v3-146": [
+      "event listens for external signal 'ecv3_146_correct'"
+    ],
+    "phase2-event-coordination-v3-149": [
+      "event listens for external signal 'ecv3_149_correct'"
+    ],
+    "phase2-event-coordination-v3-150": [
+      "event listens for external signal 'ecv3_150_correct'"
+    ],
+    "phase2-event-coordination-v3-151": [
+      "event listens for external signal 'ecv3_151_completed'"
+    ],
+    "phase2-event-coordination-v3-153": [
+      "event listens for external signal 'ecv3_153_correct'"
+    ],
+    "phase2-event-coordination-v3-154": [
+      "event listens for external signal 'ecv3_154_correct'"
+    ],
+    "phase2-event-coordination-v3-158": [
+      "event listens for external signal 'ecv3_158_correct'"
+    ],
+    "phase2-event-coordination-v3-159": [
+      "event listens for external signal 'ecv3_159_completed'"
+    ],
+    "phase2-event-coordination-v3-161": [
+      "event listens for external signal 'answer_correct_161'",
+      "event listens for external signal 'answer_wrong_161'"
+    ],
+    "phase2-event-coordination-v3-162": [
+      "event listens for external signal 'ecv3_162_wrong'"
+    ],
+    "phase2-event-coordination-v3-163": [
+      "event listens for external signal 'answer_correct_163'",
+      "event listens for external signal 'answer_wrong_163'"
+    ],
+    "phase2-event-coordination-v3-164": [
+      "event listens for external signal 'answer_correct_164'",
+      "event listens for external signal 'answer_wrong_164'"
+    ],
+    "phase2-event-coordination-v3-165": [
+      "event listens for external signal 'answer_correct_165'",
+      "event listens for external signal 'answer_wrong_165'"
+    ],
+    "phase2-event-coordination-v3-166": [
+      "event listens for external signal 'ecv3_166_wrong'"
+    ],
+    "phase2-event-coordination-v3-167": [
+      "event listens for external signal 'answer_correct_167'",
+      "event listens for external signal 'answer_wrong_167'"
+    ],
+    "phase2-event-coordination-v3-168": [
+      "event listens for external signal 'answer_correct_168'",
+      "event listens for external signal 'answer_wrong_168'"
+    ],
+    "phase2-event-coordination-v3-169": [
+      "event listens for external signal 'answer_correct_169'",
+      "event listens for external signal 'answer_wrong_169'"
+    ],
+    "phase2-event-coordination-v3-170": [
+      "event listens for external signal 'ecv3_170_wrong'"
+    ],
+    "phase2-event-coordination-v3-171": [
+      "event listens for external signal 'answer_correct_171'",
+      "event listens for external signal 'answer_wrong_171'"
+    ],
+    "phase2-event-coordination-v3-172": [
+      "event listens for external signal 'answer_correct_172'",
+      "event listens for external signal 'answer_wrong_172'"
+    ],
+    "phase2-event-coordination-v3-173": [
+      "event listens for external signal 'answer_correct_173'",
+      "event listens for external signal 'answer_wrong_173'"
+    ],
+    "phase2-event-coordination-v3-174": [
+      "event listens for external signal 'ecv3_174_wrong'"
+    ],
+    "phase2-event-coordination-v3-175": [
+      "event listens for external signal 'answer_correct_175'",
+      "event listens for external signal 'answer_wrong_175'"
+    ],
+    "phase2-event-coordination-v3-176": [
+      "event listens for external signal 'answer_correct_176'",
+      "event listens for external signal 'answer_wrong_176'"
+    ],
+    "phase2-event-coordination-v3-177": [
+      "event listens for external signal 'answer_correct_177'",
+      "event listens for external signal 'answer_wrong_177'"
+    ],
+    "phase2-event-coordination-v3-179": [
+      "event listens for external signal 'answer_correct_179'",
+      "event listens for external signal 'answer_wrong_179'"
+    ],
+    "phase2-event-coordination-v3-180": [
+      "event listens for external signal 'answer_correct_180'",
+      "event listens for external signal 'answer_wrong_180'"
+    ],
+    "phase2-event-coordination-v3-181": [
+      "event listens for external signal 'answer_correct_181'",
+      "event listens for external signal 'answer_wrong_181'"
+    ],
+    "phase2-event-coordination-v3-183": [
+      "event listens for external signal 'answer_correct_183'",
+      "event listens for external signal 'answer_wrong_183'"
+    ],
+    "phase2-event-coordination-v3-184": [
+      "event listens for external signal 'answer_correct_184'",
+      "event listens for external signal 'answer_wrong_184'"
+    ],
+    "phase2-event-coordination-v3-185": [
+      "event listens for external signal 'answer_correct_185'",
+      "event listens for external signal 'answer_wrong_185'"
+    ],
+    "phase2-event-coordination-v3-186": [
+      "event listens for external signal 'ecv3_186_wrong'"
+    ],
+    "phase2-event-coordination-v3-187": [
+      "event listens for external signal 'answer_correct_187'",
+      "event listens for external signal 'answer_wrong_187'"
+    ],
+    "phase2-event-coordination-v3-188": [
+      "event listens for external signal 'answer_correct_188'",
+      "event listens for external signal 'answer_wrong_188'"
+    ],
+    "phase2-event-coordination-v3-189": [
+      "event listens for external signal 'answer_correct_189'",
+      "event listens for external signal 'answer_wrong_189'"
+    ],
+    "phase2-event-coordination-v3-190": [
+      "event listens for external signal 'ecv3_190_wrong'"
+    ],
+    "phase2-event-coordination-v3-191": [
+      "event listens for external signal 'answer_correct_191'",
+      "event listens for external signal 'answer_wrong_191'"
+    ],
+    "phase2-event-coordination-v3-192": [
+      "event listens for external signal 'answer_correct_192'",
+      "event listens for external signal 'answer_wrong_192'"
+    ],
+    "phase2-event-coordination-v3-193": [
+      "event listens for external signal 'answer_correct_193'",
+      "event listens for external signal 'answer_wrong_193'"
+    ],
+    "phase2-event-coordination-v3-194": [
+      "event listens for external signal 'ecv3_194_wrong'"
+    ],
+    "phase2-event-coordination-v3-195": [
+      "event listens for external signal 'answer_correct_195'",
+      "event listens for external signal 'answer_wrong_195'"
+    ],
+    "phase2-event-coordination-v3-196": [
+      "event listens for external signal 'answer_correct_196'",
+      "event listens for external signal 'answer_wrong_196'"
+    ],
+    "phase2-event-coordination-v3-197": [
+      "event listens for external signal 'answer_correct_197'",
+      "event listens for external signal 'answer_wrong_197'"
+    ],
+    "phase2-event-coordination-v3-199": [
+      "event listens for external signal 'answer_correct_199'",
+      "event listens for external signal 'answer_wrong_199'"
+    ],
+    "phase2-event-coordination-v3-200": [
+      "event listens for external signal 'answer_correct_200'",
+      "event listens for external signal 'answer_wrong_200'"
+    ],
+    "phase2-event-coordination-v3-201": [
+      "event listens for external signal 'ecv3_201_score_changed'"
+    ],
+    "phase2-event-coordination-v3-202": [
+      "event listens for external signal 'ecv3_202_score_changed'"
+    ],
+    "phase2-event-coordination-v3-203": [
+      "event listens for external signal 'ecv3_203_score_changed'"
+    ],
+    "phase2-event-coordination-v3-205": [
+      "event listens for external signal 'ecv3_205_score_changed'"
+    ],
+    "phase2-event-coordination-v3-206": [
+      "event listens for external signal 'ecv3_206_score_changed'"
+    ],
+    "phase2-event-coordination-v3-207": [
+      "event listens for external signal 'ecv3_207_score_changed'"
+    ],
+    "phase2-event-coordination-v3-208": [
+      "event listens for external signal 'ecv3_208_correct'"
+    ],
+    "phase2-event-coordination-v3-209": [
+      "event listens for external signal 'ecv3_209_score_changed'"
+    ],
+    "phase2-event-coordination-v3-210": [
+      "event listens for external signal 'ecv3_210_score_changed'"
+    ],
+    "phase2-event-coordination-v3-211": [
+      "event listens for external signal 'ecv3_211_score_changed'"
+    ],
+    "phase2-event-coordination-v3-212": [
+      "event listens for external signal 'ecv3_212_correct'"
+    ],
+    "phase2-event-coordination-v3-213": [
+      "event listens for external signal 'ecv3_213_score_changed'"
+    ],
+    "phase2-event-coordination-v3-214": [
+      "event listens for external signal 'ecv3_214_score_changed'"
+    ],
+    "phase2-event-coordination-v3-215": [
+      "event listens for external signal 'ecv3_215_score_changed'"
+    ],
+    "phase2-event-coordination-v3-216": [
+      "event listens for external signal 'ecv3_216_correct'"
+    ],
+    "phase2-event-coordination-v3-217": [
+      "event listens for external signal 'ecv3_217_score_changed'"
+    ],
+    "phase2-event-coordination-v3-218": [
+      "event listens for external signal 'ecv3_218_score_changed'"
+    ],
+    "phase2-event-coordination-v3-219": [
+      "event listens for external signal 'ecv3_219_score_changed'"
+    ],
+    "phase2-event-coordination-v3-221": [
+      "event listens for external signal 'ecv3_221_score_changed'"
+    ],
+    "phase2-event-coordination-v3-222": [
+      "event listens for external signal 'ecv3_222_score_changed'"
+    ],
+    "phase2-event-coordination-v3-223": [
+      "event listens for external signal 'ecv3_223_score_changed'"
+    ],
+    "phase2-event-coordination-v3-224": [
+      "event listens for external signal 'ecv3_224_correct'"
+    ],
+    "phase2-event-coordination-v3-225": [
+      "event listens for external signal 'ecv3_225_score_changed'"
+    ],
+    "phase2-event-coordination-v3-226": [
+      "event listens for external signal 'ecv3_226_score_changed'"
+    ],
+    "phase2-event-coordination-v3-227": [
+      "event listens for external signal 'ecv3_227_score_changed'"
+    ],
+    "phase2-event-coordination-v3-229": [
+      "event listens for external signal 'ecv3_229_score_changed'"
+    ],
+    "phase2-event-coordination-v3-230": [
+      "event listens for external signal 'ecv3_230_score_changed'"
+    ],
+    "phase2-event-coordination-v3-236": [
+      "event listens for external signal 'ecv3_236_completed'"
+    ],
+    "phase2-event-coordination-v3-244": [
+      "event listens for external signal 'ecv3_244_completed'"
+    ],
+    "phase2-event-coordination-v3-247": [
+      "event listens for external signal 'ecv3_247_completed'"
+    ],
+    "phase2-event-coordination-v3-250": [
+      "event listens for external signal 'ecv3_250_completed'"
+    ],
+    "phase2-event-coordination-v3-254": [
+      "event listens for external signal 'ecv3_254_completed'"
+    ],
+    "phase2-event-coordination-v3-257": [
+      "event listens for external signal 'ecv3_257_correct'"
+    ],
+    "phase2-event-coordination-v3-258": [
+      "event listens for external signal 'ecv3_258_correct'"
+    ],
+    "phase2-event-coordination-v3-259": [
+      "event listens for external signal 'ecv3_259_correct'"
+    ],
+    "phase2-event-coordination-v3-260": [
+      "event listens for external signal 'ecv3_260_correct'"
+    ],
+    "phase2-event-coordination-v3-261": [
+      "event listens for external signal 'ecv3_261_correct'"
+    ],
+    "phase2-event-coordination-v3-262": [
+      "event listens for external signal 'ecv3_262_correct'"
+    ],
+    "phase2-event-coordination-v3-263": [
+      "event listens for external signal 'ecv3_263_correct'"
+    ],
+    "phase2-event-coordination-v3-264": [
+      "event listens for external signal 'ecv3_264_correct'"
+    ],
+    "phase2-event-coordination-v3-268": [
+      "event listens for external signal 'ecv3_268_correct'"
+    ],
+    "phase2-event-coordination-v3-270": [
+      "event listens for external signal 'ecv3_270_correct'"
+    ],
+    "phase2-event-coordination-v3-271": [
+      "event listens for external signal 'ecv3_271_correct'"
+    ],
+    "phase2-event-coordination-v3-273": [
+      "event listens for external signal 'ecv3_273_correct'"
+    ],
+    "phase2-event-coordination-v3-274": [
+      "event listens for external signal 'ecv3_274_correct'",
+      "event listens for external signal 'ecv3_274_timer_start'"
+    ],
+    "phase2-event-coordination-v3-277": [
+      "event listens for external signal 'ecv3_277_correct'"
+    ],
+    "phase2-event-coordination-v3-278": [
+      "event listens for external signal 'ecv3_278_correct'"
+    ],
+    "phase2-event-coordination-v3-279": [
+      "event listens for external signal 'ecv3_279_correct'"
+    ],
+    "phase2-event-coordination-v3-280": [
+      "event listens for external signal 'ecv3_280_correct'"
+    ],
+    "phase2-event-coordination-v3-281": [
+      "event listens for external signal 'ecv3_281_correct'"
+    ],
+    "phase2-event-coordination-v3-282": [
+      "event listens for external signal 'ecv3_282_correct'"
+    ],
+    "phase2-event-coordination-v3-283": [
+      "event listens for external signal 'ecv3_283_correct'"
+    ],
+    "phase2-event-coordination-v3-284": [
+      "event listens for external signal 'ecv3_284_correct'"
+    ],
+    "phase2-event-coordination-v3-285": [
+      "event listens for external signal 'ecv3_285_correct'"
+    ],
+    "phase2-event-coordination-v3-286": [
+      "event listens for external signal 'ecv3_286_correct'"
+    ],
+    "phase2-event-coordination-v3-289": [
+      "event listens for external signal 'ecv3_289_correct'"
+    ],
+    "phase2-event-coordination-v3-292": [
+      "event listens for external signal 'ecv3_292_correct'"
+    ],
+    "phase2-event-coordination-v3-293": [
+      "event listens for external signal 'ecv3_293_correct'"
+    ],
+    "phase2-event-coordination-v3-295": [
+      "event listens for external signal 'ecv3_295_correct'"
+    ],
+    "phase2-event-coordination-v3-297": [
+      "event listens for external signal 'ecv3_297_correct'"
+    ],
+    "phase2-event-coordination-v3-298": [
+      "event listens for external signal 'ecv3_298_correct'"
+    ],
+    "phase2-event-coordination-v3-299": [
+      "event listens for external signal 'ecv3_299_correct'"
+    ]
+  },
+  "runtime_results": []
+}

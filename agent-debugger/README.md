@@ -46,3 +46,44 @@ find_command_examples -> get_command_context / get_level_metadata
 ```
 
 `--max-actions` defaults to `20`. At the cap, the controller makes one final no-tools request with the complete tool transcript and accepts it only when the validator passes. Successful records retain the tool trace, so the next training stage can convert them to the model's native tool-call format.
+
+## Persistent Task Queue
+
+`task_queue.py` treats every uncovered curriculum slot as a durable SQLite task. The queue remembers task state, attempts, worker activity, and events. Accepted samples are appended to one persistent file only: `training-data/command-agent-sft/corpus.jsonl`. Workers never write that file: they return a completed record to the controller, which serially writes it and then commits the task as complete.
+
+Prepare the full queue without calling the teacher API:
+
+```bash
+python3 agent-debugger/task_queue.py --prepare-only
+```
+
+Run all uncovered slots using eight workers. Failed tasks return to the queue until the retry limit is reached:
+
+```bash
+python3 agent-debugger/task_queue.py --workers 8 --max-attempts 3 --timeout 180 --max-actions 8
+```
+
+You can prepare selected batches or exact plan IDs:
+
+```bash
+python3 agent-debugger/task_queue.py --prepare-only --batch 8 --batch 9
+python3 agent-debugger/task_queue.py --prepare-only --plan-ids g0801,g0802
+```
+
+In a separate terminal, serve and open the monitor at `http://localhost:8090/agent-debugger/dashboard/`. It reloads `task-queue-status.json` every second and shows each worker as a person with its current task and latest tool-call message.
+
+```bash
+node scripts/serve.js 8090
+```
+
+Newly generated intents describe the current blank level, while source scenes are used only to retrieve valid assets. To audit historical records without changing data:
+
+```bash
+python3 agent-debugger/sanitize_corpus_intents.py
+```
+
+After reviewing the count, normalize the same `corpus.jsonl` in place atomically:
+
+```bash
+python3 agent-debugger/sanitize_corpus_intents.py --apply
+```

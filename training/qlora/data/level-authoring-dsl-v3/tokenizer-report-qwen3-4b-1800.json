@@ -1,0 +1,46 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "enable_thinking": false,
+  "max_length": 1800,
+  "rows": 1265,
+  "min_tokens": 1003,
+  "p95_tokens": 1356,
+  "p99_tokens": 1616,
+  "max_tokens": 2668,
+  "min_assistant_tokens": 2,
+  "max_assistant_tokens": 1552,
+  "over_limit": [
+    {
+      "id": "phase2-event-coordination-v3-241:q1",
+      "tokens": 1837
+    },
+    {
+      "id": "phase2-event-coordination-v3-265:q1",
+      "tokens": 1954
+    },
+    {
+      "id": "phase2-event-coordination-v3-266:q1",
+      "tokens": 2668
+    },
+    {
+      "id": "phase2-event-coordination-v3-269:q1",
+      "tokens": 2049
+    },
+    {
+      "id": "phase2-event-coordination-v3-272:q1",
+      "tokens": 1834
+    },
+    {
+      "id": "phase2-event-coordination-v3-287:q1",
+      "tokens": 2492
+    },
+    {
+      "id": "phase2-event-coordination-v3-288:q1",
+      "tokens": 1853
+    },
+    {
+      "id": "phase2-event-coordination-v3-290:q1",
+      "tokens": 1922
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": "vge-dsl-api-repair-manifest-v1",
+  "time": "2026-07-28T14:07:58.943264+00:00",
+  "data_dir": "/Users/pippo/github-repo/vibe-game-engine/training/qlora/data/level-authoring-dsl-v2",
+  "output_dir": "training-data/dsl-v3-api-repair",
+  "slot": "3",
+  "model": "gpt-5.6-terra",
+  "selected_rows": 1282,
+  "processed_this_run": 1263,
+  "counters": {
+    "fix": 746,
+    "keep": 362,
+    "errors": 154,
+    "excluded": 1
+  },
+  "accepted_repairs": "training-data/dsl-v3-api-repair/accepted-repairs.jsonl",
+  "keep": "training-data/dsl-v3-api-repair/keep.jsonl",
+  "excluded": "training-data/dsl-v3-api-repair/excluded.jsonl",
+  "errors": "training-data/dsl-v3-api-repair/errors.jsonl"
+}

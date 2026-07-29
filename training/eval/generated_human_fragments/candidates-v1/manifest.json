@@ -1,0 +1,6 @@
+{
+  "input": "/Users/pippo/github-repo/vibe-game-engine/training/eval/human_scene_first_level_dsl.md",
+  "candidate_count": 97,
+  "jsonl": "training/eval/generated_human_fragments/candidates-v1/candidates.jsonl",
+  "markdown": "training/eval/generated_human_fragments/candidates-v1/candidates.md"
+}

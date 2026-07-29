@@ -1,0 +1,11 @@
+{
+  "schema_version": "vge-dsl-pairwise-audit-status-v1",
+  "updated_at": "2026-07-26T10:55:34.402888+00:00",
+  "total_rows": 1283,
+  "scheduled_this_run": 1283,
+  "completed_rows": 12,
+  "gold_worse_rows": 2,
+  "error_rows": 0,
+  "model": "deepseek-ai/DeepSeek-V4-Flash",
+  "endpoint_slot": "4"
+}

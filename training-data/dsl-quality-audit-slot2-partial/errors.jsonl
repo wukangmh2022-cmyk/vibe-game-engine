@@ -1,0 +1,13 @@
+{"failed_at": "2026-07-26T09:38:48.631374+00:00", "source_id": "phase1-g0004", "row_id": "phase1-g0004:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:38:48.637150+00:00", "source_id": "phase1-g0001", "row_id": "phase1-g0001:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:38:48.638131+00:00", "source_id": "phase1-g0011", "row_id": "phase1-g0011:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:38:48.638762+00:00", "source_id": "phase1-g0007", "row_id": "phase1-g0007:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:45:02.290961+00:00", "source_id": "phase1-g0011", "row_id": "phase1-g0011:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:45:02.295135+00:00", "source_id": "phase1-g0023", "row_id": "phase1-g0023:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:45:02.295838+00:00", "source_id": "phase1-g0017", "row_id": "phase1-g0017:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T09:45:02.296471+00:00", "source_id": "phase1-g0022", "row_id": "phase1-g0022:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T10:08:27.898444+00:00", "source_id": "phase1-g0053", "row_id": "phase1-g0053:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T10:08:28.769630+00:00", "source_id": "phase1-g0052", "row_id": "phase1-g0052:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T10:12:25.155212+00:00", "source_id": "phase1-g0054", "row_id": "phase1-g0054:q1", "error": "teacher API connection dropped: Remote end closed connection without response"}
+{"failed_at": "2026-07-26T10:16:42.562822+00:00", "source_id": "phase1-g0061", "row_id": "phase1-g0061:q1", "error": "[Errno 32] Broken pipe"}
+{"failed_at": "2026-07-26T10:44:11.169655+00:00", "source_id": "phase1-g0052", "row_id": "phase1-g0052:q1", "error": "teacher API timed out after 90s"}

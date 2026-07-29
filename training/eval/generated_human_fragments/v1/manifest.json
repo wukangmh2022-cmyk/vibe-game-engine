@@ -1,0 +1,16 @@
+{
+  "version": "human-fragment-query-v1",
+  "started_at": "2026-07-29T00:19:53.171089+00:00",
+  "finished_at": "2026-07-29T00:23:33.711096+00:00",
+  "slot": "3",
+  "model": "gpt-5.6-terra",
+  "input": "/Users/pippo/github-repo/vibe-game-engine/training/eval/human_scene_first_level_dsl.md",
+  "output_json": "training/eval/generated_human_fragments/v1/items.json",
+  "output_jsonl": "training/eval/generated_human_fragments/v1/items.jsonl",
+  "compact_tsv": "training/eval/generated_human_fragments/v1/queries.tsv",
+  "parse_errors": "training/eval/generated_human_fragments/v1/parse-errors.jsonl",
+  "raw_response": "training/eval/generated_human_fragments/v1/raw-response.txt",
+  "count": 100,
+  "parse_error_count": 0,
+  "local_split_count": 3
+}

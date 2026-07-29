@@ -1,59 +1,62 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="589" viewBox="0 0 1200 589" role="img" aria-labelledby="title desc">
-<title id="title">进行中 1000 条 SFT 语料的指令出现频次</title>
-<desc id="desc">当前已验收 872 条；共 2106 次，包含顶层与嵌套指令</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="616" viewBox="0 0 1200 616" role="img" aria-labelledby="title desc">
+<title id="title">一期紧凑 SFT 语料的指令出现频次</title>
+<desc id="desc">最终已验收 999 条；共 2446 次，包含顶层与嵌套指令</desc>
 <style>.title{font:600 20px Arial,sans-serif;fill:#172033}.subtitle{font:13px Arial,sans-serif;fill:#5a6578}.label,.value{font:13px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#273142}.bar{fill:#147d92}.axis{stroke:#cbd5e1;stroke-width:1}</style>
-<text x="190" y="26" class="title">进行中 1000 条 SFT 语料的指令出现频次</text>
-<text x="190" y="47" class="subtitle">当前已验收 872 条；共 2106 次，包含顶层与嵌套指令</text>
+<text x="190" y="26" class="title">一期紧凑 SFT 语料的指令出现频次</text>
+<text x="190" y="47" class="subtitle">最终已验收 999 条；共 2446 次，包含顶层与嵌套指令</text>
 <line x1="190" y1="52" x2="1105" y2="52" class="axis"/>
 <text x="176" y="78" text-anchor="end" class="label">SET_VARIABLE</text>
 <rect x="190" y="64" width="915.0" height="17" rx="2" class="bar"/>
-<text x="1113.0" y="78" class="value">280 (13.3%)</text>
+<text x="1113.0" y="78" class="value">338 (13.8%)</text>
 <text x="176" y="105" text-anchor="end" class="label">SHOW_IMAGE</text>
-<rect x="190" y="91" width="794.09" height="17" rx="2" class="bar"/>
-<text x="992.09" y="105" class="value">243 (11.5%)</text>
-<text x="176" y="132" text-anchor="end" class="label">IF_CONDITION</text>
-<rect x="190" y="118" width="601.29" height="17" rx="2" class="bar"/>
-<text x="799.29" y="132" class="value">184 (8.7%)</text>
-<text x="176" y="159" text-anchor="end" class="label">WAIT</text>
-<rect x="190" y="145" width="539.2" height="17" rx="2" class="bar"/>
-<text x="737.2" y="159" class="value">165 (7.8%)</text>
-<text x="176" y="186" text-anchor="end" class="label">SET_ELEMENT_STYLE</text>
-<rect x="190" y="172" width="415.02" height="17" rx="2" class="bar"/>
-<text x="613.02" y="186" class="value">127 (6.0%)</text>
-<text x="176" y="213" text-anchor="end" class="label">SHOW_TEXT</text>
-<rect x="190" y="199" width="415.02" height="17" rx="2" class="bar"/>
-<text x="613.02" y="213" class="value">127 (6.0%)</text>
-<text x="176" y="240" text-anchor="end" class="label">NEXT_LEVEL</text>
-<rect x="190" y="226" width="398.68" height="17" rx="2" class="bar"/>
-<text x="596.6800000000001" y="240" class="value">122 (5.8%)</text>
-<text x="176" y="267" text-anchor="end" class="label">LOOP</text>
-<rect x="190" y="253" width="372.54" height="17" rx="2" class="bar"/>
-<text x="570.54" y="267" class="value">114 (5.4%)</text>
+<rect x="190" y="91" width="690.31" height="17" rx="2" class="bar"/>
+<text x="888.31" y="105" class="value">255 (10.4%)</text>
+<text x="176" y="132" text-anchor="end" class="label">WAIT</text>
+<rect x="190" y="118" width="579.32" height="17" rx="2" class="bar"/>
+<text x="777.32" y="132" class="value">214 (8.7%)</text>
+<text x="176" y="159" text-anchor="end" class="label">IF_CONDITION</text>
+<rect x="190" y="145" width="514.35" height="17" rx="2" class="bar"/>
+<text x="712.35" y="159" class="value">190 (7.8%)</text>
+<text x="176" y="186" text-anchor="end" class="label">SHOW_TEXT</text>
+<rect x="190" y="172" width="465.62" height="17" rx="2" class="bar"/>
+<text x="663.62" y="186" class="value">172 (7.0%)</text>
+<text x="176" y="213" text-anchor="end" class="label">LOOP</text>
+<rect x="190" y="199" width="349.22" height="17" rx="2" class="bar"/>
+<text x="547.22" y="213" class="value">129 (5.3%)</text>
+<text x="176" y="240" text-anchor="end" class="label">SET_ELEMENT_STYLE</text>
+<rect x="190" y="226" width="346.51" height="17" rx="2" class="bar"/>
+<text x="544.51" y="240" class="value">128 (5.2%)</text>
+<text x="176" y="267" text-anchor="end" class="label">NEXT_LEVEL</text>
+<rect x="190" y="253" width="341.09" height="17" rx="2" class="bar"/>
+<text x="539.0899999999999" y="267" class="value">126 (5.2%)</text>
 <text x="176" y="294" text-anchor="end" class="label">BREAK</text>
-<rect x="190" y="280" width="356.2" height="17" rx="2" class="bar"/>
-<text x="554.2" y="294" class="value">109 (5.2%)</text>
+<rect x="190" y="280" width="335.68" height="17" rx="2" class="bar"/>
+<text x="533.6800000000001" y="294" class="value">124 (5.1%)</text>
 <text x="176" y="321" text-anchor="end" class="label">MOVE_TO</text>
-<rect x="190" y="307" width="346.39" height="17" rx="2" class="bar"/>
-<text x="544.39" y="321" class="value">106 (5.0%)</text>
+<rect x="190" y="307" width="292.37" height="17" rx="2" class="bar"/>
+<text x="490.37" y="321" class="value">108 (4.4%)</text>
 <text x="176" y="348" text-anchor="end" class="label">BGM_PLAY</text>
-<rect x="190" y="334" width="339.86" height="17" rx="2" class="bar"/>
-<text x="537.86" y="348" class="value">104 (4.9%)</text>
+<rect x="190" y="334" width="289.66" height="17" rx="2" class="bar"/>
+<text x="487.66" y="348" class="value">107 (4.4%)</text>
 <text x="176" y="375" text-anchor="end" class="label">EMIT_SIGNAL</text>
-<rect x="190" y="361" width="281.04" height="17" rx="2" class="bar"/>
-<text x="479.04" y="375" class="value">86 (4.1%)</text>
-<text x="176" y="402" text-anchor="end" class="label">SCENE_REDIRECT</text>
-<rect x="190" y="388" width="248.36" height="17" rx="2" class="bar"/>
-<text x="446.36" y="402" class="value">76 (3.6%)</text>
-<text x="176" y="429" text-anchor="end" class="label">SE_PLAY</text>
-<rect x="190" y="415" width="232.02" height="17" rx="2" class="bar"/>
-<text x="430.02" y="429" class="value">71 (3.4%)</text>
+<rect x="190" y="361" width="289.66" height="17" rx="2" class="bar"/>
+<text x="487.66" y="375" class="value">107 (4.4%)</text>
+<text x="176" y="402" text-anchor="end" class="label">SHOW_CHOICES</text>
+<rect x="190" y="388" width="254.47" height="17" rx="2" class="bar"/>
+<text x="452.47" y="402" class="value">94 (3.8%)</text>
+<text x="176" y="429" text-anchor="end" class="label">SCENE_REDIRECT</text>
+<rect x="190" y="415" width="213.86" height="17" rx="2" class="bar"/>
+<text x="411.86" y="429" class="value">79 (3.2%)</text>
 <text x="176" y="456" text-anchor="end" class="label">BGM_STOP</text>
-<rect x="190" y="442" width="228.75" height="17" rx="2" class="bar"/>
-<text x="426.75" y="456" class="value">70 (3.3%)</text>
-<text x="176" y="483" text-anchor="end" class="label">UPDATE_TEXT</text>
-<rect x="190" y="469" width="222.21" height="17" rx="2" class="bar"/>
-<text x="420.21000000000004" y="483" class="value">68 (3.2%)</text>
-<text x="176" y="510" text-anchor="end" class="label">JUMP_TO</text>
-<rect x="190" y="496" width="176.46" height="17" rx="2" class="bar"/>
-<text x="374.46000000000004" y="510" class="value">54 (2.6%)</text>
+<rect x="190" y="442" width="208.45" height="17" rx="2" class="bar"/>
+<text x="406.45" y="456" class="value">77 (3.1%)</text>
+<text x="176" y="483" text-anchor="end" class="label">SE_PLAY</text>
+<rect x="190" y="469" width="203.03" height="17" rx="2" class="bar"/>
+<text x="401.03" y="483" class="value">75 (3.1%)</text>
+<text x="176" y="510" text-anchor="end" class="label">UPDATE_TEXT</text>
+<rect x="190" y="496" width="184.08" height="17" rx="2" class="bar"/>
+<text x="382.08000000000004" y="510" class="value">68 (2.8%)</text>
+<text x="176" y="537" text-anchor="end" class="label">JUMP_TO</text>
+<rect x="190" y="523" width="148.89" height="17" rx="2" class="bar"/>
+<text x="346.89" y="537" class="value">55 (2.2%)</text>
 </svg>

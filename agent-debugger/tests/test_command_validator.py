@@ -71,6 +71,56 @@ class CommandValidatorTest(unittest.TestCase):
         self.assertFalse(result["valid"])
         self.assertIn("redirect missing required parameter: url", result["errors"])
 
+    def test_rejects_if_condition_branch_aliases_that_runtime_ignores(self) -> None:
+        sample = {
+            "intent": "累计答对次数后达到三次就进入下一关，否则保持当前关卡",
+            "asset_catalog": [],
+            "commands": [
+                {"id": "increment", "type": "SET_VARIABLE", "parameters": {"key": "correctCount", "op": "add", "value": 1}},
+                {"id": "gate", "type": "IF_CONDITION", "parameters": {
+                    "condition": {"type": "variable", "variable": "correctCount", "operator": "gte", "value": 3},
+                    "thenCommands": [{"id": "next", "type": "NEXT_LEVEL", "parameters": {}}],
+                    "elseCommands": [],
+                }},
+            ],
+        }
+        result = self.validator.validate(sample, "IF_CONDITION", 1, self.assets)
+        self.assertFalse(result["valid"])
+        self.assertIn("gate trueCommands must be an array", result["errors"])
+        self.assertIn("gate variable condition requires key", result["errors"])
+        self.assertTrue(any("unsupported IF_CONDITION branch field" in item for item in result["errors"]))
+
+    def test_accepts_runtime_if_condition_shape(self) -> None:
+        sample = {
+            "intent": "累计答对次数后达到三次就进入下一关，否则显示继续尝试提示",
+            "asset_catalog": [],
+            "commands": [
+                {"id": "increment", "type": "SET_VARIABLE", "parameters": {"key": "correctCount", "op": "add", "value": 1}},
+                {"id": "gate", "type": "IF_CONDITION", "parameters": {
+                    "condition": {"type": "variable", "key": "correctCount", "operator": "gte", "value": 3},
+                    "trueCommands": [{"id": "next", "type": "NEXT_LEVEL", "parameters": {}}],
+                    "falseCommands": [{"id": "retry", "type": "SHOW_TEXT", "parameters": {"elementId": "tip", "text": "继续尝试"}}],
+                }},
+            ],
+        }
+        result = self.validator.validate(sample, "IF_CONDITION", 1, self.assets)
+        self.assertTrue(result["valid"], result)
+
+    def test_accepts_empty_runtime_if_condition_branch(self) -> None:
+        sample = {
+            "intent": "检查答对次数达到三次后进入下一关，否则暂不执行额外动作",
+            "asset_catalog": [],
+            "commands": [
+                {"id": "gate", "type": "IF_CONDITION", "parameters": {
+                    "condition": {"type": "variable", "key": "correctCount", "operator": "gte", "value": 3},
+                    "trueCommands": [{"id": "next", "type": "NEXT_LEVEL", "parameters": {}}],
+                    "falseCommands": [],
+                }},
+            ],
+        }
+        result = self.validator.validate(sample, "IF_CONDITION", 1, self.assets)
+        self.assertTrue(result["valid"], result)
+
 
 if __name__ == "__main__":
     unittest.main()

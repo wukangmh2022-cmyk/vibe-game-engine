@@ -28,6 +28,7 @@ export const COMMAND_TEMPLATES: CommandTemplate[] = [
       ], description: '是否显示该元素' },
       { name: 'style.alpha', label: '透明度(alpha)', type: 'text', required: false, placeholder: '不修改（0~1）', description: '0~1 之间；留空=不修改' },
       { name: 'style.scale', label: '缩放(scale)', type: 'text', required: false, placeholder: '不修改（例如 0.6）', description: '统一缩放；留空=不修改' },
+      { name: 'style.tint', label: '着色(tint)', type: 'text', required: false, placeholder: '不修改（例如 0xff0000）', description: '图片/精灵单色着色；使用 0xRRGGBB' },
       { name: 'style.zIndex', label: '层级(zIndex)', type: 'text', required: false, placeholder: '不修改', description: '显示层级，数值越大越靠上；留空=不修改' }
     ]
   },

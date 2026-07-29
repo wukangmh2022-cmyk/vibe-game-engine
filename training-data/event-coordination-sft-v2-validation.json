@@ -1,0 +1,3607 @@
+{
+  "total": 300,
+  "valid": 300,
+  "invalid": 0,
+  "results": [
+    {
+      "id": "event-coordination-v2-001",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-002",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-003",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-004",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-005",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-006",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-007",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-008",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-009",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-010",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-011",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-012",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-013",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-014",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-015",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-016",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-017",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-018",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-019",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-020",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-021",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-022",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-023",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-024",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-025",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-026",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-027",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-028",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-029",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-030",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-031",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-032",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-033",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-034",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-035",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-036",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-037",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-038",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-039",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-040",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-041",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-042",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-043",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-044",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-045",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-046",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-047",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-048",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-049",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-050",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-051",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-052",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-053",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-054",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-055",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-056",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-057",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-058",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-059",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-060",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-061",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-062",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-063",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-064",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-065",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-066",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-067",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-068",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-069",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-070",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-071",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-072",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-073",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-074",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-075",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-076",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-077",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-078",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-079",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-080",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 2,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-081",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-082",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-083",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-084",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-085",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-086",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-087",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-088",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-089",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-090",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-091",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-092",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-093",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-094",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-095",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-096",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-097",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-098",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-099",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-100",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-101",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-102",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-103",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-104",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-105",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-106",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-107",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-108",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-109",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-110",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-111",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-112",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-113",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-114",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-115",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 3,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-116",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-117",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-118",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-119",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-120",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-121",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-122",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-123",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-124",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-125",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-126",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-127",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-128",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-129",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-130",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-131",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-132",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-133",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-134",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-135",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-136",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-137",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-138",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-139",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-140",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-141",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-142",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-143",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-144",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-145",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-146",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-147",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-148",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-149",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-150",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-151",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-152",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-153",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-154",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-155",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-156",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-157",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-158",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-159",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-160",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-161",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-162",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-163",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-164",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-165",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-166",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-167",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-168",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-169",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-170",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-171",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-172",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-173",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-174",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-175",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-176",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-177",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-178",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-179",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-180",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-181",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-182",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-183",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-184",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-185",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-186",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-187",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-188",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-189",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-190",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-191",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-192",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-193",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-194",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-195",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-196",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-197",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-198",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-199",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-200",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 7,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-201",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-202",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-203",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-204",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-205",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-206",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-207",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-208",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-209",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-210",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-211",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-212",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-213",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-214",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-215",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-216",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-217",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-218",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-219",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-220",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-221",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-222",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-223",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-224",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-225",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-226",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-227",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-228",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-229",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-230",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 5,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-231",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-232",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-233",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-234",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-235",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-236",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-237",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-238",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-239",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-240",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-241",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-242",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-243",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-244",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-245",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-246",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-247",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-248",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-249",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-250",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-251",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-252",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-253",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-254",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-255",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 4,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-v2-256",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-257",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-258",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-259",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-260",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-261",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-262",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-263",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-264",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-265",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-266",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-267",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-268",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-269",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-270",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-271",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-272",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-273",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-274",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-275",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-276",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-277",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-278",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-279",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-280",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-281",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-282",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-283",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-284",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-285",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-286",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-287",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-288",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-289",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-290",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-291",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-292",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-293",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-294",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-295",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-296",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-297",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-298",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-299",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    },
+    {
+      "id": "event-coordination-v2-300",
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 2,
+        "signals": 2,
+        "custom_listeners": 2
+      }
+    }
+  ]
+}

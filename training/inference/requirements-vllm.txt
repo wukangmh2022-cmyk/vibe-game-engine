@@ -1,0 +1,6 @@
+# This file is intentionally separate from training/qlora requirements.
+# Let vLLM own its Torch and Transformers dependency set.
+vllm==0.25.1
+bitsandbytes>=0.49.2,<0.51
+huggingface_hub>=0.30,<2
+aiohttp>=3.10,<4

@@ -1,0 +1,101 @@
+id	category	source_scene_file	task
+hfq-0001	资源加载与UI初始化	农具速记.json	初始化cntveg为0、cntfruit为0和victory为false，显示background、mask与introduce开场遮罩画面，并播放一次音量0.8的1001-__背景音乐。
+hfq-0002	资源加载与UI初始化	各就各位.json	初始化“已胜利”为false，显示background、mask与introduce开场遮罩画面，并播放一次音量0.8的1008-__背景音乐。
+hfq-0003	资源加载与UI初始化	小小药剂师.json	显示background、mask与introduce开场遮罩画面，并播放一次音量0.8的1002-__背景音乐。
+hfq-0004	资源加载与UI初始化	小笼包派对.json	初始化“已胜利”为false，显示background、mask与introduce开场遮罩画面，并播放一次音量0.8的1007-__背景音乐。
+hfq-0005	资源加载与UI初始化	手疾眼快.json	初始化cnt1、cnt2、cnt3为0且victory为false，显示带入场动画的background、mask和introduce引导图，并播放背景音乐1006-__。
+hfq-0006	资源加载与UI初始化	服药小管家.json	显示带入场动画的background、mask和introduce引导图，并播放背景音乐1002-__。
+hfq-0007	资源加载与UI初始化	瓜果分类.json	初始化cntveg和cntfruit为0且victory为false，显示带入场动画的background、mask和introduce引导图，并播放背景音乐1002-__。
+hfq-0008	资源加载与UI初始化	农具速记.json	显示图片元素 background，使用资源 ______2_ 并保持指定位置和层级。
+hfq-0009	资源加载与UI初始化	农具速记.json	显示图片元素 mask，使用资源 __ 并保持指定位置和层级。
+hfq-0010	资源加载与UI初始化	农具速记.json	显示图片元素 introduce，使用资源 intro-____ 并保持指定位置和层级。
+hfq-0011	资源加载与UI初始化	农具速记.json	显示图片元素 clockbg，使用资源 _______2 并保持指定位置和层级。
+hfq-0012	资源加载与UI初始化	农具速记.json	显示图片元素 mask，使用资源 __ 并保持指定位置和层级。
+hfq-0013	变量定义与状态管理	农具速记.json	更新变量 cntveg，供后续分支、计分或胜负判断使用。
+hfq-0014	变量定义与状态管理	农具速记.json	更新变量 cntfruit，供后续分支、计分或胜负判断使用。
+hfq-0015	变量定义与状态管理	农具速记.json	更新变量 victory，供后续分支、计分或胜负判断使用。
+hfq-0016	变量定义与状态管理	农具速记.json	更新变量 toast_init，供后续分支、计分或胜负判断使用。
+hfq-0017	变量定义与状态管理	农具速记.json	更新变量 toast_running，供后续分支、计分或胜负判断使用。
+hfq-0018	变量定义与状态管理	农具速记.json	等待 100 毫秒，让画面或反馈保持一小段时间。
+hfq-0019	变量定义与状态管理	农具速记.json	更新变量 toast_running，供后续分支、计分或胜负判断使用。
+hfq-0020	变量定义与状态管理	各就各位.json	更新变量 "已胜利"，供后续分支、计分或胜负判断使用。
+hfq-0021	变量定义与状态管理	各就各位.json	等待 2000 毫秒，让画面或反馈保持一小段时间。
+hfq-0022	变量定义与状态管理	各就各位.json	更新变量 "是否结束读题"，供后续分支、计分或胜负判断使用。
+hfq-0023	事件与信号流	农具速记.json	发送 answer 信号，把当前片段交给对应事件流程处理。
+hfq-0024	事件与信号流	农具速记.json	发送 start 信号，把当前片段交给对应事件流程处理。
+hfq-0025	事件与信号流	农具速记.json	发送 toast 信号，把当前片段交给对应事件流程处理。
+hfq-0026	事件与信号流	各就各位.json	发送 fail 信号，把当前片段交给对应事件流程处理。
+hfq-0027	事件与信号流	小小药剂师.json	发送 gamestart 信号，把当前片段交给对应事件流程处理。
+hfq-0028	事件与信号流	小小药剂师.json	发送 "计时开始" 信号，把当前片段交给对应事件流程处理。
+hfq-0029	事件与信号流	小笼包派对.json	发送 lose 信号，把当前片段交给对应事件流程处理。
+hfq-0030	事件与信号流	小笼包派对.json	发送 win 信号，把当前片段交给对应事件流程处理。
+hfq-0031	事件与信号流	手疾眼快.json	发送 final 信号，把当前片段交给对应事件流程处理。
+hfq-0032	事件与信号流	服药小管家.json	发送 gameloop 信号，把当前片段交给对应事件流程处理。
+hfq-0033	交互与选择	农具速记.json	玩家点击introduce时播放001-System01音效，隐藏mask和introduce并将其缩放为0，然后发送gameloop信号。
+hfq-0034	交互与选择	农具速记.json	收到gameloop信号后显示“第1关”和“请记住下图中的农具：”文本，播放1001-___2背景音乐，发送start信号，展示item1农具图与submit-btn提交按钮，并让submit-btn可点击。
+hfq-0035	交互与选择	农具速记.json	展示submit-btn提交按钮和item1农具图片，玩家点击submit-btn后播放001-System01音效，隐藏submit_btn和item1，并发送answer信号进入作答阶段。
+hfq-0036	交互与选择	小小药剂师.json	显示介绍《小小药剂师》玩法的show_text_1文本，玩家点击introduce时连续播放两次001-System01音效，隐藏introduce和show_text_1并将其缩放为0，再展示introduce2并播放1002-__背景音乐。
+hfq-0037	交互与选择	小小药剂师.json	显示说明根据患者取药需求寻找对应药物的show_text_2文本，玩家点击introduce2时播放001-System01音效，隐藏show_text_2、introduce2和mask并将它们缩放为0，然后发送gamestart信号。
+hfq-0038	交互与选择	小小药剂师.json	收到gamestart信号后将“是否结束读题”设为false，显示“第1关”及张三请求取药和处方单的story-text，播放0001_01-___1背景音乐，发送“计时开始”信号，并展示“咨询”和con画面。
+hfq-0039	交互与选择	服药小管家.json	显示show_text_1中的《服药小管家》游戏简介，点击introduce时连续播放两次音效001-System01并隐藏introduce和show_text_1，随后显示带入场动画的introduce2并播放背景音乐1002-__。
+hfq-0040	交互与选择	服药小管家.json	显示show_text_2中的药物时间与顺序记忆说明，点击introduce2时播放音效001-System01，隐藏show_text_2、introduce2和mask，并触发gameloop信号。
+hfq-0041	交互与选择	服药小管家.json	在gameloop的“读题阶段”中将“是否结束读题”设为false，显示“第1关”和“请记清每个时段应服用几种药品。下面是处方单：”，播放背景音乐0003_01-___1，触发start信号，并显示“咨询”和con图片。
+hfq-0042	交互与选择	药品规划家.json	显示show_text_1中的《药品规划家》游戏简介，点击introduce时连续播放两次001-System01音效，隐藏introduce和show_text_1，显示带___4入场动画的introduce2，并播放1002-__背景音乐且音量为0.8。
+hfq-0043	交互与选择	药品规划家.json	显示show_text_2中的药物记忆与匹配说明，点击introduce2时播放001-System01音效，隐藏show_text_2、introduce2和mask，并发送gamestart信号。
+hfq-0044	交互与选择	药片领航员.json	显示show_text_1中的《药片领航员》游戏简介，点击introduce时连续播放两次001-System01音效，隐藏introduce和show_text_1，显示带___4入场动画的introduce2，并播放1002-__背景音乐且音量为0.8。
+hfq-0045	交互与选择	药片领航员.json	显示show_text_2中的药物外观与位置记忆说明，点击introduce2时播放001-System01音效，隐藏show_text_2、introduce2和mask，并发送gamestart信号。
+hfq-0046	交互与选择	虫虫大作战.json	点击introduce说明页时播放音效“001-System01”，隐藏mask遮罩和introduce说明页，并发送answer信号进入答题流程。
+hfq-0047	交互与选择	顺序记忆师.json	在introduce2说明页显示药物服用先后顺序的挑战说明文字，点击introduce2时播放001-System01音效，隐藏show_text_2、introduce2和mask，并发送gamestart信号。
+hfq-0048	交互与选择	农具速记.json	让玩家点击 submit-btn 后执行片段内的反馈、状态更新或流程切换。
+hfq-0049	交互与选择	农具速记.json	让 show_image_1 成为可选择项目，选中后记录状态并显示可见选中反馈。
+hfq-0050	交互与选择	农具速记.json	让 show_image_2 成为可选择项目，选中后记录状态并显示可见选中反馈。
+hfq-0051	交互与选择	各就各位.json	让玩家点击 con 后执行片段内的反馈、状态更新或流程切换。
+hfq-0052	交互与选择	各就各位.json	让 b1 成为可选择项目，选中后记录状态并显示可见选中反馈。
+hfq-0053	交互与选择	各就各位.json	让 b2 成为可选择项目，选中后记录状态并显示可见选中反馈。
+hfq-0054	交互与选择	各就各位.json	让 b3 成为可选择项目，选中后记录状态并显示可见选中反馈。
+hfq-0055	动画与过渡	虫虫大作战.json	收到“动画”信号进入“捕捉蚊子”时将myID设为xx，展示“网_{myID}”捕虫网图片并播放其入场动画，将“分数”加1，等待100毫秒后让dyn_myID蚊子和“网_{myID}”捕虫网上移淡出并隐藏。
+hfq-0056	动画与过渡	农具速记.json	调整 item1 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0057	动画与过渡	农具速记.json	调整 submit_btn 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0058	动画与过渡	农具速记.json	调整 submit-btn 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0059	动画与过渡	各就各位.json	调整 con 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0060	动画与过渡	各就各位.json	调整 foodtext 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0061	动画与过渡	小小药剂师.json	调整 introduce 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0062	动画与过渡	小小药剂师.json	调整 show_text_1 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0063	动画与过渡	小小药剂师.json	调整 show_text_2 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0064	动画与过渡	小小药剂师.json	调整 introduce2 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0065	动画与过渡	小小药剂师.json	调整 mask 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0066	动画与过渡	小小药剂师.json	调整 con 的显示样式，用于隐藏、缩放或改变当前画面状态。
+hfq-0067	文本操作	农具速记.json	收到toast信号且toast_init不为true时创建内容为${$1}的toast文本，将toast_init和toast_running设为true，等待100毫秒后把toast更新为${$1}并将toast_running设为false。
+hfq-0068	文本操作	手疾眼快.json	在toast事件触发时若toast_init不为true则显示内容为${toastval}的toast文本，并将toast_init和toast_running设为true，等待100毫秒后用${toastval}更新toast文本并将toast_running设为false。
+hfq-0069	文本操作	农具速记.json	显示 story-text 文本“第1关”，用于提示玩家当前题目或状态。
+hfq-0070	文本操作	农具速记.json	显示 story-text 文本“请记住下图中的农具：”，用于提示玩家当前题目或状态。
+hfq-0071	文本操作	农具速记.json	把 story-text 的显示内容更新为“请问刚才出现的农具是以下哪一个？”。
+hfq-0072	文本操作	农具速记.json	显示 toast 文本“fontSize”，用于提示玩家当前题目或状态。
+hfq-0073	文本操作	农具速记.json	根据当前变量条件进入对应分支，执行片段内的状态更新或反馈流程。
+hfq-0074	文本操作	农具速记.json	把 toast 的显示内容更新为“新的提示内容”。
+hfq-0075	文本操作	各就各位.json	显示 story-text 文本“请记住以下物品的摆放顺序：”，用于提示玩家当前题目或状态。
+hfq-0076	文本操作	各就各位.json	把 story-text 的显示内容更新为“请选择第1个位置出现的物品（单选）”。
+hfq-0077	文本操作	小小药剂师.json	显示 show_text_1 文本“欢迎来到 《小小药剂师》 您的健康守护者! 游戏简介: 在《小小药剂师》中，您 将扮演药剂师的角色，帮 助人们识别和使用药物。”，用于提示玩家当前题目或状态。
+hfq-0078	文本操作	小小药剂师.json	显示 show_text_2 文本“在本轮游戏中，您将扮 演一名药剂师， 需要根 据患者提供的取药需求， 帮助患者找到对应的药 物！ 准备好了吗?”，用于提示玩家当前题目或状态。
+hfq-0079	计时与倒计时	农具速记.json	收到start信号后将countdown设为21，显示countdown-text的${countdown}s计时文本、clockbg时钟底图、clock时钟图标和fanhui返回按钮，并为点击fanhui播放___2音效。
+hfq-0080	计时与倒计时	农具速记.json	依次显示countdown-3、countdown-2、countdown-1和countdown-go四张倒计时图片，每张先用内置放大入场动画突出显示，停留约740毫秒后隐藏。
+hfq-0081	计时与倒计时	农具速记.json	收到gameloop信号后显示第1关标题和“请记住下图中的农具：”提示，播放1001-___2背景音乐，并发送start信号启动倒计时。
+hfq-0082	计时与倒计时	各就各位.json	收到“倒计时”信号后将“是否结束读题”设为false并将countdown设为10，显示countdown-text的${countdown}s计时文本、fanhui返回按钮、clockbg时钟底图和clock时钟图标，并为点击fanhui配置交互。
+hfq-0083	计时与倒计时	各就各位.json	收到gameloop信号后显示“第1关”和“请记住以下物品的摆放顺序：”文本，播放1008-___1背景音乐，发送“倒计时”信号，将“分数”设为0，并展示bg2与c1物品摆放画面。
+hfq-0084	计时与倒计时	各就各位.json	收到answer信号后将countdown设为30并更新countdown-text为${countdown}s，隐藏con和foodtext，播放1008-__-___3背景音乐，将story-text改为“请选择第1个位置出现的物品（单选）”，并将“选择正确”设为false。
+hfq-0085	计时与倒计时	小小药剂师.json	收到answer信号后将countdown设为30，播放001-System01音效和0001_01-__背景音乐，将story-text改为“请从以下药品中选择出张三需要的药。（单选）”，展示“咨询”画面，隐藏con，并显示show_choices_1单选药品选项。
+hfq-0086	计时与倒计时	小小药剂师.json	收到“计时开始”信号后将countdown设为20，显示countdown-text的${countdown}s计时文本和fanhui返回按钮，为点击fanhui播放001-System01音效，跳转到scene/entry.json，并展示countdown-3倒计时数字图。
+hfq-0087	音效与媒体	农具速记.json	播放背景音乐 1001-__，作为当前关卡片段的氛围音。
+hfq-0088	音效与媒体	农具速记.json	播放背景音乐 1001-___2，作为当前关卡片段的氛围音。
+hfq-0089	音效与媒体	农具速记.json	播放背景音乐 1001-___1，作为当前关卡片段的氛围音。
+hfq-0090	音效与媒体	各就各位.json	播放背景音乐 1008-__，作为当前关卡片段的氛围音。
+hfq-0091	音效与媒体	各就各位.json	播放背景音乐 1008-___1，作为当前关卡片段的氛围音。
+hfq-0092	场景与导航	农具速记.json	收到answer信号后将story-text改为“请问刚才出现的农具是以下哪一个？”，播放1001-___1背景音乐，隐藏submit-btn，展示submit-btn2及show_image_1和show_image_2两个农具选项，并启用show_image_1的单选状态card1_selected和check-circle标记。
+hfq-0093	场景与导航	小小药剂师.json	收到fail信号且“失败已执行”不为true时播放_____12音效，显示mask和fail-window失败弹窗，将“失败已执行”设为true，并为点击fail-window播放001-System01音效。
+hfq-0094	场景与导航	小笼包派对.json	在win的“胜”事件触发时将victory设为true，显示全屏mask和带入场动画的胜利图片vv，播放音效___2，并让点击vv后进入下一步。
+hfq-0095	场景与导航	小笼包派对.json	在lose的“负”事件触发时播放音效_____12，显示mask和带入场动画的fail-window，将“失败已执行”设为true，点击fail-window后播放音效001-System01并跳转到当前场景重试。
+hfq-0096	场景与导航	手疾眼快.json	在final的“胜负判断”事件触发时，若cnt1、cnt2、cnt3均等于1则将victory设为true，显示mask和带入场动画的show_image_2，播放音效___2，并在点击show_image_2后进入下一步。
+hfq-0097	逻辑控制与循环	手疾眼快.json	在gameloop事件触发时显示“第1关”和“请将购物车物品放置到对应餐盘：”，播放背景音乐1006-___1，触发start信号，显示bg，并将ycurindex设为1、rcurindex设为20。
+hfq-0098	逻辑控制与循环	药品规划家.json	在never事件触发时将score和total设为0，使用outerIter循环处理数据并在total大于等于20时停止，每轮将pairCount设为0后使用innerIter循环处理配对并在pairCount大于等于2时停止。
+hfq-0099	逻辑控制与循环	虫虫大作战.json	收到“蚊子生成”信号时将total设为0并循环生成蚊子：每轮令curIndex等于total加1、将total加1、以dyn_curIndex为标识展示带入场动画的蚊子图片___2，total达到13时停止循环，并使每只dyn_curIndex蚊子可点击。
+hfq-0100	逻辑控制与循环	记忆衣橱.json	收到check_2cards_matchs信号进入“翻开卡片处理逻辑”时将“翻开ID”设为dyn_lastChangingSelectStateID、将“翻开数量”设为0并翻开“dyn_翻开ID”卡牌，当“翻开数量”等于2时将“是否需要复位所有牌盖住”设为true，且当card1_selected和card2_selected都为true时将“分数”加2。

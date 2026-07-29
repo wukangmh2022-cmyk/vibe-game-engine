@@ -1,0 +1,96 @@
+{
+  "rows": 1265,
+  "max": [
+    2031,
+    "phase2-event-coordination-v3-269:q1",
+    "phase2-event-coordination-v3-269",
+    "train.jsonl",
+    1108,
+    1109
+  ],
+  "p95": 1356,
+  "p99": 1616,
+  "over_2048": [],
+  "top10": [
+    [
+      2031,
+      "phase2-event-coordination-v3-269:q1",
+      "phase2-event-coordination-v3-269",
+      "train.jsonl",
+      1108,
+      1109
+    ],
+    [
+      2030,
+      "phase2-event-coordination-v3-266:q1",
+      "phase2-event-coordination-v3-266",
+      "train.jsonl",
+      1106,
+      1107
+    ],
+    [
+      1954,
+      "phase2-event-coordination-v3-287:q1",
+      "phase2-event-coordination-v3-287",
+      "train.jsonl",
+      1126,
+      1127
+    ],
+    [
+      1954,
+      "phase2-event-coordination-v3-265:q1",
+      "phase2-event-coordination-v3-265",
+      "train.jsonl",
+      1105,
+      1106
+    ],
+    [
+      1922,
+      "phase2-event-coordination-v3-290:q1",
+      "phase2-event-coordination-v3-290",
+      "train.jsonl",
+      1129,
+      1130
+    ],
+    [
+      1853,
+      "phase2-event-coordination-v3-288:q1",
+      "phase2-event-coordination-v3-288",
+      "train.jsonl",
+      1127,
+      1128
+    ],
+    [
+      1837,
+      "phase2-event-coordination-v3-241:q1",
+      "phase2-event-coordination-v3-241",
+      "train.jsonl",
+      1085,
+      1086
+    ],
+    [
+      1834,
+      "phase2-event-coordination-v3-272:q1",
+      "phase2-event-coordination-v3-272",
+      "train.jsonl",
+      1111,
+      1112
+    ],
+    [
+      1764,
+      "phase2-event-coordination-v3-275:q1",
+      "phase2-event-coordination-v3-275",
+      "train.jsonl",
+      1114,
+      1115
+    ],
+    [
+      1730,
+      "phase2-event-coordination-v3-248:q1",
+      "phase2-event-coordination-v3-248",
+      "validation.jsonl",
+      122,
+      123
+    ]
+  ]
+}

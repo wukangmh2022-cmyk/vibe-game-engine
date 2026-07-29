@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const childProcess = require('child_process');
 
 const root = path.join(__dirname, '..');
 const runtimeDir = path.join(root, 'web', 'dist');
@@ -26,7 +27,14 @@ fs.cpSync(gameDir, path.join(output, 'game'), {
 fs.cpSync(editorDir, path.join(output, 'editor'), { recursive: true });
 fs.cpSync(editorDefaultProjectDir, path.join(output, 'editor', 'default-project'), { recursive: true });
 fs.copyFileSync(editorFavicon, path.join(output, 'editor', 'favicon.ico'));
-fs.copyFileSync(pageTemplate, path.join(output, 'index.html'));
+const assetVersion = (process.env.GITHUB_SHA || (() => {
+  try { return childProcess.execFileSync('git', ['rev-parse', '--short', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(); } catch { return 'local'; }
+})()).slice(0, 12);
+const pageHtml = fs.readFileSync(pageTemplate, 'utf8').replace(
+  "import('./browser/bootstrap.js')",
+  `import('./browser/bootstrap.js?v=${assetVersion}')`
+);
+fs.writeFileSync(path.join(output, 'index.html'), pageHtml);
 fs.writeFileSync(path.join(output, '.nojekyll'), '');
 
 console.log(`[customer-demo] Built static Pages site at ${output}`);

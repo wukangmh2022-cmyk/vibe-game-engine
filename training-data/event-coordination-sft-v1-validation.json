@@ -1,0 +1,1663 @@
+{
+  "total": 90,
+  "valid": 0,
+  "invalid": 90,
+  "results": [
+    {
+      "id": "event-coordination-001",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 17,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-002",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "flip_card_13 references elementId that is not created in this output: card-1",
+        "flip_card_14 references elementId that is not created in this output: card-2",
+        "flip_card_15 references elementId that is not created in this output: card-3",
+        "flip_card_16 references elementId that is not created in this output: card-4",
+        "flip_card_17 references elementId that is not created in this output: card-5",
+        "flip_card_18 references elementId that is not created in this output: card-6",
+        "flip_card_3 references elementId that is not created in this output: card-1",
+        "flip_card_4 references elementId that is not created in this output: card-2",
+        "flip_card_5 references elementId that is not created in this output: card-3",
+        "flip_card_6 references elementId that is not created in this output: card-4",
+        "flip_card_7 references elementId that is not created in this output: card-5",
+        "flip_card_8 references elementId that is not created in this output: card-6",
+        "selable-c2 references elementId that is not created in this output: card-2",
+        "selable-c3 references elementId that is not created in this output: card-3",
+        "selable-c4 references elementId that is not created in this output: card-4",
+        "set_element_style_8 references elementId that is not created in this output: con",
+        "set_selectable_1 references elementId that is not created in this output: card-1",
+        "set_selectable_2 references elementId that is not created in this output: card-5",
+        "set_selectable_3 references elementId that is not created in this output: card-6",
+        "signal check_2cards_matchs has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 43,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-003",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-004",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-005",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 16,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-006",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "flip_card_13 references elementId that is not created in this output: card-1",
+        "flip_card_14 references elementId that is not created in this output: card-2",
+        "flip_card_15 references elementId that is not created in this output: card-3",
+        "flip_card_16 references elementId that is not created in this output: card-4",
+        "flip_card_17 references elementId that is not created in this output: card-5",
+        "flip_card_18 references elementId that is not created in this output: card-6",
+        "flip_card_3 references elementId that is not created in this output: card-1",
+        "flip_card_4 references elementId that is not created in this output: card-2",
+        "flip_card_5 references elementId that is not created in this output: card-3",
+        "flip_card_6 references elementId that is not created in this output: card-4",
+        "flip_card_7 references elementId that is not created in this output: card-5",
+        "flip_card_8 references elementId that is not created in this output: card-6",
+        "selable-c2 references elementId that is not created in this output: card-2",
+        "selable-c3 references elementId that is not created in this output: card-3",
+        "selable-c4 references elementId that is not created in this output: card-4",
+        "set_element_style_8 references elementId that is not created in this output: con",
+        "set_selectable_1 references elementId that is not created in this output: card-1",
+        "set_selectable_2 references elementId that is not created in this output: card-5",
+        "set_selectable_3 references elementId that is not created in this output: card-6",
+        "signal check_2cards_matchs has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 42,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-007",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 16,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-008",
+      "valid": false,
+      "errors": [
+        "animate_out_1 references elementId that is not created in this output: {lastClickID}",
+        "animate_out_2 references elementId that is not created in this output: {上次点击元素}",
+        "animate_out_5 references elementId that is not created in this output: {上次点击元素}_select",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "loop_1 must use a bounded condition and update its condition state",
+        "set_clickable_3 references elementId that is not created in this output: bg{iii}",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "set_element_style_8 references elementId that is not created in this output: submit-btn",
+        "signal final has no custom-event listener in this output",
+        "update_text_6 references elementId that is not created in this output: cnt2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 37,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-009",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-010",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal final has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-011",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-012",
+      "valid": false,
+      "errors": [
+        "animate_out_1 references elementId that is not created in this output: {lastClickID}",
+        "animate_out_2 references elementId that is not created in this output: {上次点击元素}",
+        "animate_out_5 references elementId that is not created in this output: {上次点击元素}_select",
+        "complete cross-event output requires non-empty commands",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "loop_1 must use a bounded condition and update its condition state",
+        "set_clickable_3 references elementId that is not created in this output: bg{iii}",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "set_element_style_8 references elementId that is not created in this output: submit-btn",
+        "signal final has no custom-event listener in this output",
+        "update_text_6 references elementId that is not created in this output: cnt2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-013",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 12,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-014",
+      "valid": false,
+      "errors": [
+        "duplicate command id: if_condition_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-015",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal fail has no custom-event listener in this output",
+        "signal toast has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 25,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-016",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gamestart but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 11,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-017",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggj0ob5 listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal fail has no custom-event listener in this output",
+        "signal toast has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 24,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-018",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggg3y8q listens for signal fail but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-019",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 13,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-020",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_8 references elementId that is not created in this output: submit-btn",
+        "signal lose has no custom-event listener in this output",
+        "signal win has no custom-event listener in this output",
+        "update_text_6 references elementId that is not created in this output: cnt2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 9,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-021",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-022",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: emit_signal_2",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal lose has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 33,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-023",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 12,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-024",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: emit_signal_1",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_8 references elementId that is not created in this output: submit-btn",
+        "signal lose has no custom-event listener in this output",
+        "signal win has no custom-event listener in this output",
+        "update_text_6 references elementId that is not created in this output: cnt2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-025",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 19,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-026",
+      "valid": false,
+      "errors": [
+        "duplicate command id: set_selectable_1",
+        "duplicate command id: show_image_3",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "signal fail has no custom-event listener in this output",
+        "update_text_1 references elementId that is not created in this output: story-text",
+        "update_text_2 references elementId that is not created in this output: countdown-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 54,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-027",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-028",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-029",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 18,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-030",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: set_selectable_1",
+        "duplicate command id: show_image_3",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "signal fail has no custom-event listener in this output",
+        "update_text_1 references elementId that is not created in this output: story-text",
+        "update_text_2 references elementId that is not created in this output: countdown-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 53,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-031",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 19,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-032",
+      "valid": false,
+      "errors": [
+        "duplicate command id: if_condition_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-033",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "signal fail has no custom-event listener in this output",
+        "signal success has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 22,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-034",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gamestart but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 18,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-035",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggj0ob5 listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "signal fail has no custom-event listener in this output",
+        "signal success has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 21,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-036",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggg3y8q listens for signal fail but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-037",
+      "valid": false,
+      "errors": [
+        "duplicate command id: set_draggable_2",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "loop_1 must use a bounded condition and update its condition state",
+        "set_draggable_2 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_5 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_7 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_8 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_9 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_1 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_2 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_4 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_6 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_7 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_9 references elementId that is not created in this output: {last_drop_element_ID}",
+        "signal final has no custom-event listener in this output",
+        "signal start has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 50,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-038",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 13,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-039",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal final has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-040",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal start but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal final has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 34,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-041",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: set_draggable_2",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "loop_1 must use a bounded condition and update its condition state",
+        "set_draggable_2 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_5 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_7 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_8 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_9 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_1 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_2 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_4 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_6 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_7 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_9 references elementId that is not created in this output: {last_drop_element_ID}",
+        "signal final has no custom-event listener in this output",
+        "signal start has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 49,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-042",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mghl9jjc listens for signal toast but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 9,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-043",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 16,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-044",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "set_element_style_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_4 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_8 references elementId that is not created in this output: submit-btn",
+        "signal final has no custom-event listener in this output",
+        "update_text_6 references elementId that is not created in this output: cnt2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 31,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-045",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-046",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal final has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-047",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-048",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "set_element_style_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_4 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_8 references elementId that is not created in this output: submit-btn",
+        "signal final has no custom-event listener in this output",
+        "update_text_6 references elementId that is not created in this output: cnt2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 30,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-049",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "move_to_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "move_to_4 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_5 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_1 references elementId that is not created in this output: {last_drop_element_ID}",
+        "signal start has no custom-event listener in this output",
+        "signal toast has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-050",
+      "valid": false,
+      "errors": [
+        "duplicate command id: set_clickable_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-051",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 10,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-052",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: set_clickable_1",
+        "event event_mfwej30b listens for signal start but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-053",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "move_to_3 references elementId that is not created in this output: {last_drop_element_ID}",
+        "move_to_4 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_draggable_5 references elementId that is not created in this output: {last_drop_element_ID}",
+        "set_element_style_1 references elementId that is not created in this output: {last_drop_element_ID}",
+        "signal start has no custom-event listener in this output",
+        "signal toast has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 34,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-054",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mghl9jjc listens for signal toast but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 9,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-055",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 17,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-056",
+      "valid": false,
+      "errors": [
+        "duplicate command id: if_condition_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-057",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_10 references elementId that is not created in this output: 咨询背景",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "set_element_style_7 references elementId that is not created in this output: 人信息",
+        "set_element_style_8 references elementId that is not created in this output: 药1",
+        "set_element_style_9 references elementId that is not created in this output: 药2",
+        "signal fail has no custom-event listener in this output",
+        "signal success has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text",
+        "update_text_3 references elementId that is not created in this output: 药描述1",
+        "update_text_4 references elementId that is not created in this output: 药描述2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-058",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gamestart but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 16,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-059",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggj0ob5 listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_10 references elementId that is not created in this output: 咨询背景",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "set_element_style_7 references elementId that is not created in this output: 人信息",
+        "set_element_style_8 references elementId that is not created in this output: 药1",
+        "set_element_style_9 references elementId that is not created in this output: 药2",
+        "signal fail has no custom-event listener in this output",
+        "signal success has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text",
+        "update_text_3 references elementId that is not created in this output: 药描述1",
+        "update_text_4 references elementId that is not created in this output: 药描述2"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 14,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-060",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggg3y8q listens for signal fail but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-061",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: submit_btn",
+        "signal answer has no custom-event listener in this output",
+        "signal start has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 12,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-062",
+      "valid": false,
+      "errors": [
+        "duplicate command id: set_clickable_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-063",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_1 references elementId that is not created in this output: submit-btn",
+        "signal toast has no custom-event listener in this output",
+        "update_text_1 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 27,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-064",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: set_clickable_1",
+        "event event_mfwej30b listens for signal start but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-065",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: submit_btn",
+        "signal answer has no custom-event listener in this output",
+        "signal start has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 11,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-066",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_1 references elementId that is not created in this output: submit-btn",
+        "signal toast has no custom-event listener in this output",
+        "update_text_1 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 26,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-067",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal 倒计时 has no custom-event listener in this output",
+        "signal 蚊子生成 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 11,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-068",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 31,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-069",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "loop_1 must use a bounded condition and update its condition state",
+        "signal 动画 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 11,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-070",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 30,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-071",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: emit_signal_1",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal 倒计时 has no custom-event listener in this output",
+        "signal 蚊子生成 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 10,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-072",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mgu4cofa listens for signal 蚊子生成 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "loop_1 must use a bounded condition and update its condition state",
+        "signal 动画 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 10,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-073",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "duplicate command id: show_image_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal start has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 16,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-074",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_2",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "set_element_style_7 references elementId that is not created in this output: pill1",
+        "set_element_style_8 references elementId that is not created in this output: pill2",
+        "signal fail has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: info1",
+        "update_text_3 references elementId that is not created in this output: info2",
+        "update_text_4 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 20,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-075",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 9,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-076",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal start but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-077",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "duplicate command id: show_image_1",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal start has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-078",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggg3y8q listens for signal fail but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-079",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 13,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-080",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "signal fail has no custom-event listener in this output",
+        "update_text_1 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 37,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-081",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-082",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfwej30b listens for signal 倒计时 but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 35,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-083",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gameloop but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 倒计时 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 12,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-084",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mg3fddqm_jolr listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: foodtext",
+        "signal fail has no custom-event listener in this output",
+        "update_text_1 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-085",
+      "valid": false,
+      "errors": [
+        "duplicate command id: emit_signal_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 11,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-086",
+      "valid": false,
+      "errors": [
+        "duplicate command id: if_condition_1",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal fail has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 36,
+        "extra_events": 1,
+        "signals": 3,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-087",
+      "valid": false,
+      "errors": [
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "signal fail has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 16,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-088",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mfytqdg7 listens for signal gamestart but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "signal answer has no custom-event listener in this output",
+        "signal 计时开始 has no custom-event listener in this output"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 10,
+        "extra_events": 1,
+        "signals": 2,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-089",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggj0ob5 listens for signal answer but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types",
+        "set_element_style_2 references elementId that is not created in this output: con",
+        "signal fail has no custom-event listener in this output",
+        "update_text_2 references elementId that is not created in this output: story-text"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 15,
+        "extra_events": 1,
+        "signals": 1,
+        "custom_listeners": 1
+      }
+    },
+    {
+      "id": "event-coordination-090",
+      "valid": false,
+      "errors": [
+        "complete cross-event output requires non-empty commands",
+        "event event_mggg3y8q listens for signal fail but this output never emits it",
+        "extra_events[0] has unsupported EventConfig fields: command_types"
+      ],
+      "warnings": [],
+      "summary": {
+        "commands": 8,
+        "extra_events": 1,
+        "signals": 0,
+        "custom_listeners": 1
+      }
+    }
+  ]
+}

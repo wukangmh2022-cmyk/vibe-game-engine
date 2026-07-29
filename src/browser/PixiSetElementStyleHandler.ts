@@ -43,6 +43,14 @@ export class PixiSetElementStyleHandler extends BaseCommandHandler {
             try { (node as any).zIndex = Number(style.zIndex); (node as any).parent?.sortChildren?.(); } catch {}
           }
         }
+        // Pixi sprites use tint rather than CSS color/filter. The DSL accepts
+        // hexadecimal tint values such as "0xff0000" or "#ff0000".
+        if (style.tint !== undefined) {
+          const node = rm.getNode ? rm.getNode(id) : null;
+          const raw = String(style.tint).trim();
+          const tint = Number.parseInt(raw.replace(/^#/, ""), 16);
+          if (node && !Number.isNaN(tint)) (node as any).tint = tint;
+        }
         // 移除通过 style.left/top 设置位置的支持（请改用 MOVE_TO 或专用移动指令）
         // scale (optional): support scale or scaleX/scaleY
         if (style.scale !== undefined || style.scaleX !== undefined || style.scaleY !== undefined) {

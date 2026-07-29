@@ -4,6 +4,7 @@ import { GameProject } from '../types';
 import { VariableSwitchManager } from './VariableSwitchManager';
 import vfs from '../utils/vfs';
 import { isFsaSupported, loadLastHandle, verifyPermission, buildFileMapFromHandle } from '../utils/fsAccess';
+import { resourceIdFromPath } from '../utils/resourceId';
 
 interface CombinedLibraryPanelProps {
   project?: GameProject | null;
@@ -186,21 +187,18 @@ export const CombinedLibraryPanel: React.FC<CombinedLibraryPanelProps> = ({
     return () => { disposed = true; if (timer) clearTimeout(timer); };
   }, [tab]);
 
-  // Helper: generate resource id like App.tsx does
-  const genResourceId = (baseName: string, existingIds: Set<string>): string => {
-    const slug = baseName.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_\-]/g, '_');
-    let id = slug || 'res';
-    if (!existingIds.has(id)) return id;
-    let i = 1; while (existingIds.has(`${id}_${i}`)) i++; return `${id}_${i}`;
-  };
-
   // Add a list of file paths into project resources and reference them in current scene
   const addFilesToScene = (paths: string[]) => {
     const used = new Set((project?.resources || []).map(r => r.id));
+    const idsByPath = new Map<string, string>();
+    for (const resource of project?.resources || []) {
+      const resourcePath = (resource as any).path || resource.src;
+      if (resourcePath) idsByPath.set(resourcePath, resource.id);
+    }
     for (const p of paths) {
-      const fileName = p.split('/').pop() || p;
-      const rid = genResourceId(fileName, used);
+      const rid = idsByPath.get(p) || resourceIdFromPath(p, used);
       used.add(rid);
+      idsByPath.set(p, rid);
       onQuickAddResourceFromPath?.(p);
       onAddLevelResource?.(rid);
     }

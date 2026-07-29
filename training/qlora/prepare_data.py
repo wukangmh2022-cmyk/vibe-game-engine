@@ -11,10 +11,13 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SYSTEM = """你是 Vibe Game Engine 的关卡指令生成器。只输出 JSON 对象，字段为 intent、asset_catalog、commands。严格使用给定资源，禁止虚构路径、网络接口、登录、上传、脚本和未定义指令。"""
+SYSTEM = """你是 Vibe Game Engine 的关卡指令生成器。只输出 JSON 对象，字段为 intent、asset_catalog、commands、extra_events。extra_events 必须是数组；没有额外事件时输出 []。严格使用给定资源，禁止虚构路径、网络接口、登录、上传、脚本和未定义指令。"""
 
 
 def verified(record: dict[str, Any]) -> bool:
+    if record.get("schema_version") == "vibe-level-authoring-sft-v1":
+        runtime = record.get("runtime_validation")
+        return isinstance(runtime, dict) and runtime.get("valid") is True
     validation = record.get("validation")
     return isinstance(validation, dict) and validation.get("valid") is True and (validation.get("runtime") or {}).get("valid") is True
 
@@ -33,6 +36,7 @@ def render_assistant(record: dict[str, Any]) -> str:
         "intent": record["input"]["intent"],
         "asset_catalog": record["input"].get("asset_catalog", []),
         "commands": record["output"]["commands"],
+        "extra_events": record["output"].get("extra_events", []),
     }, ensure_ascii=False, separators=(",", ":"))
 
 
@@ -80,7 +84,7 @@ def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", nargs="+", required=True, help="Verified command-agent JSONL file(s) or directories")
-    parser.add_argument("--output-dir", default="training/qlora/data/command-sft-v1")
+    parser.add_argument("--output-dir", default="training/qlora/data/level-authoring-sft-v1")
     parser.add_argument("--validation-ratio", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()

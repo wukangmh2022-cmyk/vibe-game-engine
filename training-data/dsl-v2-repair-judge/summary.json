@@ -1,0 +1,41 @@
+{
+  "schema_version": "vge-dsl-v2-repair-judge-summary-v1",
+  "updated_at": "2026-07-28T03:50:53.001802+00:00",
+  "completed": 480,
+  "errors": 0,
+  "average_score": 9.4375,
+  "min_score": 6.0,
+  "p10_score": 8.0,
+  "median_score": 10.0,
+  "p90_score": 10.0,
+  "verdicts": {
+    "fixed": 458,
+    "partially_fixed": 22
+  },
+  "needs_review": 21,
+  "score_lt_8": 21,
+  "score_lt_6": 0,
+  "low_score_source_ids": [
+    "phase1-g0214",
+    "phase1-g0339",
+    "phase2-event-coordination-v3-092",
+    "phase3-interaction-v3-029",
+    "phase3-interaction-v3-126",
+    "phase3-interaction-v3-152",
+    "phase3-interaction-v3-155",
+    "phase3-interaction-v3-158",
+    "phase3-interaction-v3-159",
+    "phase3-interaction-v3-164",
+    "phase3-interaction-v3-166",
+    "phase3-interaction-v3-167",
+    "phase3-interaction-v3-169",
+    "phase3-interaction-v3-170",
+    "phase3-interaction-v3-171",
+    "phase3-interaction-v3-174",
+    "phase3-interaction-v3-189",
+    "phase3-interaction-v3-211",
+    "phase1-g0865",
+    "phase3-interaction-v3-156",
+    "phase3-interaction-v3-160"
+  ]
+}

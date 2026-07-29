@@ -1,17 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GameProject, LevelConfig } from '../types';
 import './AIGenerateModal.css';
-import { PROMPT_GUIDE_INLINE } from '../guides/promptGuideInline';
+import { LEVEL_PATCH_PROMPT_V3 } from '../guides/levelPatchPromptV3';
 import { COMMAND_TEMPLATES } from '../utils/commandTemplates';
+import { parseLevelDsl } from '../utils/levelDsl';
+import { renderLevelDslUserPrompt } from '../utils/levelDslPrompt';
 
 interface AIGenerateModalProps {
   isOpen: boolean;
   currentLevel: LevelConfig & { rawCommands?: any[] };
   project: GameProject | null;
   onCancel: () => void;
-  onApplyCommands: (commandsJson: any[]) => void; // 将生成的 JSON 写回当前关卡
+  onApplyCommands: (generated: GeneratedLevelPatch) => void;
   // 新增：引用“当前视图”（主流程或事件页）的原始命令
   currentViewRawCommands?: any[];
+}
+
+export interface GeneratedLevelPatch {
+  intent?: string;
+  asset_catalog?: any[];
+  commands: any[];
+  extra_events: any[];
 }
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -31,7 +40,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastOutput, setLastOutput] = useState<string>('');
-  const [imgDims, setImgDims] = useState<Record<string, { w: number; h: number }>>({});
+  const [generatedIntent, setGeneratedIntent] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
   const [guideCache, setGuideCache] = useState<string>('');
   const [apiKey, setApiKey] = useState<string>(() => {
@@ -46,16 +55,47 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     const levelIds = Array.isArray((currentLevel as any)?.resources) && (currentLevel as any).resources.length > 0
       ? ((currentLevel as any).resources as string[])
       : all.map((r: any) => r.id);
-    return levelIds
+    // Skins and animations are project-level authoring resources. Keep them
+    // selectable even when a level narrows its image/audio resource list.
+    const availableIds = Array.from(new Set([
+      ...levelIds,
+      ...all.filter((resource: any) => resource.type === 'skin' || resource.type === 'animation').map((resource: any) => resource.id),
+    ]));
+    return availableIds
       .map((id) => map.get(id))
       .filter(Boolean)
-      .map((r: any) => ({ id: r.id, path: r.path || r.src || '', type: r.type || 'resource', url: r.src || r.path || '' }));
+      .map((r: any) => ({ id: r.id, path: r.path || r.url || r.src || '', type: r.type || 'resource', url: r.url || r.src || r.path || '' }));
   }, [currentLevel, project]);
+
+  // Default prompts expose three real project animations. Explicitly selected
+  // animations are always retained, so selecting a fourth expands the catalog.
+  const promptResources = useMemo(() => {
+    const levelIds = new Set(Array.isArray((currentLevel as any)?.resources) ? (currentLevel as any).resources : []);
+    const selected = new Set(selectedResIds);
+    const animations = levelResources
+      .filter((resource: any) => resource.type === 'animation')
+      .sort((left: any, right: any) => {
+        const selectedDelta = Number(selected.has(right.id)) - Number(selected.has(left.id));
+        if (selectedDelta) return selectedDelta;
+        const levelDelta = Number(levelIds.has(right.id)) - Number(levelIds.has(left.id));
+        if (levelDelta) return levelDelta;
+        return String(left.path || left.id).localeCompare(String(right.path || right.id), 'zh-CN');
+      });
+    const includedAnimations = new Set(
+      animations.filter((resource: any) => selected.has(resource.id)).map((resource: any) => resource.id),
+    );
+    for (const resource of animations) {
+      if (includedAnimations.size >= 3) break;
+      includedAnimations.add(resource.id);
+    }
+    return levelResources.filter((resource: any) => resource.type !== 'animation' || includedAnimations.has(resource.id));
+  }, [currentLevel, levelResources, selectedResIds]);
 
   useEffect(() => {
     if (isOpen) {
       setError(null);
       setLastOutput('');
+      setGeneratedIntent('');
       // 默认：如果当前视图有指令则勾选“引用当前关卡指令”（支持事件页或主流程）
       const cur = Array.isArray(currentViewRawCommands) ? currentViewRawCommands : (currentLevel as any)?.rawCommands;
       const has = Array.isArray(cur) && cur.length > 0;
@@ -64,54 +104,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     }
   }, [isOpen, currentLevel, currentViewRawCommands]);
 
-  // 选中的图片资源：预加载以获取宽高
-  useEffect(() => {
-    if (!isOpen) return;
-    let cancelled = false;
-    const sel = new Set(selectedResIds);
-    const targets = levelResources.filter(r => sel.has(r.id) && r.type === 'image');
-    if (targets.length === 0) return;
-    targets.forEach(r => {
-      const url = r.url || r.path;
-      if (!url) return;
-      const img = new Image();
-      img.onload = () => {
-        if (cancelled) return;
-        setImgDims(prev => ({ ...prev, [r.id]: { w: img.naturalWidth || img.width, h: img.naturalHeight || img.height } }));
-      };
-      img.onerror = () => {
-        // ignore
-      };
-      img.src = url;
-    });
-    return () => { cancelled = true; };
-  }, [isOpen, selectedResIds, levelResources]);
-
   if (!isOpen) return null;
-
-  const typeToZh = (t: string) => (
-    t === 'image' ? '图片'
-    : t === 'audio' ? '音效'
-    : t === 'animation' ? '动画'
-    : t === 'video' ? '视频'
-    : t === 'skin' ? '皮肤'
-    : '资源'
-  );
-
-  const selectedResourceTexts = () => {
-    const sel = new Set(selectedResIds);
-    return levelResources
-      .filter((r) => sel.has(r.id))
-      .map((r) => {
-        const base = `- [${typeToZh(r.type)}] id: ${r.id} | path: ${r.path}`;
-        if (r.type === 'image') {
-          const d = imgDims[r.id];
-          if (d && d.w && d.h) return `${base} | size: ${d.w}x${d.h}`;
-        }
-        return base;
-      })
-      .join('\n');
-  };
 
   const addRes = (rid: string) => {
     setSelectedResIds((prev) => (prev.includes(rid) ? prev : [...prev, rid]));
@@ -124,61 +117,49 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     // 读取编辑指导文档（多路径兜底 + 缓存 + 内联回退）
     let guideText = guideCache;
     if (!guideText) {
-      if (!guideText) guideText = PROMPT_GUIDE_INLINE; // 内联回退，确保 dist 也有内容
+      if (!guideText) guideText = LEVEL_PATCH_PROMPT_V3; // 内联回退，确保 dist 也有内容
       if (guideText) setGuideCache(guideText);
     }
 
     // 系统提示：放入规则说明
     const systemTextParts: string[] = [];
     if (guideText) {
-      systemTextParts.push('遵循以下编辑器指令编写规则：');
       systemTextParts.push(guideText);
     } else {
-      systemTextParts.push('你是关卡指令生成助手，请输出符合编辑器规范的 commands JSON。');
+      systemTextParts.push('你是关卡指令生成助手，请输出符合编辑器规范的关卡补丁 JSON。');
     }
-
-    // 用户提示：组合画布、资源、现有指令、用户需求
-    const userParts: string[] = [];
-    userParts.push('【任务】根据需求生成或优化当前关卡的 commands 列表（JSON 数组）。');
-    userParts.push('【需求描述】');
-    userParts.push((prompt || '').trim() || '无');
 
     const cw = Number((currentLevel as any)?.canvasWidth || 800);
     const ch = Number((currentLevel as any)?.canvasHeight || 600);
-    userParts.push(`\n【画布设置】宽度: ${cw}, 高度: ${ch}`);
-    userParts.push('【尺寸约束】SHOW_IMAGE 的宽和高参数请务必合理，且不要超过画布大小。');
-    userParts.push(`- SHOW_IMAGE 自身x + width <= ${Number((currentLevel as any)?.canvasWidth || 800)}, y + height <= ${Number((currentLevel as any)?.canvasHeight || 600)} （元素不超出画布宽高）。`);
-
+    const assetCatalog = promptResources.map((resource: any) => ({
+      id: resource.id,
+      type: resource.type,
+      path: resource.path,
+    }));
+    const userParts: string[] = [renderLevelDslUserPrompt((prompt || '').trim() || '无', cw, ch, assetCatalog)];
 
     if (selectedResIds.length > 0) {
-      userParts.push('\n【可引用的关卡资源（按需使用）】');
-      userParts.push(selectedResourceTexts());
-    }
-
-    // 附：列出当前可用资源（若关卡未配置 resources，则展示项目全量，已在 levelResources 处理过）
-    if (levelResources.length > 0) {
-      const allLines = levelResources
-        .map((r: any) => `- [${typeToZh(r.type)}] id: ${r.id} | path: ${r.path}`)
-        .join('\n');
-      userParts.push('\n【关卡可用资源（全部）】');
-      userParts.push(allLines);
+      userParts.push('\nPREFERRED ASSET IDS');
+      userParts.push(selectedResIds.join(', '));
     }
 
     const curRaw = Array.isArray(currentViewRawCommands) ? currentViewRawCommands : (currentLevel as any)?.rawCommands;
     if (includeExisting && Array.isArray(curRaw)) {
       try {
         const raw = JSON.stringify(curRaw, null, 2);
-        userParts.push('\n【当前关卡现有命令（可在其基础上优化）】');
+        userParts.push('\nEXISTING COMMANDS');
         // 避免太长，放在 text chunk 内部即可
         userParts.push(raw);
       } catch {}
     }
 
-    userParts.push('\n【输出要求】');
-    userParts.push('- 仅返回 JSON；内容是 commands 的数组。');
-    userParts.push('- 不要包含 markdown 代码块围栏或额外解释。');
-    userParts.push('- 所有指令参数字段、类型需与规则一致。');
-    
+    if (includeExisting && Array.isArray((currentLevel as any)?.events) && (currentLevel as any).events.length > 0) {
+      try {
+        userParts.push('\nEXISTING EVENTS');
+        userParts.push(JSON.stringify((currentLevel as any).events, null, 2));
+      } catch {}
+    }
+
     const messages: any[] = [];
     if (systemTextParts.length > 0) {
       messages.push({ role: 'system', content: [{ type: 'text', text: systemTextParts.join('\n\n') }] });
@@ -203,16 +184,23 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     return lines.join('\n');
   };
 
-  const tryExtractCommands = (txt: string): any[] | null => {
+  const tryExtractPatch = (txt: string): GeneratedLevelPatch | null => {
+    const cleaned = txt.trim().replace(/^```(?:\w+)?\s*\n?/, '').replace(/\n?```$/, '').trim();
+    const assetCatalog = promptResources.map((resource: any) => ({ id: resource.id, type: resource.type, path: resource.path }));
+    try {
+      return parseLevelDsl(cleaned, { intent: prompt.trim(), asset_catalog: assetCatalog });
+    } catch {
+      // Keep legacy JSON import compatibility while models migrate to DSL.
+    }
     // 直接尝试 JSON 解析
     const tryJSON = (s: string) => { try { return JSON.parse(s); } catch { return null; } };
 
     // 1) 完整 JSON
     let parsed = tryJSON(txt);
-    if (Array.isArray(parsed)) return parsed;
+    if (Array.isArray(parsed)) return { commands: parsed, extra_events: [] };
     if (parsed && typeof parsed === 'object') {
-      if (Array.isArray((parsed as any).commands)) return (parsed as any).commands;
-      if (Array.isArray((parsed as any).levels?.[0]?.commands)) return (parsed as any).levels[0].commands;
+      if (Array.isArray((parsed as any).commands)) return { intent: typeof (parsed as any).intent === 'string' ? (parsed as any).intent : undefined, asset_catalog: Array.isArray((parsed as any).asset_catalog) ? (parsed as any).asset_catalog : [], commands: (parsed as any).commands, extra_events: Array.isArray((parsed as any).extra_events) ? (parsed as any).extra_events : [] };
+      if (Array.isArray((parsed as any).levels?.[0]?.commands)) return { commands: (parsed as any).levels[0].commands, extra_events: Array.isArray((parsed as any).levels?.[0]?.events) ? (parsed as any).levels[0].events : [] };
     }
 
     // 2) 提取第一个大括号/中括号片段
@@ -220,7 +208,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
     const arrEnd = txt.lastIndexOf(']');
     if (arrStart >= 0 && arrEnd > arrStart) {
       parsed = tryJSON(txt.slice(arrStart, arrEnd + 1));
-      if (Array.isArray(parsed)) return parsed;
+      if (Array.isArray(parsed)) return { commands: parsed, extra_events: [] };
     }
 
     const objStart = txt.indexOf('{');
@@ -229,18 +217,65 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
       const objText = txt.slice(objStart, objEnd + 1);
       const obj = tryJSON(objText);
       if (obj && typeof obj === 'object') {
-        if (Array.isArray((obj as any).commands)) return (obj as any).commands;
-        if (Array.isArray((obj as any).levels?.[0]?.commands)) return (obj as any).levels[0].commands;
+        if (Array.isArray((obj as any).commands)) return { intent: typeof (obj as any).intent === 'string' ? (obj as any).intent : undefined, asset_catalog: Array.isArray((obj as any).asset_catalog) ? (obj as any).asset_catalog : [], commands: (obj as any).commands, extra_events: Array.isArray((obj as any).extra_events) ? (obj as any).extra_events : [] };
+        if (Array.isArray((obj as any).levels?.[0]?.commands)) return { commands: (obj as any).levels[0].commands, extra_events: Array.isArray((obj as any).levels[0].events) ? (obj as any).levels[0].events : [] };
       }
     }
 
     return null;
   };
 
+  const extractStreamIntent = (text: string): string => {
+    const match = text.match(/"intent"\s*:\s*("(?:\\.|[^"\\])*")/);
+    if (!match) return '';
+    try {
+      const value = JSON.parse(match[1]);
+      return typeof value === 'string' ? value.trim() : '';
+    } catch {
+      return '';
+    }
+  };
+
+  const readStreamedContent = async (res: Response): Promise<string> => {
+    if (!res.body) throw new Error('浏览器不支持流式 AI 响应。');
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+    const consumeLine = (line: string) => {
+      if (!line.startsWith('data:')) return;
+      const payload = line.slice(5).trim();
+      if (!payload || payload === '[DONE]') return;
+      try {
+        const event = JSON.parse(payload);
+        const delta = event?.choices?.[0]?.delta?.content;
+        const content = typeof delta === 'string' ? delta : Array.isArray(delta) ? delta.map((part: any) => part?.text || '').join('') : '';
+        if (!content) return;
+        fullText += content;
+        setLastOutput(fullText);
+        const intent = extractStreamIntent(fullText);
+        if (intent) setGeneratedIntent(intent);
+      } catch {
+        // Ignore provider keepalive and non-content SSE events.
+      }
+    };
+    while (true) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+      const lines = buffer.split(/\r?\n/);
+      buffer = lines.pop() || '';
+      lines.forEach(consumeLine);
+      if (done) break;
+    }
+    if (buffer) consumeLine(buffer);
+    return fullText;
+  };
+
   const handleGenerate = async () => {
     setLoading(true);
     setError(null);
     setLastOutput('');
+    setGeneratedIntent('');
     try {
       const key = apiKey.trim();
       if (!key) {
@@ -251,6 +286,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
       const payload = {
         model: 'x-ai/grok-4-fast:free',
         messages,
+        stream: true,
       } as any;
 
       const res = await fetch(OPENROUTER_URL, {
@@ -267,21 +303,17 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
         throw new Error(`请求失败 ${res.status}: ${text}`);
       }
 
-      const data = await res.json();
-      const content = data?.choices?.[0]?.message?.content;
-      const text = typeof content === 'string'
-        ? content
-        : Array.isArray(content)
-          ? content.map((c: any) => (c?.text || '')).join('\n')
-          : '';
-
+      const text = await readStreamedContent(res);
       setLastOutput(text || '');
-      let cmds = tryExtractCommands(text || '') || [];
+      const patch = tryExtractPatch(text || '');
+      if (!patch) throw new Error('AI 响应不是有效的 VGE-DSL/1。');
+      if (patch.intent) setGeneratedIntent(patch.intent);
+      let cmds = patch.commands;
       // 基于指令模板做一次“缺省值填充/校准”，避免必需显示参数缺失（如 SHOW_CHOICES.ui.fontSize）
       try { cmds = calibrateWithTemplates(cmds); } catch {}
-      if (!Array.isArray(cmds)) throw new Error('AI 响应中未找到有效 commands JSON。');
+      if (!Array.isArray(cmds) || !Array.isArray(patch.extra_events)) throw new Error('AI 响应的 commands 或 extra_events 不是数组。');
 
-      onApplyCommands(cmds);
+      onApplyCommands({ intent: patch.intent, asset_catalog: patch.asset_catalog, commands: cmds, extra_events: patch.extra_events });
       onCancel();
     } catch (e: any) {
       setError(e?.message || '生成失败');
@@ -478,8 +510,9 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({
         </div>
 
         <div className="ai-modal-footer">
-          <div className="ai-status">
-            {loading ? '正在生成中，请稍候（30秒~1分钟）…' : error ? (<span className="ai-error">{error}</span>) : (copied ? '已复制到剪贴板' : '准备就绪')}
+          <div className="ai-status" aria-live="polite">
+            <div>{loading ? '正在生成中，请稍候（30秒~1分钟）…' : error ? (<span className="ai-error">{error}</span>) : (copied ? '已复制到剪贴板' : '准备就绪')}</div>
+            {generatedIntent && <div className="ai-intent-progress"><span>当前理解：</span>{generatedIntent}</div>}
           </div>
           <div className="ai-actions">
             <button className="ai-secondary" onClick={handleCopyPrompt} disabled={loading}>复制 Prompt</button>

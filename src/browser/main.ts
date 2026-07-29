@@ -185,11 +185,16 @@ async function bootstrap() {
       const c = arr[i];
       if (!c || typeof c !== 'object') continue;
       if (c.id) { allIndex.set(c.id, c); try { cmdPos.set(c.id, { arr: arr as any, idx: i }); } catch {} }
-      if (Array.isArray((c as any).commands)) indexCommands((c as any).commands);
-      if (Array.isArray((c as any).trueCommands)) indexCommands((c as any).trueCommands);
-      if (Array.isArray((c as any).falseCommands)) indexCommands((c as any).falseCommands);
+      const params = (c as any).parameters || c;
+      for (const field of ['commands', 'trueCommands', 'falseCommands', 'onSelectedCommands', 'onCancelSelectedCommands']) {
+        if (Array.isArray(params[field])) indexCommands(params[field]);
+      }
+      if (Array.isArray(params.options)) {
+        for (const option of params.options) indexCommands(option?.commands);
+      }
     }
   };
+  indexCommands(level.commands || []);
 
   // Load resources
   const images = (game.resources?.images || []) as Array<{ id: string; src: string }>;

@@ -1,0 +1,25 @@
+{
+  "schema_version": "vge-dsl-v2-repair-judge-summary-v1",
+  "updated_at": "2026-07-28T04:12:38.122276+00:00",
+  "completed": 21,
+  "errors": 0,
+  "average_score": 8.1429,
+  "min_score": 6.0,
+  "p10_score": 6.0,
+  "median_score": 8.0,
+  "p90_score": 9.0,
+  "verdicts": {
+    "fixed": 15,
+    "partially_fixed": 6
+  },
+  "needs_review": 5,
+  "score_lt_8": 5,
+  "score_lt_6": 0,
+  "low_score_source_ids": [
+    "phase3-interaction-v3-126",
+    "phase3-interaction-v3-158",
+    "phase3-interaction-v3-189",
+    "phase3-interaction-v3-211",
+    "phase1-g0865"
+  ]
+}

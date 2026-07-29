@@ -176,8 +176,9 @@ export interface EventConfig {
 
 // 事件触发器
 export interface EventTrigger {
-  type: 'timer' | 'custom';
+  type: 'auto' | 'timer' | 'custom';
   target?: string;
+  start?: 'immediate';
   delay?: number;
   condition?: Condition;
 }
