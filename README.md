@@ -15,12 +15,20 @@ Vibe Game Engine 是一个数据驱动的 2D 游戏运行时和 Web 关卡编辑
 
 ### 模型下载
 
-已训练好的第一阶段模型是 Qwen3-4B-Instruct-2507 的 PEFT LoRA adapter，不包含基础模型权重。Adapter 文件已通过 Git LFS 保存在本仓库：
+已训练好的第一阶段模型是 `Qwen/Qwen3-4B-Instruct-2507` 的 PEFT LoRA adapter，不包含基础模型权重。本仓库只托管 adapter；基础模型需要从上游模型仓库下载到本地，再挂载 adapter 推理。
+
+基础模型：
+
+- HuggingFace：[Qwen/Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507)
+- HF Mirror：`https://hf-mirror.com/Qwen/Qwen3-4B-Instruct-2507`
+- ModelScope：`https://www.modelscope.cn/models/Qwen/Qwen3-4B-Instruct-2507`
+
+Adapter 文件已通过 Git LFS 保存在本仓库：
 
 - [adapter_config.json](training/qlora/outputs/vibe-level-qwen3-4b-dsl-v3/adapter_config.json)
 - [adapter_model.safetensors](training/qlora/outputs/vibe-level-qwen3-4b-dsl-v3/adapter_model.safetensors)
 
-下载方式：克隆仓库后执行 `git lfs pull`，再按 [training/inference/start_qwen3_4b_dsl_v3_vllm.sh](training/inference/start_qwen3_4b_dsl_v3_vllm.sh) 挂载到同一基础模型上推理。
+下载方式：克隆仓库后执行 `git lfs pull` 获取 adapter；基础模型由 [training/qlora/prepare_qwen35_4b.sh](training/qlora/prepare_qwen35_4b.sh) 默认按 `MODEL_ID=Qwen/Qwen3-4B-Instruct-2507` 下载到 `training/models/Qwen3-4B-Instruct-2507`，再按 [training/inference/start_qwen3_4b_dsl_v3_vllm.sh](training/inference/start_qwen3_4b_dsl_v3_vllm.sh) 挂载推理。
 
 ## AI 生成关卡
 
